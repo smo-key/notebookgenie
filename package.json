@@ -1,0 +1,30 @@
+{
+  "name": "trello2latex",
+  "version": "0.1.0",
+  "description": "NodeJS server that automagically converts a Trello board into a customizable LaTeX document",
+  "main": "server.js",
+  "dependencies": {
+	"node-trello": "1.0.1",
+	"mu2": "0.5.20",
+	"express": "4.10.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smo-key/trello2latex.git"
+  },
+  "keywords": [
+    "Trello",
+    "CI",
+    "LaTeX",
+    "PDF"
+  ],
+  "author": "Arthur Pachachura",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smo-key/trello2latex/issues"
+  },
+  "homepage": "https://github.com/smo-key/trello2latex"
+}
