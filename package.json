@@ -6,7 +6,8 @@
   "dependencies": {
 	"node-trello": "1.0.1",
 	"mu2": "0.5.20",
-	"express": "4.10.4"
+	"express": "4.10.4",
+	"js-yaml": "3.2.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
