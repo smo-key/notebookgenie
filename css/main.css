@@ -18,25 +18,16 @@ body {
 .centered-abs {
   position: absolute;
 }
+.centered-abs img {
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+}
 
 #loading {
   padding-top: 16px;
   font-size: 1.5em;
   color: #585858;
-}
-#loading i.fa-trello,
-#loading i.fa-file-text-o,
-#loading i.fa-chevron-right
-{
-  font-size: 48px;
-  margin-left: 6px;
-  margin-right: 6px;
-  vertical-align: middle;
-  color: #111;
-}
-#loading i.fa-chevron-right
-{
-  font-size: 30px;
 }
 #loading i.fa-spin {
   margin-right: 4px;
