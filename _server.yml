@@ -1,4 +1,22 @@
 ##### Trello2LaTeX Server Configuration File #####
 
-#Trello board ID
-trello_board: "https://trello.com/b/zdflRoNr/"
+#Trello boards to track (https://trello.com/b/ + boardid + "/"
+
+#let's not ha
+
+#each board should have its own array and name
+#id: board id
+#format: location of the tex formatting outline, parsed by Mustache
+#index: format index relative to format directory (where Mustache starts searching)
+#cron: time (minutes) between scans
+#boards: {
+#  lasa4290: {
+#    id: "zdflRoNr",
+#    format: "formats/lasa4290",
+#    index: "index.tex",
+#    cron: 30
+#  }
+#}
+
+#custom latex formats directory
+formats: "formats/"

@@ -32,3 +32,14 @@ body {
 #loading i.fa-spin {
   margin-right: 4px;
 }
+
+button.btn {
+  border-radius: 0px;
+  font-size: 0.9em;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 8px;
+}
+button.btn .glyphicon {
+  margin-right: 4px;
+}
