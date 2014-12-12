@@ -2,7 +2,7 @@
 body {
   margin: 0px;
   background-color: #f0f0f0;
-  font-family: "Helvetica";
+  overflow: hidden;
 }
 .centered, .centered-abs {
   display: block;
@@ -28,13 +28,35 @@ body {
   padding-top: 16px;
   font-size: 1.5em;
   color: #585858;
+  overflow-y: visible;
+  margin-right: 12px;
 }
 #loading i.fa-spin {
   margin-right: 4px;
 }
+#loading .alert {
+  font-size: 0.85em;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.panel {
+  text-align: left;
+}
+.panel-title .fa {
+  padding: 1px;
+}
+.panel h5 {
+  margin-bottom: 2px;
+}
+.panel h6 {
+  margin-bottom: 0px;
+}
 
 button.btn {
   border-radius: 0px;
+}
+#loading button.btn {
   font-size: 0.9em;
   width: 100%;
   text-align: left;

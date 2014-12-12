@@ -8,6 +8,10 @@ $(document).ready(function () {
 
 function firstLoad()
 {
+  //activate tooltips
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  });
   //$("#copyright").text('Copyright © ' + new Date().getFullYear().toString() + ' Arthur Pachachura');
 }
 

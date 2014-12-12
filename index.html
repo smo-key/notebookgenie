@@ -13,6 +13,9 @@
   </head>
 
   <!--  Load External Javascript -->
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/main.js"></script>
   <script type="text/javascript" src="http://code.arthurpachachura.com/assets/links-main.js"></script>
 
   <!--  Load CSS -->
@@ -22,24 +25,42 @@
 
   <body>
     <div class="container-fluid">
-      <div class="centered-abs" id="loading">
-        <img src="img/trello2latex-rgb-96.png"><br>
-        <!-- Content dependent area-->
-        <i class="fa fa-circle-o-notch fa-spin"></i>
-        Checking build status<br><br>
-        <button type="button" class="btn btn-success">
-          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-          Build a board
-        </button>
-        <button type="button" class="btn btn-primary">
-          <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
-          Help
-        </button>
-        <br>
+      <div class="container-fluid" d="loadingcontainer">
+        <div class="centered-abs" id="loading">
+          <img src="img/trello2latex-rgb-96.png"><br><br>
+          <!-- Content dependent area-->
 
-        <!-- End content dependent area-->
+          <!-- Simply remove the div to revert to default-->
+          <i class="fa fa-circle-o-notch fa-spin"></i>
+          Checking status...<br><br>
+
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h3 class="panel-title">LASA Robotics</h3>
+            </div>
+            <div class="panel-body">
+              <h5>Template: LASA Robotics</h5>
+              <h6>Build System</h6>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-success">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            Build a board
+          </button>
+
+          <button type="button" class="btn btn-primary">
+            <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+            Help
+          </button>
+
+          <!-- End content dependent area-->
+
+        </div>
       </div>
     </div>
+
+
   </body>
 
 </html>
