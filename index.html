@@ -25,7 +25,7 @@
 
   <body>
     <div class="container-fluid">
-      <div class="container-fluid" d="loadingcontainer">
+      <div class="container-fluid" id="loadingcontainer">
         <div class="centered-abs" id="loading">
           <img src="img/trello2latex-rgb-96.png"><hr>
           <!-- Content dependent area-->
@@ -55,10 +55,10 @@
               <h2 class="panel-title"><i class="glyphicon glyphicon-check"></i>Recently built</h2>
             </div>
             <div class="panel-body">
-              <h5 data-toggle="tooltip" data-placement="left" title="Public Board"><span class="octicon octicon-repo" data-toggle="tooltip" data-placement="top" title="Public Board"></span>LASA Robotics / <b>4290 - LASA HiPhidelity - Team Board </b></h5>
-              <h5 data-toggle="tooltip" data-placement="left" title="Public Board"><span class="octicon octicon-repo"></span><a href="https://trello.com/arthurpachachura1">Arthur Pachachura</a> / <a href="#"><b>My Public Board</b></a></h5>
-              <h5 data-toggle="tooltip" data-placement="left" title="Private Board"><span class="octicon octicon-lock"></span>LASA Robotics / <b>Private Board</b></h5>
-              <h5 data-toggle="tooltip" data-placement="left" title="Private Board"><span class="octicon octicon-lock"></span><a href="#">Some Public Organization</a> / <b>Private Board</b></h5>
+              <h5><span class="octicon octicon-repo" data-toggle="tooltip" data-placement="top" title="Public"></span>LASA Robotics / <b>4290 - LASA HiPhidelity - Team Board </b></h5>
+              <h5><span class="octicon octicon-repo" data-toggle="tooltip" data-placement="top" title="Public"></span><a href="https://trello.com/arthurpachachura1">Arthur Pachachura</a> / <a href="#"><b>My Public Board</b></a></h5>
+              <h5><span class="octicon octicon-lock" data-toggle="tooltip" data-placement="top" title="Private"></span>LASA Robotics / <b>Private Board</b></h5>
+              <h5><span class="octicon octicon-lock" data-toggle="tooltip" data-placement="top" title="Private"></span><a href="#">Some Public Organization</a> / <b>Private Board</b></h5>
             </div>
           </div>
 
@@ -73,8 +73,9 @@
             <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
             Help
           </button>
-
           <!-- End content dependent area-->
+
+          <h6 id="copyright" data-toggle="tooltip" data-placement="top" title="If you like this app, give us a star on Github!">Trello2LaTeX Copyright (c) YEAR Arthur Pachachura<br><b>Licensed under MIT</b></h6>
 
         </div>
       </div>
@@ -85,7 +86,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel">Build a board</h4>
+            <h4 class="modal-title" id="myModalLabel"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>Build a board</h4>
           </div>
           <div class="modal-body">
 
@@ -109,7 +110,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-success disabled">Start Building Now!</button>
+            <button type="button" class="btn btn-success disabled"><span class="octicon octicon-repo"></span>Start Building Now!</button>
             <button type="button" class="btn btn-primary"><span class="octicon octicon-lock"></span>Continue to Signin</button>
           </div>
         </div>

@@ -7,9 +7,9 @@ body {
 hr {
   border-top: 1px solid #ccc;
 }
-.centered, .centered-abs {
+.centered-abs {
   display: block;
-  position: relative;
+  position: fixed;
   top: 50%;
   left: 50%;
   -webkit-transform: translate(-50%, -50%);
@@ -18,8 +18,14 @@ hr {
   transform: translate(-50%, -50%);
   text-align: center;
 }
-.centered-abs {
+
+.centered-top {
   position: absolute;
+  top: 0%;
+  -webkit-transform: translate(-50%, 0%);
+  -ms-transform: translate(-50%, 0%);
+  -moz-transform: translate(-50%, 0%);
+  transform: translate(-50%, 0%);
 }
 
 #loading {
@@ -78,6 +84,9 @@ button .octicon {
 .panel-title .glyphicon,
 .panel-title .fa {
     margin-right: 8px!important;
+}
+.modal-title span {
+  padding-right: 8px;
 }
 .panel h5 {
   margin-top: 4px;
