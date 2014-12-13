@@ -38,6 +38,11 @@ hr {
   padding-bottom: 8px;
 }
 
+.wide { width: 100%; }
+button .octicon {
+  padding-right: 8px;
+}
+
 .panel {
   text-align: left;
   border-radius: 0px;
