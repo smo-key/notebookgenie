@@ -109,3 +109,7 @@ button.btn {
 button.btn .glyphicon {
   margin-right: 4px;
 }
+
+.form-group .checkbox label {
+  width: 100%;
+}

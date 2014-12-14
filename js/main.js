@@ -12,6 +12,8 @@ function firstLoad()
   $('[data-toggle="tooltip"]').tooltip();
   //make copyright text
   $("#copyright").html("Trello2LaTeX Copyright © " + new Date().getFullYear().toString() + " Arthur Pachachura<br><b>Licensed under MIT</b>");
+  //set checked state for checboxes
+  $('.checked').prop("checked", "true");
 }
 
 function updateContainer() {
