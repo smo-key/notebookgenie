@@ -1,6 +1,9 @@
 # Design
 design
 
+# Private Keys
+_private.yml
+
 # Logs
 logs
 *.log

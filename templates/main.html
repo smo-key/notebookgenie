@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <title>Trello2LaTeX</title>
+    <meta name="author" content="Arthur Pachachura">
+    <meta name="ROBOTS" content="INDEX, FOLLOW">
+    <meta name="Keywords" content="Trello, PDF, LaTeX">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="NodeJS web server that automagically converts a Trello board into a customizable LaTeX document">
+  </head>
+
+  <!--  Load External Javascript -->
+  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/main.js"></script>
+  <script type="text/javascript" src="http://code.arthurpachachura.com/assets/links-main.js"></script>
+
+  <!--  Load CSS -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="fonts/fonts.css" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+
+  <body>
+    <div class="container-fluid">
+      <div class="container-fluid" id="loadingcontainer">
+        <div class="centered-abs" id="loading">
+          <img src="img/trello2latex-rgb-96.png"><hr>
+          <!-- Content dependent area-->
+          {{{main}}}
+          <!-- End content dependent area-->
+
+          <h6 id="copyright" data-toggle="tooltip" data-placement="top" title="If you like this app, give us a star on Github!">Trello2LaTeX Copyright (c) YEAR Arthur Pachachura<br><b>Licensed under MIT</b></h6>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          {{{modal-content}}}
+        </div>
+      </div>
+    </div>
+
+
+  </body>
+
+</html>
