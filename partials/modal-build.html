@@ -1,0 +1,46 @@
+<div class="modal fade" id="buildboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Build a board</h4>
+      </div>
+      <div class="modal-body">
+
+        <div class="form-group has-error has-feedback">
+          <label class="control-label" for="inputError1" data-toggle="tooltip" data-placement="right" title="Copy and paste the URL your browser's address bar.">Board URL</label>
+          <input type="text" class="form-control" id="inputError1" placeholder="https://trello.com/b/vr9TOxFu/welcome-board" >
+          <span class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
+          <h5 class="control-label">Please enter the URL.</h5>
+        </div>
+        <hr>
+        <div class="form-group has-success">
+          <label class="control-label" for="inputError1">Template</label>
+          <select class="form-control">
+            <option>Default</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>Upload Your Own</option>
+          </select>
+        </div>
+        <hr>
+        <div class="form-group">
+          <label class="control-label" for="inputError1">Visibility</label>
+          <div class="checkbox">
+            <label data-toggle="tooltip" data-placement="top" title="We would really like to show the world how often this app is used.  If you don't wish to display this, that's OK though."><input type="checkbox" class="checked">Show my repo on the publically visible "recently built" list</label>
+          </div>
+          <div class="checkbox">
+            <label data-toggle="tooltip" data-placement="top" title='Setting this option will show "Private Board" instead of the board name.'><input type="checkbox">Obfuscate board name</label>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success disabled"><span class="octicon octicon-repo"></span>Start Building Now!</button>
+        <button type="button" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title='Secure Trello sign-in'><span class="octicon octicon-lock"></span>Continue to Signin</button>
+      </div>
+    </div>
+  </div>
+</div>

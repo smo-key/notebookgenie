@@ -132,13 +132,14 @@ app.use('/build', express.static(__dirname + '/build'));;
 
 app.get('/', function (req, res) {
   res.render('main', {
-    building: stache.building,
+//    building: stache.building,
     built: stache.built,
     partials: {
       main: 'start',
       helpbutton: 'helpbutton',
       public: 'public',
-      private: 'private'
+      private: 'private',
+      modal: 'modal-build'
     }
   });
 });
