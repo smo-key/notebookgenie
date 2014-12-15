@@ -113,3 +113,11 @@ button.btn .glyphicon {
 .form-group .checkbox label {
   width: 100%;
 }
+
+.form-control-feedback.fa-spin {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  margin-top: 9px;
+  margin-right: 8px;
+}

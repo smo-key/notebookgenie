@@ -9,7 +9,8 @@ var http = require("http"),
     cons = require('consolidate'),
     logger = require('morgan'),
     walk = require("walk"),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser"),
+    util = require("./js/util.js"),
     trello = require("node-trello");
 
 //initialize renderer
@@ -133,17 +134,16 @@ app.get('/build/:id', function(req, res){
 app.use('/build', express.static(__dirname + '/build'));
 
 // API POST requests
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-app.post('/ajax/prepurl', function(req, res) {
+app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
-  console.log(req.body);
+  console.log(req.body.url);
+  var url = req.body.url;
+  var data = util.prepurl(url);
 
-  var data = {
-    status: 0,
-    message: "Please enter a URL.",
-    public: true
-  };
+  console.log(data);
+
   var s = JSON.stringify(data);
   res.writeHead(200, { 'Content-Type': 'application/json',
                        'Content-Length': s.length });

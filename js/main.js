@@ -9,19 +9,59 @@ $(document).ready(function () {
 $('#inputurl').change(function(){
   console.log($('#inputurl').val());
 
+  $('#urlglyph').removeClass("glyphicon-remove");
+  $('#urlglyph').removeClass("glyphicon");
+  $('#urlglyph').addClass("fa");
+  $('#urlglyph').addClass("fa-cog");
+  $('#urlglyph').addClass("fa-spin");
+  $('#urlstatus').html("");
+
   $.ajax({
-   url: '/ajax/prepurl',
-   type: 'POST',
-   cache: false,
-   data: { url: $('#inputurl').val() },
-   success: function(data) {
-     alert('Success!');
-     console.log(data);
-   },
-   contentType: 'text/json',
-   error: function(jqXHR, textStatus, err) {
-     alert('text status '+textStatus+', err '+err)
-   }
+    url: '/ajax/prepurl',
+    type: 'POST',
+    data: { url: $('#inputurl').val() },
+    success: function(data) {
+      console.log(data);
+      $('#urlglyph').removeClass("fa");
+      $('#urlglyph').removeClass("fa-cog");
+      $('#urlglyph').removeClass("fa-spin");
+      $('#formurl').removeClass("has-error");
+      $('#formurl').removeClass("has-warning");
+      $('#formurl').removeClass("has-success");
+
+      $('#urlglyph').addClass("glyphicon");
+      $('#urlstatus').html(data.message);
+      if (data.status == 0)
+      {
+        $('#formurl').addClass("has-error");
+        $('#urlglyph').addClass("glyphicon-remove");
+
+        //TODO test data.public
+      }
+      if (data.status == 1)
+      {
+        $('#formurl').addClass("has-warning");
+        $('#urlglyph').addClass("glyphicon-warning-sign");
+      }
+      if (data.status == 2)
+      {
+        $('#formurl').addClass("has-success");
+        $('#urlglyph').addClass("glyphicon-ok");
+      }
+    },
+    error: function(jqXHR, textStatus, err) {
+      $('#urlglyph').removeClass("fa");
+      $('#urlglyph').removeClass("fa-cog");
+      $('#urlglyph').removeClass("fa-spin");
+      $('#formurl').removeClass("has-warning");
+      $('#formurl').removeClass("has-success");
+
+      $('#urlglyph').addClass("glyphicon");
+      $('#formurl').addClass("has-error");
+      $('#urlglyph').addClass("glyphicon-remove");
+      var jsonValue = jQuery.parseJSON(jqXHR.responseText);
+      $('#urlstatus').html("Error: " + jsonValue.Message);
+    }
   });
 });
 
