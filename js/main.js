@@ -6,6 +6,25 @@ $(document).ready(function () {
   });
 });
 
+$('#inputurl').change(function(){
+  console.log($('#inputurl').val());
+
+  $.ajax({
+   url: '/ajax/prepurl',
+   type: 'POST',
+   cache: false,
+   data: { url: $('#inputurl').val() },
+   success: function(data) {
+     alert('Success!');
+     console.log(data);
+   },
+   contentType: 'text/json',
+   error: function(jqXHR, textStatus, err) {
+     alert('text status '+textStatus+', err '+err)
+   }
+  });
+});
+
 function firstLoad()
 {
   //activate tooltips

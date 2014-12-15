@@ -3,11 +3,13 @@ var http = require("http"),
     url = require("url"),
     path = require("path"),
     fs = require("fs"),
+    queryString = require("querystring"),
     express = require("express"),
     yaml = require("js-yaml"),
     cons = require('consolidate'),
     logger = require('morgan'),
     walk = require("walk"),
+    bodyParser = require("body-parser");
     trello = require("node-trello");
 
 //initialize renderer
@@ -128,11 +130,30 @@ app.get('/build/:id', function(req, res){
   res.send('Build ID ' + req.params.id);
 });
 // LaTeX and PDF completed download location
-app.use('/build', express.static(__dirname + '/build'));;
+app.use('/build', express.static(__dirname + '/build'));
 
+// API POST requests
+app.use(bodyParser.json());
+
+app.post('/ajax/prepurl', function(req, res) {
+  //Check if valid URL
+  console.log(req.body);
+
+  var data = {
+    status: 0,
+    message: "Please enter a URL.",
+    public: true
+  };
+  var s = JSON.stringify(data);
+  res.writeHead(200, { 'Content-Type': 'application/json',
+                       'Content-Length': s.length });
+  res.end(s);
+});
+
+// Final index GET
 app.get('/', function (req, res) {
   res.render('main', {
-//    building: stache.building,
+    building: stache.building,
     built: stache.built,
     partials: {
       main: 'start',
