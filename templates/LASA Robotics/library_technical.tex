@@ -1,0 +1,134 @@
+\documentclass[12pt, twoside, english]{book}
+\usepackage[letterpaper, top=0.75in, bottom=1in, left=0.5in, right=0.5in]{geometry}
+\setlength{\unitlength}{1in}
+\setlength{\headheight}{15pt}
+\setlength{\footskip}{54pt}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\pagestyle{fancy}
+\usepackage{eso-pic}
+\usepackage{verbatim}
+\usepackage{afterpage}
+\usepackage{babel}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage{xifthen}
+\RequirePackage{lineno}
+\usepackage[absolute, overlay]{textpos}
+\usepackage[utf8]{inputenc}
+
+%location definition
+\newcommand{\currentpart}{}
+\let\oldpart\part
+\renewcommand{\part}[1]{\oldpart{#1}\renewcommand{\currentpart}{#1}}
+\newcommand{\currentchapter}{}
+\let\oldchapter\chapter
+\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+\newcommand{\currentsection}{}
+\let\oldsection\section
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+
+%fonts
+\renewcommand*{\familydefault}{\sfdefault}
+\newfont{\titlefont}{rphvbo scaled 3000}
+\newfont{\datefont}{rphvbo scaled 2500}
+\newfont{\subfont}{rphvbo scaled 2000}
+
+%colors
+\definecolor{purple}{RGB}{154,1,205}
+\definecolor{gray}{gray}{0.9}
+\color{purple}
+
+%definitions
+\title{}
+\author{}
+\setcounter{chapter}{1}
+\renewcommand{\thesection}{}
+\renewcommand{\thesubsection}{}
+\makeatletter
+\def\@seccntformat#1{\rlap{\hskip-36pt\csname the#1\endcsname}}
+\makeatother
+
+%formats
+\newcommand{\codefull}[1]{\colorbox{gray}{\texttt{\parbox{\textwidth}{#1}}\hspace{-0.5in}}\\}
+\newcommand{\code}[1]{\colorbox{gray}{\texttt{#1}}}
+\newcommand{\sla}{$\backslash$}
+
+%images
+\newcommand*\image[2][]{
+\ifthenelse{\isempty{#1}}{\includegraphics{#2}}{\includegraphics[width=#1]{#2}}
+}
+\newcommand{\imagewrap}[3]{
+\begin{minipage}{\linewidth}
+    \begin{wrapfigure}{I}{#2}
+      	\begin{flushright}
+	        \includegraphics[width=#2]{#1}
+      	\end{flushright}
+    \end{wrapfigure}
+	#3
+\end{minipage}\\}
+
+%titlepage
+%argument is path to assets folder
+\newcommand{\createtitle}[1]
+{
+	\afterpage{
+	\begin{textblock*}{8.5in}[0.5,0.5](5.9in,4in)
+		\includegraphics[height=1.25in]{#1LASAlogo_white}
+	\end{textblock*}
+	\begin{textblock*}{7.5in}[0,0](0.5in,5.5in)
+		\centering
+		{\color{white}
+		{\titlefont
+			\currentchapter\\
+		}
+		\vspace{10 mm}
+		{\datefont
+			\today\\
+		}}
+	\end{textblock*}
+	
+	\begin{textblock*}{7.5in}[0,0](0.5in,10in)
+		\centering
+		{\color{white}
+		{\subfont
+			\currentpart
+		}}
+	\end{textblock*}
+	\pagecolor{purple}
+	\fancyfoot[]{}
+	\fancyhead{}
+	\color{black}
+	\newpage}
+	\maketitle
+	%second blank page
+	%\pagecolor{purple}
+	%spacing
+	%\newpage
+	
+	\setupheaders{#1}
+}
+
+%setup headers
+\newcommand{\setupheaders}[1]
+{
+	\fancyfoot{\color{black}}
+	\fancyfoot[LO]{
+		\includegraphics[height=0.5in]{#1LASAlogo}
+	}
+	\fancyfoot[RE]{
+		\today
+	}
+	\fancyhead{\color{black}}
+	\fancyhead[RE]{
+		\color{black}
+		\currentchapter
+	}
+	\fancyhead[LO]{
+		\color{black}
+		\currentpart
+	}
+	
+	\pagecolor{white}
+	\color{black}
+}
