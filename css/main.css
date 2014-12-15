@@ -45,6 +45,7 @@ hr {
 }
 
 .wide { width: 100%; }
+.invisible { display: none; }
 button .octicon {
   padding-right: 8px;
 }

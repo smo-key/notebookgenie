@@ -35,18 +35,34 @@ $('#inputurl').change(function(){
       {
         $('#formurl').addClass("has-error");
         $('#urlglyph').addClass("glyphicon-remove");
-
-        //TODO test data.public
+        $('#buildpublic').addClass("disabled");
+        $('#buildprivate').addClass("disabled");
       }
       if (data.status == 1)
       {
         $('#formurl').addClass("has-warning");
         $('#urlglyph').addClass("glyphicon-warning-sign");
+        $('#buildpublic').removeClass("disabled");
+        $('#buildprivate').removeClass("disabled");
       }
       if (data.status == 2)
       {
         $('#formurl').addClass("has-success");
         $('#urlglyph').addClass("glyphicon-ok");
+        $('#buildpublic').removeClass("disabled");
+        $('#buildprivate').removeClass("disabled");
+      }
+      if (data.public)
+      {
+        $('#buildpublic').removeClass("invisible");
+        $('#buildprivate').addClass("invisible");
+        $('#obfuscate').addClass("invisible");
+      }
+      else
+      {
+        $('#buildpublic').addClass("invisible");
+        $('#buildprivate').removeClass("invisible");
+        $('#obfuscate').removeClass("invisible");
       }
     },
     error: function(jqXHR, textStatus, err) {
@@ -55,12 +71,15 @@ $('#inputurl').change(function(){
       $('#urlglyph').removeClass("fa-spin");
       $('#formurl').removeClass("has-warning");
       $('#formurl').removeClass("has-success");
-
       $('#urlglyph').addClass("glyphicon");
       $('#formurl').addClass("has-error");
       $('#urlglyph').addClass("glyphicon-remove");
-      var jsonValue = jQuery.parseJSON(jqXHR.responseText);
-      $('#urlstatus').html("Error: " + jsonValue.Message);
+      $('#buildpublic').removeClass("invisible");
+      $('#buildprivate').addClass("invisible");
+      $('#obfuscate').addClass("invisible");
+      $('#buildpublic').addClass("disabled");
+      $('#buildprivate').addClass("disabled");
+      $('#urlstatus').html("Whoa!  We can't seem to retrieve data from our server.  <a href='mailto:pachachura.arthur@gmail.com'>Contact support</a> and let us know!");
     }
   });
 });
@@ -73,11 +92,6 @@ function firstLoad()
   $("#copyright").html("Trello2LaTeX Copyright © " + new Date().getFullYear().toString() + " Arthur Pachachura<br><b>Licensed under MIT</b>");
   //set checked state for checboxes
   $('.checked').prop("checked", "true");
-}
-
-function getState()
-{
-
 }
 
 function updateContainer() {

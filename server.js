@@ -57,7 +57,7 @@ var stache = {
     template: "LASA Robotics",
     email: "pachachura.arthur@gmail.com",
     user: "arthurpachachura1",
-    progress: 30
+    progress: 40
   },
   queued: [
     {
@@ -80,7 +80,7 @@ var stache = {
       title: "My Public Board",
       orgurl: "#",
       titleurl: "#",
-      timestamp: 3948594934893
+      timestamp: 39485949343
     },
     {
       id: "kj35fj953",
@@ -126,7 +126,7 @@ app.param(function(name, fn){
 app.param('id', /^[a-zA-Z0-9]+$/);
 app.get('/build/:id', function(req, res){
   //TODO check if build ID is building
-  //TODO check if build ID is queued
+  //TODhttp://localhost:8888.comO check if build ID is queued
   //TODO check if build ID is built
   res.send('Build ID ' + req.params.id);
 });
