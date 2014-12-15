@@ -16,6 +16,11 @@ function firstLoad()
   $('.checked').prop("checked", "true");
 }
 
+function getState()
+{
+
+}
+
 function updateContainer() {
   var $cW = $(window).width();
   var $cH = $(window).height();

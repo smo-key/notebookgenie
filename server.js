@@ -14,10 +14,9 @@ var http = require("http"),
 var app = express();
 var router = express.Router();
 app.engine('html', cons.mustache);
-
-// set .html as the default extension
 app.set('view engine', 'html');
-app.set('views', __dirname + '/templates');
+app.set("view options", {layout: false});
+app.set('views', __dirname + '/partials');
 
 /* GET PROCESS INFORMATION */
 port = process.argv[2] || 8888; //server port
@@ -27,9 +26,9 @@ configname = process.argv[3] || "_private.yml";
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
 
-/* CREATE MUSTACHE STACHE */
-var stache = { };
-var walker  = walk.walk('./templates', { followLinks: false });
+/* CREATE MUSTACHE PARTIALS STACHE */
+/*var stache = { };
+var walker  = walk.walk('./partials', { followLinks: false });
 walker.on('file', function(root, stat, next) {
   var key   = path.basename(stat.name, path.extname(stat.name));
   var value = fs.readFileSync(root + '/' + stat.name).toString();
@@ -37,15 +36,102 @@ walker.on('file', function(root, stat, next) {
   next();
 });
 walker.on('end', function() {
-//  console.log(stache);
-});
+  console.log(stache);
+  app.engine('html', cons.mustache);
+  app.set('view engine', 'html');
+  app.set("view options", {layout: false});
+  app.set('views', __dirname + '/partials');
+});*/
+
+var stache = {
+  building: {
+    id: "azk425a43",
+    public: true,
+    org: "LASA Robotics",
+    title: "Our Board",
+    orgurl: null,
+    titleurl: null,
+    template: "LASA Robotics",
+    email: "pachachura.arthur@gmail.com",
+    user: "arthurpachachura1",
+    progress: 20
+  },
+  queued: {
+    azk425a43: {
+      public: true,
+      org: "LASA Robotics",
+      title: "Our Board - Again",
+      orgurl: null,
+      titleurl: null,
+      template: "LASA Robotics",
+      email: "pachachura.arthur@gmail.com",
+      user: "arthurpachachura1"
+    }
+  },
+  built: {
+    ffa444: {
+      public: true,
+      org: "Arthur Pachachura",
+      title: "My Public Board",
+      orgurl: "#",
+      titleurl: "#",
+      timestamp: 3948594934893
+    },
+    dfh54ve5y: {
+      public: false,
+      org: "LASA Robotics",
+      title: "Private Board",
+      orgurl: null,
+      titleurl: null,
+      timestamp: 3948594934893
+    },
+    ghu98yar4: {
+      public: false,
+      org: "Some Public Organization",
+      title: "Private Board",
+      orgurl: "#",
+      titleurl: null,
+      timestamp: 3948594934893
+    }
+  }
+}
 
 /* SERVER */
-router.use(logger());
+app.use(logger('dev'));
+
+app.param(function(name, fn){
+  if (fn instanceof RegExp) {
+    return function(req, res, next, val){
+      var captures;
+      if (captures = fn.exec(String(val))) {
+        req.params[name] = captures;
+        next();
+      } else {
+        next('route');
+      }
+    }
+  }
+});
+
+// TODO cron job for removing builds after 24 hours
+
+// Building and download LaTeX / PDF page
+app.param('id', /^[a-zA-Z0-9]+$/);
+app.get('/build/:id', function(req, res){
+  //TODO check if build ID is building
+  //TODO check if build ID is queued
+  //TODO check if build ID is built
+  res.send('Build ID ' + req.params.id);
+});
+// LaTeX and PDF completed download location
+app.use('/build', express.static(__dirname + '/build'));;
 
 app.get('/', function (req, res) {
   res.render('main', {
-    main: stache.loading
+    partials: {
+      main: 'loading',
+      helpbutton: 'helpbutton'
+    }
   });
 });
 
