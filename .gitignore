@@ -1,3 +1,8 @@
+# LaTeX
+*.aux
+*.synctex.gz
+*.out
+
 # Design
 design
 

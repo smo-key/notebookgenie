@@ -68,13 +68,25 @@
 	#3
 \end{minipage}\\}
 
+%create the doc without a title
+%argument is library path
+\newcommand{\createtitleless}[1]
+{
+	\afterpage{
+		\fancyfoot[]{}
+		\fancyhead{}
+		\color{black}
+		\newpage}
+	\color{black}
+}
+
 %titlepage
 %argument is path to assets folder
 \newcommand{\createtitle}[1]
 {
 	\afterpage{
 	\begin{textblock*}{8.5in}[0.5,0.5](5.9in,4in)
-		\includegraphics[height=1.25in]{#1LASAlogo_white}
+		\includegraphics[height=1.25in]{#1lasalogo_white}
 	\end{textblock*}
 	\begin{textblock*}{7.5in}[0,0](0.5in,5.5in)
 		\centering
