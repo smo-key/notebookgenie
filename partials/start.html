@@ -1,0 +1,51 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h2 class="panel-title">
+      {{# building}}
+      <i class="fa fa-cog fa-spin"></i>
+      {{/ building}}
+      {{^ building}}
+      <i class="fa fa-cog"></i>
+      {{/ building}}
+      Currently Building</h2>
+  </div>
+  <div class="panel-body">
+    {{# building}}
+    <h5>
+      {{# building.public}}{{> public}}{{/ building.public}}{{^ building.public}}{{> private}}{{/ building.public}}
+      {{# building.orgurl}}<a href="{{ building.orgurl }}">{{ building.org }}</a>{{/ building.orgurl}}{{^ building.orgurl}}{{ building.org }}{{/ building.orgurl}} / <b>{{# building.titleurl }}<a href="{{ building.titleurl }}">{{ building.title }}</a>{{/ building.titleurl }}{{^ building.titleurl }}{{ building.title }}{{/ building.titleurl }}</b></h5>
+    <h6>Template: {{ building.template }}</h6>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{ building.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ building.progress }}%">
+        <span class="sr-only">{{ building.progress }}% Complete</span>
+      </div>
+    </div>
+    {{/ building}}
+    {{^ building}}
+    <h5>We're not building anything at the moment.  Care to <a data-toggle="modal" data-target="#myModal">build yours</a>?</h5>
+    {{/ building}}
+
+  </div>
+</div>
+
+<div class="panel panel-success">
+  <div class="panel-heading">
+    <h2 class="panel-title"><i class="glyphicon glyphicon-check"></i>Recently built</h2>
+  </div>
+  <div class="panel-body">
+    {{# built}}
+    <h5>{{# public}}{{> public}}{{/ public}}{{^ public}}{{> private}}{{/ public}}
+      {{# orgurl}}<a href="{{ orgurl }}">{{ org }}</a>{{/ orgurl}}{{^ orgurl}}{{ org }}{{/ orgurl}} / <b>{{# titleurl }}<a href="{{ titleurl }}">{{ title }}</a>{{/ titleurl }}{{^ titleurl }}{{ title }}{{/ titleurl }}</b></h5>
+    {{/ built}}
+    {{^ built}}
+    <h5>We haven't built anything for a while... would you like to <a data-toggle="modal" data-target="#myModal">build yours</a>?</h5>
+    {{/ built}}
+  </div>
+</div>
+
+<hr>
+
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">
+  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+  Build a board
+</button>

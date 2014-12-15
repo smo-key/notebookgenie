@@ -46,7 +46,7 @@ walker.on('end', function() {
 var stache = {
   building: {
     id: "azk425a43",
-    public: true,
+    public: false,
     org: "LASA Robotics",
     title: "Our Board",
     orgurl: null,
@@ -54,10 +54,11 @@ var stache = {
     template: "LASA Robotics",
     email: "pachachura.arthur@gmail.com",
     user: "arthurpachachura1",
-    progress: 20
+    progress: 30
   },
-  queued: {
-    azk425a43: {
+  queued: [
+    {
+      id: "azk425a43",
       public: true,
       org: "LASA Robotics",
       title: "Our Board - Again",
@@ -67,9 +68,10 @@ var stache = {
       email: "pachachura.arthur@gmail.com",
       user: "arthurpachachura1"
     }
-  },
-  built: {
-    ffa444: {
+  ],
+  built: [
+    {
+      id: "hvu4q93yt0quh",
       public: true,
       org: "Arthur Pachachura",
       title: "My Public Board",
@@ -77,7 +79,8 @@ var stache = {
       titleurl: "#",
       timestamp: 3948594934893
     },
-    dfh54ve5y: {
+    {
+      id: "kj35fj953",
       public: false,
       org: "LASA Robotics",
       title: "Private Board",
@@ -85,7 +88,8 @@ var stache = {
       titleurl: null,
       timestamp: 3948594934893
     },
-    ghu98yar4: {
+    {
+      id: "nfd420gkrog4",
       public: false,
       org: "Some Public Organization",
       title: "Private Board",
@@ -93,7 +97,7 @@ var stache = {
       titleurl: null,
       timestamp: 3948594934893
     }
-  }
+  ]
 }
 
 /* SERVER */
@@ -128,9 +132,13 @@ app.use('/build', express.static(__dirname + '/build'));;
 
 app.get('/', function (req, res) {
   res.render('main', {
+    building: stache.building,
+    built: stache.built,
     partials: {
-      main: 'loading',
-      helpbutton: 'helpbutton'
+      main: 'start',
+      helpbutton: 'helpbutton',
+      public: 'public',
+      private: 'private'
     }
   });
 });
