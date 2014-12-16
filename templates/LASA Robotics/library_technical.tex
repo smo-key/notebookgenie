@@ -68,10 +68,18 @@
 	#3
 \end{minipage}\\}
 
+%blank page!
+\newcommand{\blankpage}{
+	\newpage
+	\thispagestyle{empty}
+	\mbox{}
+	\newpage
+}
+
 %create the doc without a title
 %argument is library path
 \newcommand{\createtitleless}[1]
-{
+{	
 	\afterpage{
 		\fancyfoot[]{}
 		\fancyhead{}
@@ -113,10 +121,10 @@
 	\color{black}
 	\newpage}
 	\maketitle
+	
 	%second blank page
-	%\pagecolor{purple}
-	%spacing
-	%\newpage
+	\pagecolor{white}
+	\blankpage
 	
 	\setupheaders{#1}
 }
@@ -126,19 +134,19 @@
 {
 	\fancyfoot{\color{black}}
 	\fancyfoot[LO]{
-		\includegraphics[height=0.5in]{#1LASAlogo}
+		\thepage
+		%\includegraphics[height=0.5in]{#1lasalogo}
 	}
 	\fancyfoot[RE]{
-		\today
+		\thepage
 	}
-	\fancyhead{\color{black}}
 	\fancyhead[RE]{
 		\color{black}
-		\currentchapter
+		\currentsection
 	}
 	\fancyhead[LO]{
 		\color{black}
-		\currentpart
+		\currentsection
 	}
 	
 	\pagecolor{white}

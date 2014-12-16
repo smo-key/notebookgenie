@@ -2,12 +2,22 @@
 \input{\librarypath library_technical}
 
 \begin{document}
+	
+% {{{=<! !>=}}}  Mustache set delimter - should be placed in js later
+
 %PART AND CHAPTER DETAILS
-\renewcommand{\currentpart}{LASA Robotics Technical Documentation}
-\renewcommand{\currentchapter}{Hello World Template}
-\createtitleless{\librarypath}
+\renewcommand{\currentchapter}{ <! title !> }
+\renewcommand{\today}{ <! subtitle !> }
+\renewcommand{\currentpart}{ <! subsubtitle !> }
+\createtitle{\librarypath}
 
 % --- CONTENT STARTS HERE --- %
+
+% START TEMPLATE %
+
+
+
+
 \section{My Section}
 Hello World!
 
@@ -16,6 +26,8 @@ Hello World!
 \subsubsection{Subsubsection} Text
 \paragraph{Paragraph} Proxy logarithmic in backbone controller gigabyte. Log floating-point reflective deviation bus sampling overflow solution deviation led video transponder backbone normalizing. Generator development for for bus cable, bypass, reducer feedback phase. Metafile supporting video application procedural development data, reducer prompt, processor infrared, normalizing harmonic metafile. Feedback phase network, disk logistically element bus bypass distributed scan. Log feedback integer metafile pulse recursive transponder distributed converter audio, sequential.
 \subparagraph{Subparagraph} This is filler text...
+
+\newpage
 
 \section{Styles}
 Regular text and a newline\\

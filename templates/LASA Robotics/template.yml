@@ -1,0 +1,33 @@
+# YML Configuration File for Template
+# =====================================
+#
+# Each configuration has a key and a value associated with it
+#
+# Usage in YML
+# key: { title: "something" }
+#
+# Usage in LaTeX
+# <! key !>
+#
+#
+# title   | human-readable name
+# type    | kind of form to show the user (default: blank)
+#  select :  a range of values
+#  check  :  true or false? (values settable in options)
+#  blank  :  blank user-editable text box
+#  form   :  paragraph input, same as blank but bigger
+# options | array list of options to present the user - select and check only.
+#         |   Keys are displayed to the user, values are turned into LaTeX.
+# default | default value (optional, first value if select, false if check, blank if blank or form)
+# noblank | return error if blank - blank and form only (optional, default: false)
+#
+
+title: { title: "Title", type: blank, default: "My Awesome Title", noblank: true }
+subtitle: { title: "Subtitle", type: blank, default: "Subtitle", noblank: true }
+subsubtitle: { title: "Subsubtitle", type: blank, default: "" }
+
+testselect: { title: "Just a test!", type: select, options: {"one": "latex one", "two": "latex two" }
+testcheckbox: { title: "Test checkbox!", type: check, options: {true: "That's right!", false: "LaTeX writes false..."}
+
+# This forces an override on the default set delimiter replacement ("{{{=<! !>=}}}")
+customdelimiter: "{{{=<! !>=}}}"

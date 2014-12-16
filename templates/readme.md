@@ -12,6 +12,7 @@ Templates give create the basic outline or format for the LaTeX document.  These
 - Each template folder must contain the following elements:
   - **index.tex**: The main LaTeX template
   - **snapshot.png**: Small (size to be determined) snapshot of the template
+  - **template.yml**: Contains keys and values as settable options - these exact options will be give to the user - they will represent values in template parsing below
   - All of its assets accessed by index.tex (e.g. include files, images, etc.) must be placed in this folder as well
 
 For now, this process is manual and requires direct server access.  After a few successful builds, we'll streamline this system so users can upload their own LaTeX templates.
@@ -19,6 +20,9 @@ For now, this process is manual and requires direct server access.  After a few 
 ###Template Parsing
 Keyphrase | Example Result
 ----------|----------
-**{{{ org }}}** | Arthur Pachachura
-**{{{ user }}}** | Arthur Pachachura (identical to org)
-**{{{ board }}}** | Chores List
+<! KEY_IN_TEMPLATE.YML !> | A key, such as "test: { nothing: 0, something: 1 }", when used in the LaTeX document as <! test !> will return 0 if the user selected "nothing" and 1 if the user selected "something"
+<! org !> | Arthur Pachachura
+<! user !> | Arthur Pachachura (identical to org)
+<! board !> | Chores List
+
+Note that all Mustache processing works with templates!  (The only difference to remember is to use the <! !> set delimiters instead of {{{ }}}

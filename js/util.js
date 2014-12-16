@@ -10,7 +10,6 @@ function prep_genjson(status, message, public)
 
 exports.prepurl = function prepurl(url)
 {
-  console.log(url);
   //Test if URL is accepted
   if ((url == undefined) || (url == ""))
   { return prep_genjson(0, "Please enter the board's URL.", true); }

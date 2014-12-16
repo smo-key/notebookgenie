@@ -138,13 +138,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
-  console.log(req.body.url);
   var url = req.body.url;
   var data = util.prepurl(url);
 
-  console.log(data);
-
   var s = JSON.stringify(data);
+  console.log("POST /ajax/prepurl url: " + req.body.url + ", out: " + s);
   res.writeHead(200, { 'Content-Type': 'application/json',
                        'Content-Length': s.length });
   res.end(s);
@@ -176,3 +174,5 @@ app.get('404.html', function (req, res) {
 
 //serve HTTP
 app.listen(port);
+
+console.log("Server ready on port " + port);
