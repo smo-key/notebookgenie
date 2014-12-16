@@ -16,6 +16,9 @@
 \RequirePackage{lineno}
 \usepackage[absolute, overlay]{textpos}
 \usepackage[utf8]{inputenc}
+\usepackage{titlesec}
+
+\titleformat{\chapter}{\normalfont\huge\bfseries}{\thesection}{0em}{}
 
 %location definition
 \newcommand{\currentpart}{}
@@ -44,6 +47,8 @@
 \author{}
 \setcounter{chapter}{1}
 \renewcommand{\thesection}{}
+\newpage
+
 \renewcommand{\thesubsection}{}
 \makeatletter
 \def\@seccntformat#1{\rlap{\hskip-36pt\csname the#1\endcsname}}
@@ -71,6 +76,8 @@
 %blank page!
 \newcommand{\blankpage}{
 	\newpage
+	\newpage
+	
 	\thispagestyle{empty}
 	\mbox{}
 	\newpage
