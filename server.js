@@ -126,7 +126,7 @@ app.param(function(name, fn){
 app.param('id', /^[a-zA-Z0-9]+$/);
 app.get('/build/:id', function(req, res){
   //TODO check if build ID is building
-  //TODhttp://localhost:8888.comO check if build ID is queued
+  //TODO check if build ID is queued
   //TODO check if build ID is built
   res.send('Build ID ' + req.params.id);
 });
