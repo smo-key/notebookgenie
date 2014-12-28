@@ -26,8 +26,5 @@ title: { title: "Title", type: blank, default: "My Awesome Title", noblank: true
 subtitle: { title: "Subtitle", type: blank, default: "Subtitle", noblank: true }
 subsubtitle: { title: "Subsubtitle", type: blank, default: "" }
 
-testselect: { title: "Just a test!", type: select, options: {"one": "latex one", "two": "latex two" }
-testcheckbox: { title: "Test checkbox!", type: check, options: {true: "That's right!", false: "LaTeX writes false..."}
-
-# This forces an override on the default set delimiter replacement ("{{{=<! !>=}}}")
-customdelimiter: "{{{=<! !>=}}}"
+testselect: { title: "Just a test!", type: select, options: {"one": "latex one", "two": "latex two" } }
+testcheckbox: { title: "Test checkbox!", type: check, options: {true: "That's right!", false: "LaTeX writes false..."} }

@@ -11,7 +11,7 @@ var http = require("http"),
     walk = require("walk"),
     bodyParser = require("body-parser"),
     util = require("./js/util.js"),
-    trello = require("node-trello");
+    t = require("node-trello");
 
 //initialize renderer
 var app = express();
@@ -28,6 +28,7 @@ configname = process.argv[3] || "_private.yml";
 /* READ SERVER CONFIG */
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
+trello = new trello(config.key, config.secret);
 
 /* CREATE MUSTACHE PARTIALS STACHE */
 /*var stache = { };
@@ -139,13 +140,13 @@ app.use(bodyParser.json());
 app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
   var url = req.body.url;
-  var data = util.prepurl(url);
-
-  var s = JSON.stringify(data);
-  console.log("POST /ajax/prepurl url: " + req.body.url + ", out: " + s);
-  res.writeHead(200, { 'Content-Type': 'application/json',
-                       'Content-Length': s.length });
-  res.end(s);
+  util.prepurl(url, function(status) {
+    var s = JSON.stringify(status);
+    console.log("POST /ajax/prepurl url: " + req.body.url + ", out: " + s);
+    res.writeHead(200, { 'Content-Type': 'application/json',
+                         'Content-Length': s.length });
+    res.end(s);
+  });
 });
 
 // Final index GET
