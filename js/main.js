@@ -8,36 +8,41 @@ $(document).ready(function () {
 
 $('#buildprivate').click(function(){
   $('#buildboard').addClass("disabled");
+  console.log(document.URL);
   $.ajax({
-    url: '/ajax/startlogin',
+    url: '/ajax/getkey',
     type: 'POST',
     data: { url: $('#inputurl').val() },
     success: function(data) {
-      Trello.authorize({ type: "popup", name: data.appname, expiration: "1hour", scope: { read: true, write: false, account: true },
-        success: function() {
-          //authentication successful
-          Trello.authorize({ type: "popup", name: data.appname, interactive: false,
-            success: function() {
-              //receive key successful
-              console.log("SUCCESS!: " + token);
+      $.ajax({
+        url: "https://trello.com/1/authorize",
+        type: 'GET',
+        data: { callback_method: postMessage, return_url: document.URL, scope: "read", expiration: "1hour", name: data.appname, key: data.key },
+        success: function(json) {
+          //authentication successful - send this json back to server then redirect to /:boardid
+          console.log(json);
+          $.ajax({
+            url: '/ajax/build',
+            type: 'POST',
+            data: { trello: json, url: $('#inputurl').val() },
+            success: function(status) {
+              //TODO redirect to /build/:boardid
+              console.log("Success!  Redirecting...");
             },
             failure: function() {
-              console.log("FAIL");
+              console.log("Build initiation failure.");
             }
           });
-          console.log("SUCCESS!: " + token);
-          $('#buildboard').removeClass("disabled");
         },
         failure: function() {
           //authentication failure
-          console.log("FAILURE!: " + token);
+          console.log("Authentication failure.");
           $('#buildboard').removeClass("disabled");
         }
       });
-      //window.open(data.url,'_blank');
     },
-    error: function(jqXHR, textStatus, err) {
-      $('#buildboard').removeClass("disabled");
+    failure: function() {
+      console.log("Get application key failure.");
     }
   });
 });

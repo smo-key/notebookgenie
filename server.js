@@ -52,6 +52,7 @@ walker.on('end', function() {
 var stache = {
   building: {
     id: "azk425a43",
+    token: "someuserslogintoken",
     public: false,
     org: "LASA Robotics",
     title: "Our Board",
@@ -65,6 +66,7 @@ var stache = {
   queued: [
     {
       id: "azk425a43",
+      token: "someuserslogintoken",
       public: true,
       org: "LASA Robotics",
       title: "Our Board - Again",
@@ -126,11 +128,14 @@ app.param(function(name, fn){
 // TODO cron job for removing builds after 24 hours
 
 // Building and download LaTeX / PDF page
-app.param('id', /^[a-zA-Z0-9]+$/);
+app.param('id', /^([a-zA-Z0-9]){8}$/);
 app.get('/build/:id', function(req, res){
   //TODO check if build ID is building
   //TODO check if build ID is queued
   //TODO check if build ID is built
+
+  //TODO get the building page
+
   res.send('Build ID ' + req.params.id);
 });
 // LaTeX and PDF completed download location
@@ -147,16 +152,43 @@ app.use('/ajax/prepurl', function(req, res) {
   });
 });
 
-app.use('/ajax/startlogin', function(req, res) {
-  //Get the login address
+app.use('/ajax/getkey', function(req, res) {
+  //Get the application name and key
   var url = req.body.url;
-  util.prepurl(url, function(status) {
+  util.prepurl(url, function(status, id) {
     var json = { };
-    json["appname"] = S(config.appname).escapeHTML().s;
-    json["status"] = (status.status == 2)
+//    json["appname"] = S(config.appname).escapeHTML().s;
+    if (status.status != 2)
+    {
+      json["status"] = false;
+      util.sendjson(json, res); return;
+    }
+    json["status"] = true;
+    json["appname"] = config.appname;
+    json["key"] = config.key;
+    json["boardid"] = id;
     util.sendjson(json, res); return;
+  });
+});
 
-   // https://trello.com/1/authorize?response_type=token&key=c44c048dc0fdd4bd5b766ea44410b94b&return_url=https%3A%2F%2Ftrello.com&callback_method=postMessage&scope=read&expiration=1hour&name=Trello+Application+Key+Test
+app.use('/ajax/build', function(req, res) {
+  //Start building - respond with a build URL while server queues build
+  var url = req.body.url;
+  var logindata = req.body.trello;
+  util.prepurl(url, function(status, id, boardjson) {
+    var reply = { };
+    if (status.status != 2)
+    {
+      reply["status"] = false;
+      util.sendjson(json, res); return;
+    }
+
+    reply["status"] = true;
+    reply["url"] = "/build/" + id;
+
+    util.queuebuild(stache, status, id, logindata);
+    util.sendjson(reply, res);
+    return;
   });
 });
 
