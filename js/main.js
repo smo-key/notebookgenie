@@ -6,6 +6,47 @@ $(document).ready(function () {
   });
 });
 
+$('#buildprivate').click(function(){
+  $('#buildboard').addClass("disabled");
+  $.ajax({
+    url: '/ajax/startlogin',
+    type: 'POST',
+    data: { url: $('#inputurl').val() },
+    success: function(data) {
+      Trello.authorize({ type: "popup", name: data.appname, expiration: "1hour", scope: { read: true, write: false, account: true },
+        success: function() {
+          //authentication successful
+          Trello.authorize({ type: "popup", name: data.appname, interactive: false,
+            success: function() {
+              //receive key successful
+              console.log("SUCCESS!: " + token);
+            },
+            failure: function() {
+              console.log("FAIL");
+            }
+          });
+          console.log("SUCCESS!: " + token);
+          $('#buildboard').removeClass("disabled");
+        },
+        failure: function() {
+          //authentication failure
+          console.log("FAILURE!: " + token);
+          $('#buildboard').removeClass("disabled");
+        }
+      });
+      //window.open(data.url,'_blank');
+    },
+    error: function(jqXHR, textStatus, err) {
+      $('#buildboard').removeClass("disabled");
+    }
+  });
+});
+
+function logincomplete()
+{
+
+}
+
 $('#inputurl').change(function(){
   console.log($('#inputurl').val());
 

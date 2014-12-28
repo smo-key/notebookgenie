@@ -1,3 +1,5 @@
+//var util = require("util.js");
+
 exports.build = function build(data) {
 	//complete credential verification
 	//download JSON -> raw
@@ -18,3 +20,4 @@ exports.build = function build(data) {
 	//raw.checklists -> b.checklists and send id to b.lists.cards.checklists
 
 };
+

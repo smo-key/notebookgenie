@@ -13,6 +13,11 @@ function prep_genjson(status, message, public)
   return json;
 }
 
+function login_genjson(status, message, public, boardname)
+{
+
+}
+
 function isnull(data)
 {
   if ((data == undefined) || (data == null) || (data == "")) { return true; }
@@ -65,6 +70,32 @@ exports.prepurl = function prepurl(url, cb)
     if (s(data).contains("unauthorized"))
     { cb(prep_genjson(2, "Nice!  We detected this board is private, so we'll need to you to login when you're ready.", false)); return; }
 
+    /* SET A COOKIE
+    var session = sessions.lookupOrCreate(request,{
+      lifetime:604800
+    });
+    response.writeHead(200, {
+      'Content-Type': 'text/plain',
+      'Set-Cookie', session.getSetCookieHeaderValue()
+    });
+    */
+
     cb(prep_genjson(2, "", true)); return;
   });
 };
+
+exports.loginstart = function loginstart(trello, boardid, cb)
+{
+  trello.get("/1/boards/" + boardid + "/name", function(err, data) {
+    if (err) { throw err; }
+    console.log(data);
+  });
+}
+
+exports.sendjson = function sendjson(json, res)
+{
+  var s = JSON.stringify(json);
+  res.writeHead(200, { 'Content-Type': 'application/json',
+                       'Content-Length': s.length });
+  res.end(s);
+}

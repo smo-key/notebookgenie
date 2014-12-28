@@ -4,6 +4,7 @@ var http = require("http"),
     path = require("path"),
     fs = require("fs"),
     queryString = require("querystring"),
+    S = require("string"),
     express = require("express"),
     yaml = require("js-yaml"),
     cons = require('consolidate'),
@@ -11,6 +12,7 @@ var http = require("http"),
     walk = require("walk"),
     bodyParser = require("body-parser"),
     util = require("./js/util.js"),
+    t2t = require("./js/trello2latex.js"),
     t = require("node-trello");
 
 //initialize renderer
@@ -28,7 +30,7 @@ configname = process.argv[3] || "_private.yml";
 /* READ SERVER CONFIG */
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
-trello = new trello(config.key, config.secret);
+trello = new t(config.key, config.secret);
 
 /* CREATE MUSTACHE PARTIALS STACHE */
 /*var stache = { };
@@ -141,17 +143,27 @@ app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
   var url = req.body.url;
   util.prepurl(url, function(status) {
-    var s = JSON.stringify(status);
-    console.log("POST /ajax/prepurl url: " + req.body.url + ", out: " + s);
-    res.writeHead(200, { 'Content-Type': 'application/json',
-                         'Content-Length': s.length });
-    res.end(s);
+    util.sendjson(status, res); return;
+  });
+});
+
+app.use('/ajax/startlogin', function(req, res) {
+  //Get the login address
+  var url = req.body.url;
+  util.prepurl(url, function(status) {
+    var json = { };
+    json["appname"] = S(config.appname).escapeHTML().s;
+    json["status"] = (status.status == 2)
+    util.sendjson(json, res); return;
+
+   // https://trello.com/1/authorize?response_type=token&key=c44c048dc0fdd4bd5b766ea44410b94b&return_url=https%3A%2F%2Ftrello.com&callback_method=postMessage&scope=read&expiration=1hour&name=Trello+Application+Key+Test
   });
 });
 
 // Final index GET
 app.get('/', function (req, res) {
   res.render('main', {
+    applicationkey: config.key,
     building: stache.building,
     built: stache.built,
     partials: {
