@@ -77,7 +77,8 @@ button .octicon {
   background-color: #e53a3a;
 }
 .panel-info .panel-heading,
-.alert-info {
+.alert-info,
+.progress-bar-info {
   color: #fff;
   background-color: #727272;
 }

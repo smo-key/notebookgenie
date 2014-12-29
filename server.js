@@ -267,7 +267,7 @@ app.get('/build/:id', function(req, res){
       alerttext: message,
       errortext: "There is no board building with this id.<br>Would you like to <a href='/'>start building yours</a>?",
       partials: {
-        main: 'build-error',
+        main: 'build-complete',
         helpbutton: 'helpbutton',
         public: 'public',
         private: 'private',
@@ -308,8 +308,32 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/fonts', express.static(__dirname + '/fonts'));
 app.use('/js', express.static(__dirname + '/js'));
 
-app.get('404.html', function (req, res) {
-  res.send("<html><body>404!!!!</body></html>");
+// Handle 404
+app.use(function(req, res) {
+  res.status(400);
+  res.render('main', {
+    applicationkey: config.key,
+    errorcode: ghf,
+    errortext: "FILE NOT FOUND",
+    partials: {
+      main: 'crash',
+      helpbutton: 'helpbutton'
+    }
+  });
+});
+
+// Handle 500
+app.use(function(error, req, res, next) {
+  res.status(500);
+  res.render('main', {
+    applicationkey: config.key,
+    errorcode: "500",
+    errortext: "INTERNAL SERVER ERROR",
+    partials: {
+      main: 'crash',
+      helpbutton: 'helpbutton'
+    }
+  });
 });
 
 //serve HTTP
