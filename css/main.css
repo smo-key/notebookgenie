@@ -149,6 +149,7 @@ button .octicon {
 .panel h6 {
   margin-bottom: 0px;
 }
+.panel img { width: 100%; }
 
 button.btn,
 .progress {
