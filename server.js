@@ -133,7 +133,7 @@ app.param(function(name, fn){
 
 //APP USAGE PARAMS
 app.param('id', /^([a-zA-Z0-9]){8}$/);
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieparser());
 
@@ -154,10 +154,10 @@ callbackURL = config.domain + "/ajax/completeauth"; //TODO fix this callback to 
 
 //need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
 oauth_secrets = {};
-oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
 
 app.use('/ajax/authorize', function(req, res) {
   var url = req.body.url;
+  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
   util.prepurl(url, function(status, id) {
     if (status.status != 2) { console.log("AUTHORIZE STATUS ERROR!"); return; } //TODO error handling
     //send an OAuth request to get the application name and key
@@ -169,8 +169,7 @@ app.use('/ajax/authorize', function(req, res) {
         return;
       }
       oauth_secrets[token] = tokenSecret;
-      //set cookie with URL here!
-//      res.setHeader('Set-Cookie','boardid='+id);
+      console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
       res.cookie('boardid', id, { httpOnly: true, path: '/' });
       util.sendjson({ url: authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
     });
@@ -179,10 +178,13 @@ app.use('/ajax/authorize', function(req, res) {
 
 app.use('/ajax/completeauth', function(req, res) {
 
+  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
+
   query = url.parse(req.url, true).query;
 
   token = query.oauth_token;
   tokenSecret = oauth_secrets[token];
+  delete oauth_secrets[token];
   verifier = query.oauth_verifier;
 
   oauth.getOAuthAccessToken(token, tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results)
@@ -199,10 +201,16 @@ app.use('/ajax/completeauth', function(req, res) {
       error = true;
     }
     var public = req.param('public'); //TODO set this via cookie! (it's not being set)
+    var status = "success";
+    var text = S("<span class='glyphicon glyphicon-ok'></span>Sign in successful!").escapeHTML().s;
+    if(error)
+    {
+      console.log(error);
+      status = "danger";
+      text = S("<span class='glyphicon glyphicon-remove'></span>We couldn't sign you in to your account.  Nothing will be built.").escapeHTML().s;
+    }
 
     //redirect
-    var s = "";
-    if(error) { console.log(error); s = "#error=true"; }
     flow.series([
       function queue(cb) {
         if (!error)
@@ -213,9 +221,9 @@ app.use('/ajax/completeauth', function(req, res) {
         cb();
       },
       function send(cb) {
-        console.log(stache);
-        res.writeHead(302, { 'Location': "/build/" + id + s });
-        res.end();
+        res.cookie('text', text, { httpOnly: true, path: '/' });
+        res.cookie('status', status, { httpOnly: true, path: '/' });
+        res.writeHead(302, { 'Location': "/build/" + id });
         res.send();
         cb();
       }
@@ -233,21 +241,42 @@ app.get('/build/:id', function(req, res){
   //TODO get the building page
 
   //INITIALIZE
-  var authurl = util.getdomain(req.headers.host) + callbackURL;
-  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", authurl, "HMAC-SHA1");
+  try
+  {
+    var authurl = util.getdomain(req.headers.host) + callbackURL;
+    oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", authurl, "HMAC-SHA1");
 
-  var id = (req.params.id)[0];
-
-  res.render('main', {
-    applicationkey: config.key,
-    board: stache.building,
-    partials: {
-      main: 'build-building',
-      helpbutton: 'helpbutton',
-      public: 'public',
-      private: 'private'
+    var id = (req.params.id)[0];
+    try {
+      var stat = req.cookies.status;
+      var message = S(req.cookies.text).decodeHTMLEntities().s;
+      var alert = 'alert';
+    } catch (e)
+    {
+      var stat = "";
+      var message = "";
+      var alert = 'blank';
     }
-  });
+
+    res.clearCookie('text', { path: '/' });
+    res.clearCookie('status', { path: '/' });
+    res.render('main', {
+      applicationkey: config.key,
+      board: stache.building,
+      alertstatus: stat,
+      alerttext: message,
+      partials: {
+        main: 'build-building',
+        helpbutton: 'helpbutton',
+        public: 'public',
+        private: 'private',
+        alert: alert
+      }
+    });
+  } catch (e)
+  {
+    throw e;
+  }
 });
 
 // LaTeX and PDF completed download location
