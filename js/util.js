@@ -81,8 +81,10 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queuebuild = function queuebuild(stache, public, id, authdata)
+exports.queueadd = function queueadd(stache, public, id, authdata)
 {
+  //TODO check if already present in building or queued (remove if in built)
+
   //add a set to the stache
   console.log(authdata);
   var board = { };
@@ -109,19 +111,34 @@ exports.queuebuild = function queuebuild(stache, public, id, authdata)
   return;
 }
 
-exports.loginstart = function loginstart(trello, boardid, cb)
+exports.queuebuild = function queuebuild(stache, id)
 {
-  trello.get("/1/boards/" + boardid + "/name", function(err, data) {
-    if (err) { throw err; }
-    console.log(data);
-  });
+
 }
+
+exports.queuecomplete = function queuecomplete(stache, id)
+{
+
+}
+
+exports.queueremove = function queueremove(stache, id)
+{
+
+}
+
+//exports.loginstart = function loginstart(trello, boardid, cb)
+//{
+//  trello.get("/1/boards/" + boardid + "/name", function(err, data) {
+//    if (err) { throw err; }
+//    console.log(data);
+//  });
+//}
 
 exports.getdomain = function getdomain(url) {
   var parts = url.split("/");
   if (url.match("/:\/\//"))
   {
-    return parts[2];
+    return parts[2];var ts = Date.now() / 1000;
   }
   else { return "http://" + parts[0]; }
 }

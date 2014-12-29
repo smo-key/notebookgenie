@@ -76,7 +76,7 @@ var stache = {
       title: "My Public Board",
       orgurl: "#",
       titleurl: "#",
-      timestamp: 39485949343
+      timestamp: 39485949343 //only in built
     },
     {
       id: "kj35fj953",
@@ -189,7 +189,7 @@ app.use('/ajax/completeauth', function(req, res) {
       function queue(cb) {
         if (!error)
         {
-          util.queuebuild(stache, public, id,
+          util.queueadd(stache, public, id,
           { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret });
         }
         cb();
