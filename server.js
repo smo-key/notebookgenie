@@ -154,13 +154,12 @@ callbackURL = config.domain + "/ajax/completeauth"; //TODO fix this callback to 
 
 //need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
 oauth_secrets = {};
-oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");;
-//oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1"); //TODO generate this at runtime
+oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
 
 app.use('/ajax/authorize', function(req, res) {
   var url = req.body.url;
   util.prepurl(url, function(status, id) {
-    if (status.status != 2) { return; } //TODO error handling
+    if (status.status != 2) { console.log("AUTHORIZE STATUS ERROR!"); return; } //TODO error handling
     //send an OAuth request to get the application name and key
     oauth.getOAuthRequestToken(function(error, token, tokenSecret, results) {
       if (error)
@@ -171,9 +170,8 @@ app.use('/ajax/authorize', function(req, res) {
       }
       oauth_secrets[token] = tokenSecret;
       //set cookie with URL here!
-      res.setHeader('Set-Cookie','boardid='+id);
-      res.clearCookie('boardid', { path: '/' });
-      res.cookie('boardid', id, { maxAge: 900000, httpOnly: true, path: '/' });
+//      res.setHeader('Set-Cookie','boardid='+id);
+      res.cookie('boardid', id, { httpOnly: true, path: '/' });
       util.sendjson({ url: authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
     });
   });
@@ -192,8 +190,15 @@ app.use('/ajax/completeauth', function(req, res) {
     //TODO check if the board id in question is accessable by this user (do a test query)
 
     //store accessToken and accessTokenSecret
-    var id = req.cookies.boardid;
-    var public = req.param('public');
+    var id = "";
+    try
+    {
+      id = req.cookies.boardid;
+    } catch (e)
+    {
+      error = true;
+    }
+    var public = req.param('public'); //TODO set this via cookie! (it's not being set)
 
     //redirect
     var s = "";
