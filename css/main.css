@@ -27,6 +27,7 @@ hr {
   -moz-transform: translate(-50%, 0%);
   transform: translate(-50%, 0%);
 }
+.centered { text-align: center; width: 100%; position: relative;}
 
 #loading {
   padding-top: 16px;
@@ -60,8 +61,13 @@ button .octicon {
   color: #fff;
   background-color: #5cb85c;
 }
-.panel-body .octicon {
-  margin-right: 8px;
+.panel-warning .panel-heading {
+  color: #fff;
+  background-color: #ff8900;
+}
+.panel-danger .panel-heading {
+  color: #fff;
+  background-color: #e53a3a;
 }
 .progress {
   height: 12px;
@@ -78,16 +84,30 @@ button .octicon {
   font-size: 16px;
   border-radius: 0px;
 }
-.panel-title .fa {
+.panel-primary .panel-title a,
+.panel-success .panel-title a,
+.panel-warning .panel-title a,
+.panel-danger  .panel-title a {
+  color: #fff;
+}
+.panel-title .fa,
+.panel-body .fa {
   padding-left: 0;
   font-size: 1.2em;
 }
 .panel-title .glyphicon,
 .panel-title .fa {
-    margin-right: 8px!important;
+  margin-right: 8px!important;
+}
+.panel-title .octicon {
+  margin-right: 4px!important;
 }
 .modal-title span {
   padding-right: 8px;
+}
+.panel-body .octicon,
+.panel-body .fa {
+  margin-right: 8px!important;
 }
 .panel h5 {
   margin-top: 4px;

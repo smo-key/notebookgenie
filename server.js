@@ -53,7 +53,20 @@ walker.on('end', function() {
 });*/
 
 var stache = {
-  building: null,
+  building:
+    {
+      id: "azk425a43",
+      auth: null,
+      public: true,
+      org: "LASA Robotics",
+      title: "Super Uber Duper Long Title Name",
+      orgurl: null,
+      titleurl: "#",
+      template: "LASA Robotics",
+      email: "pachachura.arthur@gmail.com",
+      user: "arthurpachachura1",
+      progress: 80
+    },
   queued: [
     {
       id: "azk425a43",
@@ -220,10 +233,23 @@ app.get('/build/:id', function(req, res){
 
   var id = (req.params.id)[0];
 
-  res.send('Build ID ' + id);
+  res.render('main', {
+    applicationkey: config.key,
+    board: stache.building,
+    partials: {
+      main: 'build-building',
+      helpbutton: 'helpbutton',
+      public: 'public',
+      private: 'private'
+    }
+  });
 });
 
 // LaTeX and PDF completed download location
+app.use('/build/css', express.static(__dirname + '/css'));
+app.use('/build/js', express.static(__dirname + '/js'));
+app.use('/build/img', express.static(__dirname + '/img'));
+app.use('/build/fonts', express.static(__dirname + '/fonts'));
 app.use('/build', express.static(__dirname + '/build'));
 
 // Final index GET
