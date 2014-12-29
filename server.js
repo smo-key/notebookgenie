@@ -262,11 +262,12 @@ app.get('/build/:id', function(req, res){
     res.clearCookie('status', { path: '/' });
     res.render('main', {
       applicationkey: config.key,
-      board: stache.building,
+//      board: stache.building,
       alertstatus: stat,
       alerttext: message,
+      errortext: "There is no board building with this id.<br>Would you like to <a href='/'>start building yours</a>?",
       partials: {
-        main: 'build-building',
+        main: 'build-error',
         helpbutton: 'helpbutton',
         public: 'public',
         private: 'private',

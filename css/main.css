@@ -58,6 +58,9 @@ button .octicon {
   border: 0px solid transparent;
   box-shadow: 0px 0px 4px #ccc;
 }
+.panel.noshadow {
+  box-shadow: 0 0 0 transparent!important;
+}
 .panel-success .panel-heading,
 .alert-success {
   color: #fff;
@@ -72,6 +75,11 @@ button .octicon {
 .alert-danger {
   color: #fff;
   background-color: #e53a3a;
+}
+.panel-info .panel-heading,
+.alert-info {
+  color: #fff;
+  background-color: #727272;
 }
 .alert h5 {
   margin-top: 2px;
@@ -105,10 +113,7 @@ button .octicon {
   font-size: 16px;
   border-radius: 0px;
 }
-.panel-primary .panel-title a,
-.panel-success .panel-title a,
-.panel-warning .panel-title a,
-.panel-danger  .panel-title a {
+.panel .panel-title a {
   color: #fff;
 }
 .panel-title .fa,
@@ -130,7 +135,8 @@ button .octicon {
   padding-right: 8px;
 }
 .panel-body .octicon,
-.panel-body .fa {
+.panel-body .fa,
+.panel-body .glyphicon {
   margin-right: 8px!important;
 }
 .panel h5 {
