@@ -315,6 +315,7 @@ app.use(function(req, res) {
     applicationkey: config.key,
     errorcode: "404",
     errortext: "FILE NOT FOUND",
+    date: new Date().toJSON(),
     partials: {
       main: 'crash',
       helpbutton: 'helpbutton'
@@ -323,12 +324,14 @@ app.use(function(req, res) {
 });
 
 // Handle 500
-app.use(function(error, req, res, next) {
+app.use(function(err, req, res, next) {
   res.status(500);
   res.render('main', {
     applicationkey: config.key,
     errorcode: "500",
     errortext: "INTERNAL SERVER ERROR",
+    stack: err.stack,
+    date: new Date().toJSON(),
     partials: {
       main: 'crash',
       helpbutton: 'helpbutton'
