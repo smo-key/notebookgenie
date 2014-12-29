@@ -207,7 +207,7 @@ app.use('/ajax/completeauth', function(req, res) {
     {
       console.log(error);
       status = "danger";
-      text = S("<span class='glyphicon glyphicon-remove'></span>We couldn't sign you in to your account.  Nothing will be built.").escapeHTML().s;
+      text = S("We couldn't sign you in to your account.  Nothing will be built.").escapeHTML().s;
     }
 
     //redirect
@@ -262,7 +262,7 @@ app.get('/build/:id', function(req, res){
     res.clearCookie('status', { path: '/' });
     res.render('main', {
       applicationkey: config.key,
-//      board: stache.building,
+      board: stache.building,
       alertstatus: stat,
       alerttext: message,
       errortext: "There is no board building with this id.<br>Would you like to <a href='/'>start building yours</a>?",
@@ -309,7 +309,7 @@ app.use('/fonts', express.static(__dirname + '/fonts'));
 app.use('/js', express.static(__dirname + '/js'));
 
 app.get('404.html', function (req, res) {
-  res.send("404!!!!");
+  res.send("<html><body>404!!!!</body></html>");
 });
 
 //serve HTTP

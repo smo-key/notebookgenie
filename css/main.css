@@ -97,6 +97,7 @@ button .octicon {
 {
   text-align: left;
   border-radius: 0;
+  border-color: transparent;
 }
 .progress {
   height: 12px;
