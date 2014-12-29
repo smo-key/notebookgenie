@@ -32,7 +32,6 @@ function download(url, cb)
       data += chunk;
     });
     res.on('end', function () {
-      console.log("data1: " + data);
       cb(data);
     });
   }).on('error', function(e) {
@@ -82,28 +81,32 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queuebuild = function queuebuild(stache, status, id, logindata)
+exports.queuebuild = function queuebuild(stache, public, id, authdata)
 {
   //add a set to the stache
-  console.log(logindata);
+  console.log(authdata);
   var board = { };
-  board[id] = id;
-  board[token] = logindata.token;
-  board[public] = status.public;
-  board[org]; //TODO get from Trello using API
-  board[title];
-  board[orgurl];
-  board[titleurl];
-  board[template] = "LASA Robotics"; //TODO un-hardset
-  board[email] = null; //TODO add user field
-  board[user]; //TODO get username that initiated the login
-  board[progress] = 0;
+  board.id = id;
+  board.auth = authdata;
+  board.public = public;
+  board.org = "SOME ORG"; //TODO get from Trello using API
+  board.title = "TEST";
+  board.orgurl = null;
+  board.titleurl = null;
+  board.template = "LASA Robotics"; //TODO un-hardset
+  board.email = null; //TODO add user field
+  board.user = ""; //TODO get username that initiated the login
 
   //check if nothing is building
-  if (!isnull(stache.building))
+  if (isnull(stache.building))
   {
-
+    board.progress = 0;
+    stache.building = board;
+    return;
   }
+  //add to queue
+  stache.queued.push(board);
+  return;
 }
 
 exports.loginstart = function loginstart(trello, boardid, cb)
@@ -114,10 +117,20 @@ exports.loginstart = function loginstart(trello, boardid, cb)
   });
 }
 
+exports.getdomain = function getdomain(url) {
+  var parts = url.split("/");
+  if (url.match("/:\/\//"))
+  {
+    return parts[2];
+  }
+  else { return "http://" + parts[0]; }
+}
+
 exports.sendjson = function sendjson(json, res)
 {
   var s = JSON.stringify(json);
   res.writeHead(200, { 'Content-Type': 'application/json',
                        'Content-Length': s.length });
   res.end(s);
+  res.send();
 }

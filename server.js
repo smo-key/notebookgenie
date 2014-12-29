@@ -13,6 +13,9 @@ var http = require("http"),
     bodyParser = require("body-parser"),
     util = require("./js/util.js"),
     t2t = require("./js/trello2latex.js"),
+    OAuth = require('oauth').OAuth,
+    flow = require('nimble'),
+    cookieparser = require('cookie-parser');
     t = require("node-trello");
 
 //initialize renderer
@@ -50,23 +53,11 @@ walker.on('end', function() {
 });*/
 
 var stache = {
-  building: {
-    id: "azk425a43",
-    token: "someuserslogintoken",
-    public: false,
-    org: "LASA Robotics",
-    title: "Our Board",
-    orgurl: null,
-    titleurl: null,
-    template: "LASA Robotics",
-    email: "pachachura.arthur@gmail.com",
-    user: "arthurpachachura1",
-    progress: 40
-  },
+  building: null,
   queued: [
     {
       id: "azk425a43",
-      token: "someuserslogintoken",
+      auth: null,
       public: true,
       org: "LASA Robotics",
       title: "Our Board - Again",
@@ -127,23 +118,13 @@ app.param(function(name, fn){
 
 // TODO cron job for removing builds after 24 hours
 
-// Building and download LaTeX / PDF page
+//APP USAGE PARAMS
 app.param('id', /^([a-zA-Z0-9]){8}$/);
-app.get('/build/:id', function(req, res){
-  //TODO check if build ID is building
-  //TODO check if build ID is queued
-  //TODO check if build ID is built
-
-  //TODO get the building page
-
-  res.send('Build ID ' + req.params.id);
-});
-// LaTeX and PDF completed download location
-app.use('/build', express.static(__dirname + '/build'));
-
-// API POST requests
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cookieparser());
+
+// API POST requests
 app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
   var url = req.body.url;
@@ -152,45 +133,98 @@ app.use('/ajax/prepurl', function(req, res) {
   });
 });
 
-app.use('/ajax/getkey', function(req, res) {
-  //Get the application name and key
+/* OAUTH DETAILS */
+requestURL = "https://trello.com/1/OAuthGetRequestToken";
+accessURL = "https://trello.com/1/OAuthGetAccessToken";
+authorizeURL = "https://trello.com/1/OAuthAuthorizeToken";
+callbackURL = config.domain + "/ajax/completeauth"; //TODO fix this callback to the global setting... or figure out a workaround
+
+//need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
+oauth_secrets = {};
+oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");;
+//oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1"); //TODO generate this at runtime
+
+app.use('/ajax/authorize', function(req, res) {
   var url = req.body.url;
   util.prepurl(url, function(status, id) {
-    var json = { };
-//    json["appname"] = S(config.appname).escapeHTML().s;
-    if (status.status != 2)
-    {
-      json["status"] = false;
-      util.sendjson(json, res); return;
-    }
-    json["status"] = true;
-    json["appname"] = config.appname;
-    json["key"] = config.key;
-    json["boardid"] = id;
-    util.sendjson(json, res); return;
+    if (status.status != 2) { return; } //TODO error handling
+    //send an OAuth request to get the application name and key
+    oauth.getOAuthRequestToken(function(error, token, tokenSecret, results) {
+      if (error)
+      {
+        console.log("AUTHORIZE error!");
+        //TODO client-side error dialog handling
+        return;
+      }
+      oauth_secrets[token] = tokenSecret;
+      //set cookie with URL here!
+      res.setHeader('Set-Cookie','boardid='+id);
+      res.clearCookie('boardid', { path: '/' });
+      res.cookie('boardid', id, { maxAge: 900000, httpOnly: true, path: '/' });
+      util.sendjson({ url: authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
+    });
   });
 });
 
-app.use('/ajax/build', function(req, res) {
-  //Start building - respond with a build URL while server queues build
-  var url = req.body.url;
-  var logindata = req.body.trello;
-  util.prepurl(url, function(status, id, boardjson) {
-    var reply = { };
-    if (status.status != 2)
-    {
-      reply["status"] = false;
-      util.sendjson(json, res); return;
-    }
+app.use('/ajax/completeauth', function(req, res) {
 
-    reply["status"] = true;
-    reply["url"] = "/build/" + id;
+  query = url.parse(req.url, true).query;
 
-    util.queuebuild(stache, status, id, logindata);
-    util.sendjson(reply, res);
-    return;
+  token = query.oauth_token;
+  tokenSecret = oauth_secrets[token];
+  verifier = query.oauth_verifier;
+
+  oauth.getOAuthAccessToken(token, tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results)
+  {
+    //TODO check if the board id in question is accessable by this user (do a test query)
+
+    //store accessToken and accessTokenSecret
+    var id = req.cookies.boardid;
+    var public = req.param('public');
+
+    //redirect
+    var s = "";
+    if(error) { console.log(error); s = "#error=true"; }
+    flow.series([
+      function queue(cb) {
+        if (!error)
+        {
+          util.queuebuild(stache, public, id,
+          { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret });
+        }
+        cb();
+      },
+      function send(cb) {
+        console.log(stache);
+        res.writeHead(302, { 'Location': "/build/" + id + s });
+        res.end();
+        res.send();
+        cb();
+      }
+    ]);
   });
 });
+
+app.get('/build/:id', function(req, res){
+  // Building and download LaTeX / PDF page
+
+  //TODO check if build ID is building
+  //TODO check if build ID is queued
+  //TODO check if build ID is built
+
+  //TODO get the building page
+
+  //INITIALIZE
+  var authurl = util.getdomain(req.headers.host) + callbackURL;
+  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", authurl, "HMAC-SHA1");
+
+  var id = (req.params.id)[0];
+
+  res.send('Build ID ' + id);
+});
+
+// LaTeX and PDF completed download location
+app.use('/build', express.static(__dirname + '/build'));
 
 // Final index GET
 app.get('/', function (req, res) {

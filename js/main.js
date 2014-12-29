@@ -7,50 +7,21 @@ $(document).ready(function () {
 });
 
 $('#buildprivate').click(function(){
-  $('#buildboard').addClass("disabled");
+  $('#buildprivate').addClass("disabled");
   console.log(document.URL);
   $.ajax({
-    url: '/ajax/getkey',
+    url: '/ajax/authorize',
     type: 'POST',
     data: { url: $('#inputurl').val() },
     success: function(data) {
-      $.ajax({
-        url: "https://trello.com/1/authorize",
-        type: 'GET',
-        data: { callback_method: postMessage, return_url: document.URL, scope: "read", expiration: "1hour", name: data.appname, key: data.key },
-        success: function(json) {
-          //authentication successful - send this json back to server then redirect to /:boardid
-          console.log(json);
-          $.ajax({
-            url: '/ajax/build',
-            type: 'POST',
-            data: { trello: json, url: $('#inputurl').val() },
-            success: function(status) {
-              //TODO redirect to /build/:boardid
-              console.log("Success!  Redirecting...");
-            },
-            failure: function() {
-              console.log("Build initiation failure.");
-            }
-          });
-        },
-        failure: function() {
-          //authentication failure
-          console.log("Authentication failure.");
-          $('#buildboard').removeClass("disabled");
-        }
-      });
+      window.location.replace(data.url);
     },
     failure: function() {
       console.log("Get application key failure.");
+      $('#buildprivate').removeClass("disabled");
     }
   });
 });
-
-function logincomplete()
-{
-
-}
 
 $('#inputurl').change(function(){
   console.log($('#inputurl').val());
