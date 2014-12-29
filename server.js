@@ -313,7 +313,7 @@ app.use(function(req, res) {
   res.status(400);
   res.render('main', {
     applicationkey: config.key,
-    errorcode: ghf,
+    errorcode: "404",
     errortext: "FILE NOT FOUND",
     partials: {
       main: 'crash',
