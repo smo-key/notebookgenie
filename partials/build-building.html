@@ -3,7 +3,7 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
     <h2 class="panel-title">{{# board.public}}{{> public}}{{/ board.public}}{{^ board.public}}{{> private}}{{/ board.public}}
-        {{# board.orgurl}}<a href="{{ building.orgurl }}">{{ board.org }}</a>{{/ board.orgurl}}{{^ board.orgurl}}{{ board.org }}{{/ board.orgurl}} / <b>{{# board.titleurl }}<a href="{{ building.titleurl }}">{{ board.title }}</a>{{/ board.titleurl }}{{^ board.titleurl }}{{ board.title }}{{/ board.titleurl }}</b></h2>
+        {{# board.orgurl}}<a href="{{ board.orgurl }}">{{ board.org }}</a>{{/ board.orgurl}}{{^ board.orgurl}}{{ board.org }}{{/ board.orgurl}} / <b>{{# board.titleurl }}<a href="{{ board.titleurl }}">{{ board.title }}</a>{{/ board.titleurl }}{{^ board.titleurl }}{{ board.title }}{{/ board.titleurl }}</b></h2>
   </div>
   <div class="panel-body">
     <h4><i class="fa fa-cog fa-spin"></i>Building board...</h4>

@@ -123,13 +123,23 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata)
   board.auth = authdata;
   board.public = public;
   board.org = "";
-  board.title = "";
+  board.title = json.name;
   board.orgurl = null;
-  board.titleurl = null;
+  board.titleurl = json.shortUrl;
   board.template = "LASA Robotics"; //TODO un-hardset
   board.email = null; //TODO add user field
   board.user = ""; //TODO get username that initiated the login
   board.uid = json.id;
+
+  console.log(json);
+  if (isnull(json.idOrganization))
+  {
+    //user-owned, just get first member name and url
+  }
+  else
+  {
+    //organization-owned, get org name and url
+  }
 
   console.log("UID: " + json.id);
   //TODO get from Trello using API
