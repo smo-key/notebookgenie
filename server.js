@@ -81,45 +81,16 @@ app.use(bodyParser.json());
 app.use(cookieparser());
 
 /* OAUTH DETAILS */
-requestURL = "https://trello.com/1/OAuthGetRequestToken";
-accessURL = "https://trello.com/1/OAuthGetAccessToken";
-authorizeURL = "https://trello.com/1/OAuthAuthorizeToken";
-callbackURL = config.domain + "/ajax/completeauth"; //TODO fix this callback to the global setting... or figure out a workaround
+var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
+              accessURL: "https://trello.com/1/OAuthGetAccessToken",
+              authorizeURL: "https://trello.com/1/OAuthAuthorizeToken",
+              callbackURL: config.domain + "/ajax/completeauth",
+              key: config.key,
+              secret: config.secret }
+//TODO fix this callback to the global setting... or figure out a workaround
 
 //need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
 oauth_secrets = {};
-
-/* TRELLO REQUESTS */
-var apiver = "1";
-function trello(u, auth, cb)
-{
-  var url = "https://api.trello.com/" + apiver + u;
-
-  if (!util.isnull(auth))
-  {
-    //must be private - get via OAuth
-    oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
-    oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
-      if (error) { cb(true, error); return; }
-      cb(false, JSON.parse(data)); return;
-    });
-  }
-  else
-  {
-    //must be public - get via API
-    url += "?key=" + config.key;
-    http.get(url, function(res) {
-      console.log(res.body);
-      console.log(res.data);
-      cb(false, JSON.parse(res.body));
-      return;
-    }).on('error', function(e) {
-      console.log(e.stack);
-      cb(true, e);
-      return;
-    });
-  }
-}
 
 /* SERVER */
 
@@ -136,7 +107,7 @@ app.use('/ajax/prepurl', function(req, res) {
 
 app.use('/ajax/authorize', function(req, res) {
   var url = req.body.url;
-  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
+  oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
   util.prepurl(url, function(status, id) {
     if (status.status != 2) { console.log("AUTHORIZE STATUS ERROR!"); return; } //TODO error handling
     //send an OAuth request to get the application name and key
@@ -150,14 +121,14 @@ app.use('/ajax/authorize', function(req, res) {
       oauth_secrets[token] = tokenSecret;
       console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
       res.cookie('boardid', id, { httpOnly: true, path: '/' });
-      util.sendjson({ url: authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
+      util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
     });
   });
 });
 
 app.use('/ajax/completeauth', function(req, res) {
 
-  oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
+  oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
 
   query = url.parse(req.url, true).query;
 
@@ -190,13 +161,15 @@ app.use('/ajax/completeauth', function(req, res) {
 
     var auth = { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret };
 
+    //TODO check for board duplicates (SHARE WITH PUBLIC AUTH)
+
     //redirect
     flow.series([
       function checkexist(cb) {
         if (!error)
         {
           //check if the board id in question is accessable by this user
-          trello("/members/me/boards", auth, function(er,json) {
+          util.trello("/members/me/boards", auth, odata, function(er,json) {
             if (er)
             {
               status = "danger";

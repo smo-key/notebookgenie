@@ -3,6 +3,7 @@ var https = require("https");
 var s = require("string");
 var d = require("do");
 var flow = require('nimble');
+var OAuth = require('oauth').OAuth;
 
 function prep_genjson(status, message, public)
 {
@@ -159,13 +160,36 @@ exports.handle404 = function handle404(res)
   });
 }
 
-//exports.loginstart = function loginstart(trello, boardid, cb)
-//{
-//  trello.get("/1/boards/" + boardid + "/name", function(err, data) {
-//    if (err) { throw err; }
-//    console.log(data);
-//  });
-//}
+var apiver = "1";
+exports.trello = function trello(u, auth, odata, cb)
+{
+  var url = "https://api.trello.com/" + apiver + u;
+
+  if (!isnull(auth))
+  {
+    //must be private - get via OAuth
+    oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
+    oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
+      if (error) { cb(true, error); return; }
+      cb(false, JSON.parse(data)); return;
+    });
+  }
+  else
+  {
+    //must be public - get via API
+    url += "?key=" + config.key;
+    http.get(url, function(res) {
+      console.log(res.body);
+      console.log(res.data);
+      cb(false, JSON.parse(res.body));
+      return;
+    }).on('error', function(e) {
+      console.log(e.stack);
+      cb(true, e);
+      return;
+    });
+  }
+}
 
 exports.getdomain = function getdomain(url) {
   var parts = url.split("/");
