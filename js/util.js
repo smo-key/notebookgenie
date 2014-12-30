@@ -2,6 +2,7 @@ var http = require("http");
 var https = require("https");
 var s = require("string");
 var d = require("do");
+var flow = require('nimble');
 
 function prep_genjson(status, message, public)
 {
@@ -11,11 +12,6 @@ function prep_genjson(status, message, public)
     public: public
   };
   return json;
-}
-
-function login_genjson(status, message, public, boardname)
-{
-
 }
 
 function isnull(data)
@@ -124,6 +120,38 @@ exports.queuecomplete = function queuecomplete(stache, id)
 exports.queueremove = function queueremove(stache, id)
 {
 
+}
+
+exports.checkstache = function checkstache(stache, id, cb)
+{
+  if (stache.building.id == id) { cb("building", stache.building); return; }
+  var c = false;
+
+  stache.queued.forEach(function(item, i) {
+    if (item.id == id) { cb("queued", item, i); c = true; return; }
+  });
+  stache.built.forEach(function(item, i) {
+    if (item.id == id) { cb("built", item, i); c = true; return; }
+  });
+  stache.failed.forEach(function(item, i) {
+    if (item.id == id) { cb("failed", item, i); c = true; return; }
+  });
+  if (!c) { cb(null); }
+}
+
+exports.handle404 = function handle404(res)
+{
+  res.status(400);
+  res.render('main', {
+    applicationkey: config.key,
+    errorcode: "404",
+    errortext: "NOT FOUND",
+    date: new Date().toJSON(),
+    partials: {
+      main: 'crash',
+      helpbutton: 'helpbutton'
+    }
+  });
 }
 
 //exports.loginstart = function loginstart(trello, boardid, cb)

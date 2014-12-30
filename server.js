@@ -55,11 +55,11 @@ walker.on('end', function() {
 var stache = {
   building:
     {
-      id: "azk425a43",
+      id: "azk4lolz",
       auth: null,
       public: true,
       org: "LASA Robotics",
-      title: "Super Uber Duper Long Title Name",
+      title: "Some Extrememly Long Board Name",
       orgurl: null,
       titleurl: "#",
       template: "LASA Robotics",
@@ -69,7 +69,7 @@ var stache = {
     },
   queued: [
     {
-      id: "azk425a43",
+      id: "azk425a4",
       auth: null,
       public: true,
       org: "LASA Robotics",
@@ -83,7 +83,7 @@ var stache = {
   ],
   built: [
     {
-      id: "hvu4q93yt0quh",
+      id: "asdfasdf",
       public: true,
       org: "Arthur Pachachura",
       title: "My Public Board",
@@ -92,7 +92,7 @@ var stache = {
       timestamp: 39485949343 //only in built
     },
     {
-      id: "kj35fj953",
+      id: "kj35fj95",
       public: false,
       org: "LASA Robotics",
       title: "Private Board",
@@ -101,13 +101,26 @@ var stache = {
       timestamp: 3948594934893
     },
     {
-      id: "nfd420gkrog4",
+      id: "nfd420gk",
       public: false,
       org: "Some Public Organization",
       title: "Private Board",
       orgurl: "#",
       titleurl: null,
       timestamp: 3948594934893
+    }
+  ],
+  failed: [
+    {
+      id: "hvu4q93j",
+      errormessage: "We encountered an unknown build error.  Sorry!",
+      public: true,
+      org: "Arthur Pachachura",
+      title: "My Public Board",
+      orgurl: "#",
+      titleurl: "#",
+      timestamp: 39485949343, //timestamp of failure, used for cleaning
+      humantime: "2014-12-30T01:05:23.689Z" //only on failure
     }
   ]
 }
@@ -258,51 +271,59 @@ app.use('/ajax/build', function(req, res) {
 
 app.get('/build/:id', function(req, res){
   // Building and download LaTeX / PDF page
-
-  //TODO check if build ID is building
-  //TODO check if build ID is queued
-  //TODO check if build ID is built
-
-  //TODO get the building page
-
-  //INITIALIZE
-  try
-  {
-    var authurl = util.getdomain(req.headers.host) + callbackURL;
-    oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", authurl, "HMAC-SHA1");
-
+  util.checkstache(stache, req.params.id[0], function(state, board, i) {
     var id = (req.params.id)[0];
-    try {
-      var stat = req.cookies.status;
-      var message = S(req.cookies.text).decodeHTMLEntities().s;
-      var alert = 'alert';
-    } catch (e)
+    var etext = "";
+    console.log(state);
+
+    //check where the item is in processing
+    if (state == null)
     {
-      var stat = "";
-      var message = "";
-      var alert = 'blank';
+      //not in queue at all - give it a 404
+      console.log("404!");
+      util.handle404(res);
+      return;
+    }
+    if (state == "failed")
+    {
+      etext = board.errormessage;
     }
 
-    res.clearCookie('text', { path: '/' });
-    res.clearCookie('status', { path: '/' });
-    res.render('main', {
-      applicationkey: config.key,
-      board: stache.building,
-      alertstatus: stat,
-      alerttext: message,
-      errortext: "There is no board building with this id.<br>Would you like to <a href='/'>start building yours</a>?",
-      partials: {
-        main: 'build-complete',
-        helpbutton: 'helpbutton',
-        public: 'public',
-        private: 'private',
-        alert: alert
+    //get the page
+    try
+    {
+      try {
+        var stat = req.cookies.status;
+        var message = S(req.cookies.text).decodeHTMLEntities().s;
+        var alert = 'alert';
+      } catch (e)
+      {
+        var stat = "";
+        var message = "";
+        var alert = 'blank';
       }
-    });
-  } catch (e)
-  {
-    throw e;
-  }
+
+      res.clearCookie('text', { path: '/' });
+      res.clearCookie('status', { path: '/' });
+      res.render('main', {
+        applicationkey: config.key,
+        board: board,
+        alertstatus: stat,
+        alerttext: message,
+        errortext: etext,
+        partials: {
+          main: "build-" + state,
+          helpbutton: 'helpbutton',
+          public: 'public',
+          private: 'private',
+          alert: alert
+        }
+      });
+    } catch (e)
+    {
+      throw e;
+    }
+  });
 });
 
 // LaTeX and PDF completed download location
@@ -337,19 +358,10 @@ app.use('/css', express.static(__dirname + '/css'));
 app.use('/fonts', express.static(__dirname + '/fonts'));
 app.use('/js', express.static(__dirname + '/js'));
 
+
 // Handle 404
 app.use(function(req, res) {
-  res.status(400);
-  res.render('main', {
-    applicationkey: config.key,
-    errorcode: "404",
-    errortext: "FILE NOT FOUND",
-    date: new Date().toJSON(),
-    partials: {
-      main: 'crash',
-      helpbutton: 'helpbutton'
-    }
-  });
+  util.handle404(res);
 });
 
 // Handle 500
