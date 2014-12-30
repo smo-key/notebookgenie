@@ -164,7 +164,7 @@ app.use('/ajax/completeauth', function(req, res) {
     //TODO check for board duplicates (SHARE WITH PUBLIC AUTH)
 
     //redirect
-    var uid = "";
+    var boardjson = { };
     flow.series([
       function checkexist(cb) {
         if (!error)
@@ -180,7 +180,7 @@ app.use('/ajax/completeauth', function(req, res) {
             {
               error = true;
               json.forEach(function(board) {
-                if (board.shortLink == id) { error = false; uid = board.id; }
+                if (board.shortLink == id) { error = false; boardjson = board; }
               });
               if (error)
               {
@@ -195,7 +195,7 @@ app.use('/ajax/completeauth', function(req, res) {
       function queue(cb) {
         if (!error)
         {
-          util.queueadd(stache, false, id, uid, auth);
+          util.queueadd(stache, false, id, boardjson, auth);
           cb();
         } else { cb(); }
       },
@@ -218,17 +218,16 @@ app.use('/ajax/build', function(req, res) {
 
     var stat = "success";
     var text = S("<span class='glyphicon glyphicon-ok'></span>Build started!  You're good to go!").escapeHTML().s;
-    var uid = "";
+    var boardjson = { };
 
     //redirect
     flow.series([
-      function getuid(cb) {
+      function getjson(cb) {
         try
         {
           util.download("https://trello.com/b/" + id + ".json", function(data) {
             //TODO error checking
-            var json = JSON.parse(data);
-            uid = json.id;
+            boardjson = JSON.parse(data);
             cb();
           });
         } catch (e)
@@ -237,7 +236,7 @@ app.use('/ajax/build', function(req, res) {
         }
       },
       function queue(cb) {
-        util.queueadd(stache, true, id, uid, null);
+        util.queueadd(stache, true, id, boardjson, null);
         cb();
       },
       function send(cb) {

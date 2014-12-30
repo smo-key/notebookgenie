@@ -112,7 +112,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(stache, public, id, uid, authdata)
+exports.queueadd = function queueadd(stache, public, id, json, authdata)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -129,9 +129,9 @@ exports.queueadd = function queueadd(stache, public, id, uid, authdata)
   board.template = "LASA Robotics"; //TODO un-hardset
   board.email = null; //TODO add user field
   board.user = ""; //TODO get username that initiated the login
-  board.uid = uid; //FIXME SUPER IMPORTANT - GET UID
+  board.uid = json.id;
 
-  console.log("UID: " + uid);
+  console.log("UID: " + json.id);
   //TODO get from Trello using API
 
   //check if nothing is building
