@@ -20,6 +20,8 @@ function isnull(data)
   return false;
 }
 
+exports.isnull = isnull;
+
 function download(url, cb)
 {
   var data = "";

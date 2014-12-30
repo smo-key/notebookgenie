@@ -16,7 +16,6 @@ var http = require("http"),
     OAuth = require('oauth').OAuth,
     flow = require('nimble'),
     cookieparser = require('cookie-parser');
-    t = require("node-trello");
 
 //initialize renderer
 var app = express();
@@ -33,7 +32,6 @@ configname = process.argv[3] || "_private.yml";
 /* READ SERVER CONFIG */
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
-trello = new t(config.key, config.secret);
 
 /* CREATE MUSTACHE PARTIALS STACHE */
 /*var stache = { };
@@ -59,7 +57,7 @@ var stache = {
   failed: [ ] //unique: errormessage, timestamp, humantime (JSON time)
 }
 
-/* SERVER */
+/* EXPRESS */
 app.use(logger('dev'));
 
 app.param(function(name, fn){
@@ -76,22 +74,11 @@ app.param(function(name, fn){
   }
 });
 
-// TODO cron job for removing builds after 24 hours
-
 //APP USAGE PARAMS
 app.param('id', /^([a-zA-Z0-9]){8}$/);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieparser());
-
-// API POST requests
-app.use('/ajax/prepurl', function(req, res) {
-  //Check if valid URL
-  var url = req.body.url;
-  util.prepurl(url, function(status) {
-    util.sendjson(status, res); return;
-  });
-});
 
 /* OAUTH DETAILS */
 requestURL = "https://trello.com/1/OAuthGetRequestToken";
@@ -101,6 +88,51 @@ callbackURL = config.domain + "/ajax/completeauth"; //TODO fix this callback to 
 
 //need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
 oauth_secrets = {};
+
+/* TRELLO REQUESTS */
+var apiver = "1";
+function trello(u, auth, cb)
+{
+  var url = "https://api.trello.com/" + apiver + u;
+
+  if (!util.isnull(auth))
+  {
+    //must be private - get via OAuth
+    oauth = new OAuth(requestURL, accessURL, config.key, config.secret, "1.0", callbackURL, "HMAC-SHA1");
+    oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
+      if (error) { cb(true, error); return; }
+      cb(false, JSON.parse(data)); return;
+    });
+  }
+  else
+  {
+    //must be public - get via API
+    url += "?key=" + config.key;
+    http.get(url, function(res) {
+      console.log(res.body);
+      console.log(res.data);
+      cb(false, JSON.parse(res.body));
+      return;
+    }).on('error', function(e) {
+      console.log(e.stack);
+      cb(true, e);
+      return;
+    });
+  }
+}
+
+/* SERVER */
+
+// TODO cron job for removing builds after 24 hours (if over 5 recently built)
+
+// API POST requests
+app.use('/ajax/prepurl', function(req, res) {
+  //Check if valid URL
+  var url = req.body.url;
+  util.prepurl(url, function(status) {
+    util.sendjson(status, res); return;
+  });
+});
 
 app.use('/ajax/authorize', function(req, res) {
   var url = req.body.url;
@@ -152,20 +184,46 @@ app.use('/ajax/completeauth', function(req, res) {
     {
       console.log(error);
       status = "danger";
-      text = S("We couldn't sign you in to your account.  The board will not be built.").escapeHTML().s;
-    }
+      text = S("We couldn't sign you in to your account.").escapeHTML().s;
+      error = true;
+    } else { error = false; }
 
-    //TODO check if the board id in question is accessable by this user (do a test query)
+    var auth = { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret };
 
     //redirect
     flow.series([
+      function checkexist(cb) {
+        if (!error)
+        {
+          //check if the board id in question is accessable by this user
+          trello("/members/me/boards", auth, function(er,json) {
+            if (er)
+            {
+              status = "danger";
+              text = S("We couldn't check if the board belongs to you.").escapeHTML().s;
+              error = true; cb();
+            } else
+            {
+              error = true;
+              json.forEach(function(board) {
+                if (board.shortLink == id) { error = false; }
+              });
+              if (error)
+              {
+                status = "danger";
+                text = S("The board is inaccessible from your account.").escapeHTML().s;
+                error = true; cb();
+              } else { cb(); }
+            }
+          });
+        } else { cb(); }
+      },
       function queue(cb) {
         if (!error)
         {
-          util.queueadd(stache, false, id,
-          { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret });
-        }
-        cb();
+          util.queueadd(stache, false, id, auth);
+          cb();
+        } else { cb(); }
       },
       function send(cb) {
         res.cookie('text', text, { httpOnly: true, path: '/' });
