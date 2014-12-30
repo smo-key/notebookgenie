@@ -200,7 +200,7 @@ app.use('/ajax/completeauth', function(req, res) {
     {
       error = true;
     }
-    var public = req.param('public'); //TODO set this via cookie! (it's not being set)
+
     var status = "success";
     var text = S("<span class='glyphicon glyphicon-ok'></span>Sign in successful!").escapeHTML().s;
     if(error)
@@ -215,7 +215,7 @@ app.use('/ajax/completeauth', function(req, res) {
       function queue(cb) {
         if (!error)
         {
-          util.queueadd(stache, public, id,
+          util.queueadd(stache, false, id,
           { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret });
         }
         cb();
@@ -225,6 +225,31 @@ app.use('/ajax/completeauth', function(req, res) {
         res.cookie('status', status, { httpOnly: true, path: '/' });
         res.writeHead(302, { 'Location': "/build/" + id });
         res.send();
+        cb();
+      }
+    ]);
+  });
+});
+
+
+app.use('/ajax/build', function(req, res) {
+  //build a PUBLIC repo
+  util.prepurl(req.body.url, function(status, id) {
+    if (status.status != 2) { return; }//TODO error handling
+
+    var stat = "success";
+    var text = S("<span class='glyphicon glyphicon-ok'></span>Build started!  You're good to go!").escapeHTML().s;
+
+    //redirect
+    flow.series([
+      function queue(cb) {
+        util.queueadd(stache, true, id, null);
+        cb();
+      },
+      function send(cb) {
+        res.cookie('text', text, { httpOnly: true, path: '/' });
+        res.cookie('status', stat, { httpOnly: true, path: '/' });
+        util.sendjson({ url: "/build/" + id }, res);
         cb();
       }
     ]);
@@ -289,10 +314,14 @@ app.use('/build', express.static(__dirname + '/build'));
 
 // Final index GET
 app.get('/', function (req, res) {
+  var queuecount = stache.queued.length;
+  if (queuecount == 0) { queuecount = null; }
+
   res.render('main', {
     applicationkey: config.key,
     building: stache.building,
     built: stache.built,
+    queuecount: queuecount,
     partials: {
       main: 'start',
       helpbutton: 'helpbutton',
@@ -326,6 +355,7 @@ app.use(function(req, res) {
 // Handle 500
 app.use(function(err, req, res, next) {
   res.status(500);
+  console.log(err.stack);
   res.render('main', {
     applicationkey: config.key,
     errorcode: "500",

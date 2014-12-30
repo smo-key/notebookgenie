@@ -6,7 +6,6 @@
     <h5>
       {{# building.public}}{{> public}}{{/ building.public}}{{^ building.public}}{{> private}}{{/ building.public}}
       {{# building.orgurl}}<a href="{{ building.orgurl }}">{{ building.org }}</a>{{/ building.orgurl}}{{^ building.orgurl}}{{ building.org }}{{/ building.orgurl}} / <b>{{# building.titleurl }}<a href="{{ building.titleurl }}">{{ building.title }}</a>{{/ building.titleurl }}{{^ building.titleurl }}{{ building.title }}{{/ building.titleurl }}</b></h5>
-    <h6>Template: {{ building.template }}</h6>
     <div class="progress">
       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{ building.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ building.progress }}%">
         <span class="sr-only">{{ building.progress }}% Complete</span>
@@ -16,9 +15,16 @@
     {{^ building}}
     <h5>We're not building anything at the moment.  Care to <a data-toggle="modal" data-target="#buildboard">build yours</a>?</h5>
     {{/ building}}
-
   </div>
 </div>
+
+{{# queuecount}}
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <h2 class="panel-title"><i class="fa fa-clock-o"></i>{{{queuecount}}} on queue</h2>
+  </div>
+</div>
+{{/ queuecount}}
 
 <div class="panel panel-success">
   <div class="panel-heading">

@@ -23,6 +23,22 @@ $('#buildprivate').click(function(){
   });
 });
 
+$('#buildpublic').click(function(){
+  $('#buildpublic').addClass("disabled");
+  console.log(document.URL);
+  $.ajax({
+    url: '/ajax/build',
+    type: 'POST',
+    data: { url: $('#inputurl').val() },
+    success: function(data) {
+      window.location.replace(data.url);
+    },
+    failure: function() {
+      $('#buildpublic').removeClass("disabled");
+    }
+  });
+});
+
 $('#inputurl').change(function(){
   console.log($('#inputurl').val());
 
