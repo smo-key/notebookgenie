@@ -124,8 +124,11 @@ exports.queueremove = function queueremove(stache, id)
 
 exports.checkstache = function checkstache(stache, id, cb)
 {
-  if (stache.building.id == id) { cb("building", stache.building); return; }
   var c = false;
+  if (!isnull(stache.building))
+  {
+    if (stache.building.id == id) { cb("building", stache.building); c = true; return; }
+  }
 
   stache.queued.forEach(function(item, i) {
     if (item.id == id) { cb("queued", item, i); c = true; return; }

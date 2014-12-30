@@ -53,76 +53,10 @@ walker.on('end', function() {
 });*/
 
 var stache = {
-  building:
-    {
-      id: "azk4lolz",
-      auth: null,
-      public: true,
-      org: "LASA Robotics",
-      title: "Some Extrememly Long Board Name",
-      orgurl: null,
-      titleurl: "#",
-      template: "LASA Robotics",
-      email: "pachachura.arthur@gmail.com",
-      user: "arthurpachachura1",
-      progress: 80
-    },
-  queued: [
-    {
-      id: "azk425a4",
-      auth: null,
-      public: true,
-      org: "LASA Robotics",
-      title: "Our Board - Again",
-      orgurl: null,
-      titleurl: null,
-      template: "LASA Robotics",
-      email: "pachachura.arthur@gmail.com",
-      user: "arthurpachachura1"
-    }
-  ],
-  built: [
-    {
-      id: "asdfasdf",
-      public: true,
-      org: "Arthur Pachachura",
-      title: "My Public Board",
-      orgurl: "#",
-      titleurl: "#",
-      timestamp: 39485949343 //only in built
-    },
-    {
-      id: "kj35fj95",
-      public: false,
-      org: "LASA Robotics",
-      title: "Private Board",
-      orgurl: null,
-      titleurl: null,
-      timestamp: 3948594934893
-    },
-    {
-      id: "nfd420gk",
-      public: false,
-      org: "Some Public Organization",
-      title: "Private Board",
-      orgurl: "#",
-      titleurl: null,
-      timestamp: 3948594934893
-    }
-  ],
-  failed: [
-    {
-      id: "hvu4q93j",
-      errormessage: "We encountered an unknown build error.  Sorry!",
-      public: true,
-      org: "Arthur Pachachura",
-      title: "My Public Board",
-      orgurl: "#",
-      titleurl: "#",
-      timestamp: 39485949343, //timestamp of failure, used for cleaning
-      humantime: "2014-12-30T01:05:23.689Z" //only on failure
-    }
-  ]
+  building: null,
+  queued: [ ],
+  built: [ ], //unique: timestamp
+  failed: [ ] //unique: errormessage, timestamp, humantime (JSON time)
 }
 
 /* SERVER */
@@ -202,8 +136,6 @@ app.use('/ajax/completeauth', function(req, res) {
 
   oauth.getOAuthAccessToken(token, tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results)
   {
-    //TODO check if the board id in question is accessable by this user (do a test query)
-
     //store accessToken and accessTokenSecret
     var id = "";
     try
@@ -220,8 +152,10 @@ app.use('/ajax/completeauth', function(req, res) {
     {
       console.log(error);
       status = "danger";
-      text = S("We couldn't sign you in to your account.  Nothing will be built.").escapeHTML().s;
+      text = S("We couldn't sign you in to your account.  The board will not be built.").escapeHTML().s;
     }
+
+    //TODO check if the board id in question is accessable by this user (do a test query)
 
     //redirect
     flow.series([
@@ -271,17 +205,43 @@ app.use('/ajax/build', function(req, res) {
 
 app.get('/build/:id', function(req, res){
   // Building and download LaTeX / PDF page
+  console.log(req.params);
   util.checkstache(stache, req.params.id[0], function(state, board, i) {
     var id = (req.params.id)[0];
     var etext = "";
-    console.log(state);
+
+    //check if there's a message to display
+    try {
+      var stat = req.cookies.status;
+      var message = S(req.cookies.text).decodeHTMLEntities().s;
+      var alert = 'alert';
+    } catch (e)
+    {
+      var stat = "";
+      var message = "";
+      var alert = 'blank';
+    }
 
     //check where the item is in processing
     if (state == null)
     {
       //not in queue at all - give it a 404
       console.log("404!");
-      util.handle404(res);
+      res.clearCookie('text', { path: '/' });
+      res.clearCookie('status', { path: '/' });
+      res.render('main', {
+        applicationkey: config.key,
+        alertstatus: stat,
+        alerttext: message,
+        errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/'>build yours</a>?",
+        partials: {
+          main: "build-failed",
+          helpbutton: 'helpbutton',
+          public: 'public',
+          private: 'private',
+          alert: alert
+        }
+      });
       return;
     }
     if (state == "failed")
@@ -292,17 +252,6 @@ app.get('/build/:id', function(req, res){
     //get the page
     try
     {
-      try {
-        var stat = req.cookies.status;
-        var message = S(req.cookies.text).decodeHTMLEntities().s;
-        var alert = 'alert';
-      } catch (e)
-      {
-        var stat = "";
-        var message = "";
-        var alert = 'blank';
-      }
-
       res.clearCookie('text', { path: '/' });
       res.clearCookie('status', { path: '/' });
       res.render('main', {
