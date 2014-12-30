@@ -20,8 +20,39 @@ function isnull(data)
   if ((data == undefined) || (data == null) || (data == "")) { return true; }
   return false;
 }
-
 exports.isnull = isnull;
+
+var apiver = "1";
+function trello(u, auth, odata, cb)
+{
+  var url = "https://api.trello.com/" + apiver + u;
+
+  if (!isnull(auth))
+  {
+    //must be private - get via OAuth
+    oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
+    oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
+      if (error) { cb(true, error); return; }
+      cb(false, JSON.parse(data)); return;
+    });
+  }
+  else
+  {
+    //must be public - get via API
+    url += "?key=" + config.key;
+    http.get(url, function(res) {
+      console.log(res.body);
+      console.log(res.data);
+      cb(false, JSON.parse(res.body));
+      return;
+    }).on('error', function(e) {
+      console.log(e.stack);
+      cb(true, e);
+      return;
+    });
+  }
+}
+exports.trello = trello;
 
 function download(url, cb)
 {
@@ -38,6 +69,7 @@ function download(url, cb)
     cb(data);
   });
 }
+exports.download = download;
 
 exports.prepurl = function prepurl(url, cb)
 {
@@ -80,7 +112,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(stache, public, id, authdata)
+exports.queueadd = function queueadd(stache, public, id, uid, authdata)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -90,13 +122,17 @@ exports.queueadd = function queueadd(stache, public, id, authdata)
   board.id = id;
   board.auth = authdata;
   board.public = public;
-  board.org = "SOME ORG"; //TODO get from Trello using API
-  board.title = "TEST";
+  board.org = "";
+  board.title = "";
   board.orgurl = null;
   board.titleurl = null;
   board.template = "LASA Robotics"; //TODO un-hardset
   board.email = null; //TODO add user field
   board.user = ""; //TODO get username that initiated the login
+  board.uid = uid; //FIXME SUPER IMPORTANT - GET UID
+
+  console.log("UID: " + uid);
+  //TODO get from Trello using API
 
   //check if nothing is building
   if (isnull(stache.building))
@@ -158,37 +194,6 @@ exports.handle404 = function handle404(res)
       helpbutton: 'helpbutton'
     }
   });
-}
-
-var apiver = "1";
-exports.trello = function trello(u, auth, odata, cb)
-{
-  var url = "https://api.trello.com/" + apiver + u;
-
-  if (!isnull(auth))
-  {
-    //must be private - get via OAuth
-    oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
-    oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
-      if (error) { cb(true, error); return; }
-      cb(false, JSON.parse(data)); return;
-    });
-  }
-  else
-  {
-    //must be public - get via API
-    url += "?key=" + config.key;
-    http.get(url, function(res) {
-      console.log(res.body);
-      console.log(res.data);
-      cb(false, JSON.parse(res.body));
-      return;
-    }).on('error', function(e) {
-      console.log(e.stack);
-      cb(true, e);
-      return;
-    });
-  }
 }
 
 exports.getdomain = function getdomain(url) {
