@@ -22,6 +22,23 @@ function isnull(data)
 }
 exports.isnull = isnull;
 
+function download(url, cb)
+{
+  var data = "";
+  https.get(url, function(res) {
+    res.on('data', function(chunk) {
+      data += chunk;
+    });
+    res.on('end', function () {
+      cb(data);
+    });
+  }).on('error', function(e) {
+    data = null;
+    cb(data);
+  });
+}
+exports.download = download;
+
 var apiver = "1";
 function trello(u, auth, odata, cb)
 {
@@ -39,37 +56,14 @@ function trello(u, auth, odata, cb)
   else
   {
     //must be public - get via API
-    url += "?key=" + config.key;
-    http.get(url, function(res) {
-      console.log(res.body);
-      console.log(res.data);
-      cb(false, JSON.parse(res.body));
-      return;
-    }).on('error', function(e) {
-      console.log(e.stack);
-      cb(true, e);
-      return;
+    url = url + "?key=" + odata.key;
+    console.log(url);
+    download(url, function(data) {
+      cb(false, JSON.parse(data));
     });
   }
 }
 exports.trello = trello;
-
-function download(url, cb)
-{
-  var data = "";
-  https.get(url, function(res) {
-    res.on('data', function(chunk) {
-      data += chunk;
-    });
-    res.on('end', function () {
-      cb(data);
-    });
-  }).on('error', function(e) {
-    data = null;
-    cb(data);
-  });
-}
-exports.download = download;
 
 exports.prepurl = function prepurl(url, cb)
 {
@@ -112,7 +106,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(stache, public, id, json, authdata)
+exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, callback)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -131,29 +125,49 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata)
   board.user = ""; //TODO get username that initiated the login
   board.uid = json.id;
 
-  console.log(json);
-  if (isnull(json.idOrganization))
-  {
-    //user-owned, just get first member name and url
-  }
-  else
-  {
-    //organization-owned, get org name and url
-  }
-
-  console.log("UID: " + json.id);
-  //TODO get from Trello using API
-
-  //check if nothing is building
-  if (isnull(stache.building))
-  {
-    board.progress = 0;
-    stache.building = board;
-    return;
-  }
-  //add to queue
-  stache.queued.push(board);
-  return;
+  flow.series([
+    function getdata(cb)
+    {
+      console.log(json);
+      if (isnull(json.idOrganization))
+      {
+        //user-owned, just get first member name and url
+        trello("/boards/" + board.uid + "/members", authdata, odata, function(e, data) {
+          trello("/members/" + data.id, authdata, odata, function(e, data) {
+            //TODO error catching
+            console.log(data);
+            pushboard(); return;
+          });
+        });
+      }
+      else
+      {
+        //organization-owned, get org name and url
+        trello("/boards/" + board.uid + "/organization", authdata, odata, function(e, data) {
+          //TODO error catching
+          board.org = data.displayName;
+          board.orgurl = data.url;
+          cb(); return;
+        });
+      }
+    },
+    function pushboard(cb)
+    {
+      //check if nothing is building
+      if (isnull(stache.building))
+      {
+        board.progress = 0;
+        stache.building = board;
+        callback(); cb(); return;
+      }
+      else
+      {
+        //add to queue
+        stache.queued.push(board);
+        callback(); cb(); return;
+      }
+    }
+  ]);
 }
 
 exports.queuebuild = function queuebuild(stache, id)

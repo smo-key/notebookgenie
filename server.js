@@ -195,8 +195,9 @@ app.use('/ajax/completeauth', function(req, res) {
       function queue(cb) {
         if (!error)
         {
-          util.queueadd(stache, false, id, boardjson, auth);
-          cb();
+          util.queueadd(stache, false, id, boardjson, auth, odata, function() {
+            cb();
+          });
         } else { cb(); }
       },
       function send(cb) {
@@ -236,8 +237,9 @@ app.use('/ajax/build', function(req, res) {
         }
       },
       function queue(cb) {
-        util.queueadd(stache, true, id, boardjson, null);
-        cb();
+        util.queueadd(stache, true, id, boardjson, null, odata, function() {
+          cb();
+        });
       },
       function send(cb) {
         res.cookie('text', text, { httpOnly: true, path: '/' });
