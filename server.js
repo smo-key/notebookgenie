@@ -12,7 +12,6 @@ var http = require("http"),
     walk = require("walk"),
     bodyParser = require("body-parser"),
     util = require("./js/util.js"),
-    t2t = require("./js/trello2latex.js"),
     OAuth = require('oauth').OAuth,
     flow = require('nimble'),
     cookieparser = require('cookie-parser');
@@ -50,7 +49,7 @@ walker.on('end', function() {
   app.set('views', __dirname + '/partials');
 });*/
 
-var stache = {
+exports.stache = {
   building: null,
   queued: [ ],
   built: [ ], //unique: timestamp
@@ -195,7 +194,7 @@ app.use('/ajax/completeauth', function(req, res) {
       function queue(cb) {
         if (!error)
         {
-          util.queueadd(stache, false, id, boardjson, auth, odata, function() {
+          util.queueadd(false, id, boardjson, auth, odata, function() {
             cb();
           });
         } else { cb(); }
@@ -237,7 +236,7 @@ app.use('/ajax/build', function(req, res) {
         }
       },
       function queue(cb) {
-        util.queueadd(stache, true, id, boardjson, null, odata, function() {
+        util.queueadd(true, id, boardjson, null, odata, function() {
           cb();
         });
       },
@@ -254,7 +253,7 @@ app.use('/ajax/build', function(req, res) {
 app.get('/build/:id', function(req, res){
   // Building and download LaTeX / PDF page
   console.log(req.params);
-  util.checkstache(stache, req.params.id[0], function(state, board, i) {
+  util.checkstache(req.params.id[0], function(state, board, i) {
     var id = (req.params.id)[0];
     var etext = "";
 
@@ -332,13 +331,13 @@ app.use('/build', express.static(__dirname + '/build'));
 
 // Final index GET
 app.get('/', function (req, res) {
-  var queuecount = stache.queued.length;
+  var queuecount = exports.stache.queued.length;
   if (queuecount == 0) { queuecount = null; }
 
   res.render('main', {
     applicationkey: config.key,
-    building: stache.building,
-    built: stache.built,
+    building: exports.stache.building,
+    built: exports.stache.built,
     queuecount: queuecount,
     partials: {
       main: 'start',

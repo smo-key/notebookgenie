@@ -4,6 +4,8 @@ var s = require("string");
 var d = require("do");
 var flow = require('nimble');
 var OAuth = require('oauth').OAuth;
+var t2t = require("./trello2latex.js");
+var svr = require("../server.js");
 
 function prep_genjson(status, message, public)
 {
@@ -103,7 +105,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, callback)
+exports.queueadd = function queueadd(public, id, json, authdata, odata, callback)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -152,55 +154,83 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, 
     function pushboard(cb)
     {
       //check if nothing is building
-      if (isnull(stache.building))
+      if (isnull(svr.stache.building))
       {
         board.progress = 0;
-        stache.building = board;
+        svr.stache.building = board;
+
+        trello("/boards/" + board.uid, authdata, odata, function(e, raw) {
+          t2t.startbuild(JSON.stringify(board), JSON.stringify(raw), JSON.stringify({ }), JSON.stringify(odata), svr.stache);
+        });
+
         callback(); cb(); return;
       }
       else
       {
         //add to queue
-        stache.queued.push(board);
+        svr.stache.queued.push(board);
         callback(); cb(); return;
       }
     }
   ]);
 }
 
-exports.queuebuild = function queuebuild(stache, id)
+exports.queuebuild = function queuebuild(id)
 {
 
 }
 
-exports.queuecomplete = function queuecomplete(stache, id)
+exports.queuecomplete = function queuecomplete(id)
 {
 
 }
 
-exports.queueremove = function queueremove(stache, id)
+exports.queueremove = function queueremove(id)
 {
 
 }
 
-exports.checkstache = function checkstache(stache, id, cb)
+exports.checkstache = function checkstache(id, cb)
 {
   var c = false;
-  if (!isnull(stache.building))
+  if (!isnull(svr.stache.building))
   {
-    if (stache.building.id == id) { cb("building", stache.building); c = true; return; }
+    if (svr.stache.building.id == id) { cb("building", svr.stache.building); c = true; return; }
   }
 
-  stache.queued.forEach(function(item, i) {
+  svr.stache.queued.forEach(function(item, i) {
     if (item.id == id) { cb("queued", item, i); c = true; return; }
   });
-  stache.built.forEach(function(item, i) {
+  svr.stache.built.forEach(function(item, i) {
     if (item.id == id) { cb("built", item, i); c = true; return; }
   });
-  stache.failed.forEach(function(item, i) {
+  svr.stache.failed.forEach(function(item, i) {
     if (item.id == id) { cb("failed", item, i); c = true; return; }
   });
   if (!c) { cb(null); }
+}
+
+exports.updateboard = function updateboard(board, cb)
+{
+  var c = false;
+  var b = JSON.parse(board);
+  var uid = b.uid;
+  console.log(b);
+  if (!isnull(svr.stache.building))
+  {
+    if (svr.stache.building.uid == uid) { console.log(svr.stache); console.log("SUCCESS!"); svr.stache.building = b; console.log(svr.stache); cb(); return; }
+  }
+
+  svr.stache.queued.forEach(function(item, i) {
+    if (item.uid == uid) { svr.stache.queued[i] = b; cb(); c = true; return; }
+  });
+  svr.stache.built.forEach(function(item, i) {
+    if (item.uid == uid) { svr.stache.built[i] = b; cb(); c = true; return; }
+  });
+  svr.stache.failed.forEach(function(item, i) {
+    if (item.uid == uid) { svr.stache.built[i] = b; cb(); c = true; return; }
+  });
+  if (!c) { cb(); }
 }
 
 exports.handle404 = function handle404(res)
@@ -235,3 +265,5 @@ exports.sendjson = function sendjson(json, res)
   res.end(s);
   res.send();
 }
+
+
