@@ -132,13 +132,13 @@ function updateContainer() {
   var $cH = $(window).height();
 
   //Make window smaller when it needs to be
-  if ($("#loading").height() > $cH)
+  if ($("#loadingcontainer").height() > $cH)
   {
-    $("#loading").addClass("centered-top");
+    $("#loadingcontainer").addClass("centered-top");
   }
   else
   {
-    $("#loading").removeClass("centered-top");
+    $("#loadingcontainer").removeClass("centered-top");
   }
 
 //  if ($cH < 400) { $cH = 400; }
