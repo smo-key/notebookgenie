@@ -56,9 +56,8 @@ function trello(u, auth, odata, cb)
   else
   {
     //must be public - get via API
-    url = url + "?key=" + odata.key;
-    console.log(url);
-    download(url, function(data) {
+    download(url + "?key=" + odata.key, function(data) {
+      console.log(data);
       cb(false, JSON.parse(data));
     });
   }
@@ -92,16 +91,6 @@ exports.prepurl = function prepurl(url, cb)
     if (s(data).contains("unauthorized"))
     { cb(prep_genjson(2, "Nice!  We detected this board is private, so we'll need to you to login when you're ready.", false), id, data); return; }
 
-    /* SET A COOKIE
-    var session = sessions.lookupOrCreate(request,{
-      lifetime:604800
-    });
-    response.writeHead(200, {
-      'Content-Type': 'text/plain',
-      'Set-Cookie', session.getSetCookieHeaderValue()
-    });
-    */
-
     cb(prep_genjson(2, "", true), id, data); return;
   });
 };
@@ -111,7 +100,6 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, 
   //TODO check if already present in building or queued (remove if in built)
 
   //add a set to the stache
-  console.log(authdata);
   var board = { };
   board.id = id;
   board.auth = authdata;
@@ -122,7 +110,7 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, 
   board.titleurl = json.shortUrl;
   board.template = "LASA Robotics"; //TODO un-hardset
   board.email = null; //TODO add user field
-  board.user = ""; //TODO get username that initiated the login
+  //board.user = ""; //TODO get username that initiated the login
   board.uid = json.id;
 
   flow.series([
@@ -132,11 +120,12 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, 
       if (isnull(json.idOrganization))
       {
         //user-owned, just get first member name and url
-        trello("/boards/" + board.uid + "/members", authdata, odata, function(e, data) {
-          trello("/members/" + data.id, authdata, odata, function(e, data) {
+        trello("/boards/" + board.uid + "/members", authdata, odata, function(e, d) {
+          trello("/members/" + d[0].id, authdata, odata, function(e, data) {
             //TODO error catching
-            console.log(data);
-            pushboard(); return;
+            board.org = data.fullName;
+            board.orgurl = data.url;
+            cb(); return;
           });
         });
       }
