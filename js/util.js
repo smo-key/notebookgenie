@@ -56,8 +56,16 @@ function trello(u, auth, odata, cb)
   else
   {
     //must be public - get via API
-    download(url + "?key=" + odata.key, function(data) {
-      console.log(data);
+
+    //check if parameters already exist
+    if (s(url).contains("?"))
+    {
+      url = url +  "&key=" + odata.key;
+    } else {
+      url = url +  "?key=" + odata.key;
+    }
+
+    download(url, function(data) {
       cb(false, JSON.parse(data));
     });
   }
@@ -116,12 +124,12 @@ exports.queueadd = function queueadd(stache, public, id, json, authdata, odata, 
   flow.series([
     function getdata(cb)
     {
-      console.log(json);
       if (isnull(json.idOrganization))
       {
         //user-owned, just get first member name and url
-        trello("/boards/" + board.uid + "/members", authdata, odata, function(e, d) {
-          trello("/members/" + d[0].id, authdata, odata, function(e, data) {
+        trello("/boards/" + board.uid + "/members" + "?filter=owners", authdata, odata, function(e, d) {
+          console.log(d);
+          trello("/members/" + d[0].id , authdata, odata, function(e, data) {
             //TODO error catching
             board.org = data.fullName;
             board.orgurl = data.url;
