@@ -1,5 +1,6 @@
 var http = require("http");
 var https = require("https");
+var fs = require("fs");
 var s = require("string");
 var d = require("do");
 var flow = require('nimble');
@@ -41,6 +42,23 @@ function download(url, cb)
 }
 exports.download = download;
 
+exports.downloadfile = function downloadfile(url, filename, cb)
+{
+  var file = fs.createWriteStream(filename);
+  https.get(url, function(res) {
+    res.on('data', function(chunk) {
+      file.write(chunk);
+    });
+    res.on('end', function () {
+      file.end();
+      cb(true);
+    });
+  }).on('error', function(e) {
+    file.end();
+    cb(false);
+  });
+}
+
 var apiver = "1";
 function trello(u, auth, odata, cb)
 {
@@ -60,12 +78,14 @@ function trello(u, auth, odata, cb)
     //must be public - get via API
 
     //check if parameters already exist
+    console.log(url);
     if (s(url).contains("?"))
     {
       url = url +  "&key=" + odata.key;
     } else {
       url = url +  "?key=" + odata.key;
     }
+    console.log(url);
 
     download(url, function(data) {
       cb(false, JSON.parse(data));
@@ -131,7 +151,6 @@ exports.queueadd = function queueadd(public, id, json, authdata, odata, callback
       {
         //user-owned, just get first member name and url
         trello("/boards/" + board.uid + "/members" + "?filter=owners", authdata, odata, function(e, d) {
-          console.log(d);
           trello("/members/" + d[0].id , authdata, odata, function(e, data) {
             //TODO error catching
             board.org = data.fullName;
@@ -159,9 +178,7 @@ exports.queueadd = function queueadd(public, id, json, authdata, odata, callback
         board.progress = 0;
         svr.stache.building = board;
 
-        trello("/boards/" + board.uid, authdata, odata, function(e, raw) {
-          t2t.startbuild(JSON.stringify(board), JSON.stringify(raw), JSON.stringify({ }), JSON.stringify(odata), svr.stache);
-        });
+        t2t.startbuild(JSON.stringify(board), JSON.stringify({ }), JSON.stringify(odata));
 
         callback(); cb(); return;
       }
@@ -210,15 +227,14 @@ exports.checkstache = function checkstache(id, cb)
   if (!c) { cb(null); }
 }
 
-exports.updateboard = function updateboard(board, cb)
+function updateboard(board, cb)
 {
   var c = false;
   var b = JSON.parse(board);
   var uid = b.uid;
-  console.log(b);
   if (!isnull(svr.stache.building))
   {
-    if (svr.stache.building.uid == uid) { console.log(svr.stache); console.log("SUCCESS!"); svr.stache.building = b; console.log(svr.stache); cb(); return; }
+    if (svr.stache.building.uid == uid) { svr.stache.building = b; cb(); return; }
   }
 
   svr.stache.queued.forEach(function(item, i) {
@@ -231,6 +247,15 @@ exports.updateboard = function updateboard(board, cb)
     if (item.uid == uid) { svr.stache.built[i] = b; cb(); c = true; return; }
   });
   if (!c) { cb(); }
+}
+exports.updateboard = updateboard;
+
+exports.updateprogress = function updateprogress(board, progress)
+{
+  var b = JSON.parse(board);
+  b.progress = progress;
+  updateboard(JSON.stringify(b), function() { });
+  return b;
 }
 
 exports.handle404 = function handle404(res)
