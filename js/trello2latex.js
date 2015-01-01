@@ -150,9 +150,9 @@ exports.startbuild = function startbuild(board, u, odata) {
                     //get votes
                     card.votecount = cr.membersVoted.length;
                     card.voters = [ ];
-                    cr.members.forEach(function(m, k) {
+                    cr.membersVoted.forEach(function(m, k) {
                       card.voters.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                      if (k == cr.members.length - 1) { cb(); }
+                      if (k == cr.membersVoted.length - 1) { cb(); }
                     });
                   },
                   function getchecklists(cb) {
@@ -167,7 +167,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                         items.push(it);
                       });
                       card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items });
-                      if (k == cr.members.length - 1) { cb(); }
+                      if (k == cr.checklists.length - 1) { cb(); }
                     });
                   },
                   function getattachments(cb) {
