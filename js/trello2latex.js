@@ -20,7 +20,9 @@ exports.startbuild = function startbuild(board, u, odata) {
   //complete credential verification - DONE in board
   board = JSON.parse(board);
   //download JSON -> raw
-  util.trello("/boards/" + board.uid + "?lists=all&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
+  util.trello("/boards/" + board.uid + "?lists=open&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
+
+    //FIXME some user avatars DO NOT EXIST! -> set avatars to null to show LaTeX to use initials instead
 
 //    console.log(raw);
 
