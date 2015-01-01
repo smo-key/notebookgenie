@@ -67,6 +67,7 @@ function trello(u, auth, odata, cb)
   if (!isnull(auth))
   {
     //must be private - get via OAuth
+    console.log("PRIVATE GET: " + url);
     oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
     oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
       if (error) { cb(true, error); return; }
@@ -78,14 +79,13 @@ function trello(u, auth, odata, cb)
     //must be public - get via API
 
     //check if parameters already exist
-    console.log(url);
     if (s(url).contains("?"))
     {
       url = url +  "&key=" + odata.key;
     } else {
       url = url +  "?key=" + odata.key;
     }
-    console.log(url);
+    console.log("PUBLIC GET: " + url);
 
     download(url, function(data) {
       cb(false, JSON.parse(data));
