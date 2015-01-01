@@ -107,7 +107,6 @@ exports.startbuild = function startbuild(board, u, odata) {
               var list = { };
               list.cards = [ ];
               list.name = li.name;
-              list.id = li.id;
               list.pos = li.pos;
 
               li.cards.forEach(function(c, j) {
@@ -115,7 +114,6 @@ exports.startbuild = function startbuild(board, u, odata) {
                 util.trello("/cards/" + c.id + "?actions=all&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
                   //get card
                   var card = { };
-                  card.id = cr.id;
                   card.name = cr.name;
                   card.desc = cr.desc;
                   card.lastmodified = cr.dateLastActivity;
@@ -132,7 +130,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       //get members
                       card.members = [ ];
                       cr.members.forEach(function(m, k) {
-                        card.members.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
                         if (k == cr.members.length - 1) { cb(); }
                       });
                       if (cr.members.length == 0) { cb(); }
@@ -154,7 +152,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       card.votecount = cr.membersVoted.length;
                       card.voters = [ ];
                       cr.membersVoted.forEach(function(m, k) {
-                        card.voters.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
                         if (k == cr.membersVoted.length - 1) { cb(); }
                       });
                       if (cr.membersVoted.length == 0) { cb(); }
@@ -167,7 +165,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                         var items = [ ];
                         c.checkItems.forEach(function(item, l) {
                           if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-                          var it = { id: item.id, name: item.name, pos: item.pos, checked: checked };
+                          var it = { name: item.name, pos: item.pos, checked: checked };
                           items.push(it);
                         });
                         card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items.sortByProp('pos') });
@@ -187,10 +185,11 @@ exports.startbuild = function startbuild(board, u, odata) {
                           {
                             var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
                             util.downloadfile(attach.url, ur, function(e) {
-                              console.log("file downloaded");
                               if (e)
                               {
-                                card.attachments.push({ filename: ur, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                                card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                                        name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                                //TODO make date user friendly
                                 console.log(card.attachments);
 
                                 //get card cover using cr.idAttachmentCover
@@ -249,8 +248,6 @@ exports.startbuild = function startbuild(board, u, odata) {
       },
       function getotherdata(cb) {
         console.log("GET OTHER!");
-        //raw.shortLink -> b.id
-        b.id = board.id;
         //raw.url -> b.url
         b.url = raw.shortUrl;
         //raw.labelNames -> b.labels
