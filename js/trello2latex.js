@@ -126,6 +126,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 
                 flow.series([
                   function getmembers(cb) {
+                    console.log("GET MEMBERS");
                     //get members
                     card.members = [ ];
                     cr.members.forEach(function(m, k) {
@@ -145,6 +146,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                     cb();
                   },
                   function getvotes(cb) {
+                    console.log("GET VOTES");
                     //get votes
                     card.votecount = cr.membersVoted.length;
                     card.voters = [ ];
@@ -154,6 +156,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                     });
                   },
                   function getchecklists(cb) {
+                    console.log("GET CHECKLISTS");
                     //get checklists
                     card.checklists = [ ];
                     cr.checklists.forEach(function(c, k) {
@@ -168,6 +171,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                     });
                   },
                   function getattachments(cb) {
+                    console.log("GET ATTACHMENTS");
                     //download card attachments to /tmp/dl
                     cr.attachments.forEach(function(attach, k) {
                       if (attach.url.match(/\.[0-9a-zA-Z]+$/))
@@ -199,9 +203,11 @@ exports.startbuild = function startbuild(board, u, odata) {
                     cb();
                   },
                   function push(cb) {
+                    console.log("PUSH!");
                     console.log(card);
                     list.cards.push(card);
-                    if (i == raw.lists.length - 1) { b.lists.push(list); cb(); }
+                    if (i == raw.lists.length - 1) { b.lists.push(list); }
+                    cb();
                   }
                 ]);
               });
