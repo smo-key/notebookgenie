@@ -70,32 +70,44 @@ exports.startbuild = function startbuild(board, u, odata) {
         raw.members.forEach(function(member, i) {
           var mem = { };
           //get image for each member -> b.members.avatar
-          util.downloadfile("https://trello-avatars.s3.amazonaws.com/" + member.avatarHash + "/170.png", tmp + "img/" + member.id + ".png", function(e) {
-            flow.series([
-              function getavatar(cb) {
-                if (!e) {
-                  //no avatar, that's ok
-                  mem.avatar = null;
-                  cb();
+          if (!util.isnull(member.avatarHash))
+          {
+            util.downloadfile("https://trello-avatars.s3.amazonaws.com/" + member.avatarHash + "/170.png", tmp + "img/" + member.id + ".png", function(e) {
+              flow.series([
+                function getavatar(cb) {
+                  if (!e) {
+                    //no avatar, that's ok
+                    mem.avatar = null;
+                    cb();
+                  }
+                  else
+                  {
+                    mem.avatar = "img/" + member.id + ".png";-
+                    cb();
+                  }
+                },
+                function getremainder(cb) {
+                  //get name for each member -> b.members.name
+                  mem.name = member.fullName;
+                  //get initials -> b.members.initials
+                  mem.initials = member.initials;
+                  console.log("GET USER!");
+                  b.members.push(mem);
+                  if (b.members.length == raw.members.length) { callback(); cb(); }
+                  else { cb(); }
                 }
-                else
-                {
-                  mem.avatar = "img/" + member.id + ".png";-
-                  cb();
-                }
-              },
-              function getremainder(cb) {
-                //get name for each member -> b.members.name
-                mem.name = member.fullName;
-                //get initials -> b.members.initials
-                mem.initials = member.initials;
-                console.log("GET USER!");
-                b.members.push(mem);
-                if (i == raw.members.length - 1) { callback(); cb(); }
-                else { cb(); }
-              }
-            ]);
-          });
+              ]);
+            });
+          } else {
+            //get name for each member -> b.members.name
+            mem.name = member.fullName;
+            //get initials -> b.members.initials
+            mem.initials = member.initials;
+            mem.avatar = null;
+            console.log("GET USER - NO AVATAR!");
+            b.members.push(mem);
+            if (b.members.length == raw.members.length) { callback(); }
+          }
         });
       },
       function getlists(listcallback) {
@@ -133,7 +145,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       card.members = [ ];
                       cr.members.forEach(function(m, k) {
                         card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                        if (k == cr.members.length - 1) { cb(); }
+                        if (card.members.length == cr.members.length) { cb(); }
                       });
                       if (cr.members.length == 0) { cb(); }
                     },
@@ -155,7 +167,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       card.voters = [ ];
                       cr.membersVoted.forEach(function(m, k) {
                         card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                        if (k == cr.membersVoted.length - 1) { cb(); }
+                        if (card.voters.length == cr.membersVoted.length) { cb(); }
                       });
                       if (cr.membersVoted.length == 0) { cb(); }
                     },
@@ -171,7 +183,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                           items.push(it);
                         });
                         card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items.sortByProp('pos') });
-                        if (k == cr.checklists.length - 1) { cb(); }
+                        if (card.checklists.length == cr.checklists.length) { cb(); }
                       });
                       if (cr.checklists.length == 0) { cb(); }
                     },
