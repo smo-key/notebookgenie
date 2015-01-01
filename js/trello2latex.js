@@ -95,92 +95,96 @@ exports.startbuild = function startbuild(board, u, odata) {
           });
         });
       },
-      function getlists(cb) {
+      function getlists(listcallback) {
         console.log("GET LISTS");
         //get lists and their cards, checklists, etc.
         b.lists = [ ];
         raw.lists.forEach(function(l, i) {
-          util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
-            //get list
-            var list = { };
-            list.cards = [ ];
-            list.name = li.name;
-            list.id = li.id;
-            list.pos = li.pos;
-            li.cards.forEach(function(c, j) {
-              //TODO allow template to set the action limit
-              util.trello("/cards/" + c.id + "?actions=all&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
-                //get card
-//                console.log(cr);
-                var card = { };
-                card.id = cr.id;
-                card.name = cr.name;
-                card.desc = cr.desc;
-                card.lastmodified = cr.dateLastActivity;
-                card.due = cr.due; //TODO friendly time format
-                card.pos = cr.pos;
-                card.url = cr.url;
-                card.labels = cr.labels;
-                card.attachments = [ ];
-                card.attachmentcover = null;
+          sync(function() {
+            util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
+              //get list
+              var list = { };
+              list.cards = [ ];
+              list.name = li.name;
+              list.id = li.id;
+              list.pos = li.pos;
 
-                flow.series([
-                  function getmembers(cb) {
-                    console.log("GET MEMBERS");
-                    //get members
-                    card.members = [ ];
-                    cr.members.forEach(function(m, k) {
-                      card.members.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                      if (k == cr.members.length - 1) { cb(); }
-                    });
-                  },
-                  function getactions(cb) {
-                  //get actions
-  //                card.actions = [ ];
-  //                cr.actions.forEach(function(a, k) {
-  //                  util.trello("/actions/" + a.id + "?member_fields=fullName,initials,username,url&memberCreator_fields=fullName,initials,username", board.auth, odata, function(e, act) {
-  ////                    console.log(act);
-  //                    //TODO generate action text from action - required for action support
-  //                  });
-  //                });
-                    cb();
-                  },
-                  function getvotes(cb) {
-                    console.log("GET VOTES");
-                    //get votes
-                    card.votecount = cr.membersVoted.length;
-                    card.voters = [ ];
-                    cr.membersVoted.forEach(function(m, k) {
-                      card.voters.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                      if (k == cr.membersVoted.length - 1) { cb(); }
-                    });
-                  },
-                  function getchecklists(cb) {
-                    console.log("GET CHECKLISTS");
-                    //get checklists
-                    card.checklists = [ ];
-                    cr.checklists.forEach(function(c, k) {
-                      var items = [ ];
-                      c.checkItems.forEach(function(item, l) {
-                        if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-                        var it = { id: item.id, name: item.name, pos: item.pos, checked: checked };
-                        items.push(it);
+              li.cards.forEach(function(c, j) {
+                //TODO allow template to set the action limit
+                util.trello("/cards/" + c.id + "?actions=all&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
+                  //get card
+                  var card = { };
+                  card.id = cr.id;
+                  card.name = cr.name;
+                  card.desc = cr.desc;
+                  card.lastmodified = cr.dateLastActivity;
+                  card.due = cr.due; //TODO friendly time format
+                  card.pos = cr.pos;
+                  card.url = cr.url;
+                  card.labels = cr.labels;
+                  card.attachments = [ ];
+                  card.attachmentcover = null;
+
+                  flow.series([
+                    function getmembers(cb) {
+                      console.log(i + " " + j + "GET MEMBERS");
+                      //get members
+                      card.members = [ ];
+                      cr.members.forEach(function(m, k) {
+                        card.members.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        if (k == cr.members.length - 1) { cb(); }
                       });
-                      card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items });
-                      if (k == cr.checklists.length - 1) { cb(); }
-                    });
-                  },
-                  function getattachments(cb) {
-                    console.log("GET ATTACHMENTS");
-                    //download card attachments to /tmp/dl
-                    cr.attachments.forEach(function(attach, k) {
-                      if (attach.url.match(/\.[0-9a-zA-Z]+$/))
-                      {
-                        var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
-                        util.downloadfile(attach.url, ur, function(e) {
-                          console.log("file downloaded");
-                          if (e)
-                          {
+                      if (cr.members.length == 0) { cb(); }
+                    },
+                    function getactions(cb) {
+                      //get actions
+    //                card.actions = [ ];
+    //                cr.actions.forEach(function(a, k) {
+    //                  util.trello("/actions/" + a.id + "?member_fields=fullName,initials,username,url&memberCreator_fields=fullName,initials,username", board.auth, odata, function(e, act) {
+    ////                    console.log(act);
+    //                    //TODO generate action text from action - required for action support
+    //                  });
+    //                });
+                      cb();
+                    },
+                    function getvotes(cb) {
+                      console.log(i + " " + j + "GET VOTES");
+                      //get votes
+                      card.votecount = cr.membersVoted.length;
+                      card.voters = [ ];
+                      cr.membersVoted.forEach(function(m, k) {
+                        card.voters.push({ id: m.id, img: tmp + "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        if (k == cr.membersVoted.length - 1) { cb(); }
+                      });
+                      if (cr.membersVoted.length == 0) { cb(); }
+                    },
+                    function getchecklists(cb) {
+                      console.log(i + " " + j + "GET CHECKLISTS");
+                      //get checklists
+                      card.checklists = [ ];
+                      cr.checklists.forEach(function(c, k) {
+                        var items = [ ];
+                        c.checkItems.forEach(function(item, l) {
+                          if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
+                          var it = { id: item.id, name: item.name, pos: item.pos, checked: checked };
+                          items.push(it);
+                        });
+                        card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items });
+                        if (k == cr.checklists.length - 1) { cb(); }
+                      });
+                      if (cr.checklists.length == 0) { cb(); }
+                    },
+                    function getattachments(cb) {
+                      console.log(i + " " + j + "GET ATTACHMENTS");
+                      //download card attachments to /tmp/dl
+                      cr.attachments.forEach(function(attach, k) {
+                        if (attach.url.match(/\.[0-9a-zA-Z]+$/))
+                        {
+                          var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+                          util.downloadfile(attach.url, ur, function(e) {
+                            console.log("file downloaded");
+                            if (e)
+                            {
                               console.log("get no error");
                               card.attachments.push({ url: ur, name: attach.name, date: attach.date });
                               console.log(card.attachments);
@@ -188,35 +192,41 @@ exports.startbuild = function startbuild(board, u, odata) {
                               if (attach.id == cr.idAttachmentCover)
                               { card.attachmentcover = { url: ur }; }
                               if (k == cr.attachments.length - 1) { cb(); }
-                              return;
-                          }
-                          else
-                          { if (k == cr.attachments.length - 1) { cb(); } }
-                        });
-                      }
-                      else
-                      { if (k == cr.attachments.length - 1) { cb(); } }
-                    });
-                  },
-                  function sort(cb) {
-                    //TODO sort lists by loc, sort cards by loc, sort checklists by loc
-                    cb();
-                  },
-                  function push(cb) {
-                    console.log("PUSH!");
-                    console.log(card);
-                    list.cards.push(card);
-                    if (i == raw.lists.length - 1) { b.lists.push(list); }
-                    cb();
-                  }
-                ]);
+                            }
+                            else { if (k == cr.attachments.length - 1) { cb(); } }
+                          });
+                        } else { if (k == cr.attachments.length - 1) { cb(); } }
+                      });
+                      if (cr.attachments.length == 0) { cb(); }
+                    },
+                    function sort(cb) {
+                      //TODO sort cards by loc
+                      cb();
+
+                      //TODO sort checklists and checkitems by loc
+                    },
+                    function push(cb) {
+                      console.log(i + " " + j + "PUSH!");
+                      list.cards.push(card);
+                      if (list.cards.length == li.cards.length) { b.lists.push(list); }
+                      if (b.lists.length == raw.lists.length) { listcallback(); }
+                      cb();
+                    }
+                  ]);
+                });
               });
+
+              if (li.cards.length == 0) { b.lists.push(list); }
+              if ((b.lists.length == raw.lists.length) && (li.cards.length == 0)) { listcallback(); }
             });
           });
         });
 
         //raw.cards -> b.cards and send id to b.lists.cards
         //FIXME strip all ids and pos data from b
+      },
+      function sort(cb) {
+        //TODO sort lists by loc
       },
       function getotherdata(cb) {
         console.log("GET OTHER!");
