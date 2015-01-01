@@ -273,7 +273,8 @@ exports.updateprogress = function updateprogress(board, progress)
 {
   var b = JSON.parse(board);
   b.progress = progress;
-  updateboard(JSON.stringify(b), function() { });
+  updateboard(JSON.stringify(b), function()
+              { svr.emitter.emit('updateprogress'); });
   return b;
 }
 

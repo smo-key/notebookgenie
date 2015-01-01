@@ -14,11 +14,15 @@ var http = require("http"),
     util = require("./js/util.js"),
     OAuth = require('oauth').OAuth,
     flow = require('nimble'),
+    domain = require('domain'),
+    EventEmitter = require('events').EventEmitter;
     cookieparser = require('cookie-parser');
 
 //initialize renderer
 var app = express();
 var router = express.Router();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 app.engine('html', cons.mustache);
 app.set('view engine', 'html');
 app.set("view options", {layout: false});
@@ -55,6 +59,9 @@ exports.stache = {
   built: [ ], //unique: timestamp
   failed: [ ] //unique: errormessage, timestamp, humantime (JSON time)
 }
+exports.dm = domain.create();
+exports.emitter = new EventEmitter();
+exports.dm.add(exports.emitter);
 
 /* EXPRESS */
 app.use(logger('dev'));
@@ -95,7 +102,29 @@ oauth_secrets = {};
 
 // TODO cron job for removing builds after 24 hours (if over 5 recently built)
 
+// Socket.IO progress updater
+
+io.on('connection', function (socket) {
+  console.log("CLIENT CONNECTED");
+  exports.emitter.on('updateprogress', function () {
+    console.log('HAVE UPDATE!');
+
+    var status = false;
+    var id = null;
+    var progress = 0;
+    if (!util.isnull(exports.stache.building))
+    {
+      status = true;
+      id = exports.stache.building.id;
+      progress = exports.stache.building.progress;
+    }
+    console.log("EMIT PROGRESS!");
+    socket.emit('progress', { status: status, id: id, progress: progress });
+  });
+});
+
 // API POST requests
+
 app.use('/ajax/prepurl', function(req, res) {
   //Check if valid URL
   var url = req.body.url;
@@ -278,6 +307,7 @@ app.get('/build/:id', function(req, res){
       res.clearCookie('status', { path: '/' });
       res.render('main', {
         applicationkey: config.key,
+        appurl: config.domain,
         alertstatus: stat,
         alerttext: message,
         errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/'>build yours</a>?",
@@ -303,6 +333,7 @@ app.get('/build/:id', function(req, res){
       res.clearCookie('status', { path: '/' });
       res.render('main', {
         applicationkey: config.key,
+        appurl: config.domain,
         board: board,
         alertstatus: stat,
         alerttext: message,
@@ -336,6 +367,7 @@ app.get('/', function (req, res) {
 
   res.render('main', {
     applicationkey: config.key,
+    appurl: config.domain,
     building: exports.stache.building,
     built: exports.stache.built,
     queuecount: queuecount,
@@ -378,6 +410,6 @@ app.use(function(err, req, res, next) {
 });
 
 //serve HTTP
-app.listen(port);
+server.listen(port);
 
 console.log("Server ready on port " + port);
