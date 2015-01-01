@@ -6,10 +6,11 @@ var rmrf = require("rimraf");
 var jsonsafeparse = require('json-safe-parse');
 var sync = require('sync');
 
-function getattachment()
-{
-
-}
+Array.prototype.sortByProp = function(p){
+  return this.sort(function(a,b){
+    return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+  });
+};
 
 exports.startbuild = function startbuild(board, u, odata) {
   //create user preferences array
@@ -42,7 +43,7 @@ exports.startbuild = function startbuild(board, u, odata) {
         fs.exists(tmp, function(exists) {
           if (exists)
           {
-            fs.rmdir(tmp, function() {
+            rmrf(tmp, function() {
               fs.mkdir(tmp, function() { cb(); });
             });
           } else
@@ -127,7 +128,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 
                   flow.series([
                     function getmembers(cb) {
-                      console.log(i + " " + j + "GET MEMBERS");
+                      console.log(i + " " + j + " GET MEMBERS");
                       //get members
                       card.members = [ ];
                       cr.members.forEach(function(m, k) {
@@ -148,7 +149,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       cb();
                     },
                     function getvotes(cb) {
-                      console.log(i + " " + j + "GET VOTES");
+                      console.log(i + " " + j + " GET VOTES");
                       //get votes
                       card.votecount = cr.membersVoted.length;
                       card.voters = [ ];
@@ -159,7 +160,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                       if (cr.membersVoted.length == 0) { cb(); }
                     },
                     function getchecklists(cb) {
-                      console.log(i + " " + j + "GET CHECKLISTS");
+                      console.log(i + " " + j + " GET CHECKLISTS");
                       //get checklists
                       card.checklists = [ ];
                       cr.checklists.forEach(function(c, k) {
@@ -169,44 +170,59 @@ exports.startbuild = function startbuild(board, u, odata) {
                           var it = { id: item.id, name: item.name, pos: item.pos, checked: checked };
                           items.push(it);
                         });
-                        card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items });
+                        card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items.sortByProp('pos') });
                         if (k == cr.checklists.length - 1) { cb(); }
                       });
                       if (cr.checklists.length == 0) { cb(); }
                     },
                     function getattachments(cb) {
-                      console.log(i + " " + j + "GET ATTACHMENTS");
+                      console.log(i + " " + j + " GET ATTACHMENTS");
+                      var n = cr.attachments.length;
                       //download card attachments to /tmp/dl
                       cr.attachments.forEach(function(attach, k) {
                         if (attach.url.match(/\.[0-9a-zA-Z]+$/))
                         {
-                          var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
-                          util.downloadfile(attach.url, ur, function(e) {
-                            console.log("file downloaded");
-                            if (e)
-                            {
-                              console.log("get no error");
-                              card.attachments.push({ url: ur, name: attach.name, date: attach.date });
-                              console.log(card.attachments);
-                              //get card cover using cr.idAttachmentCover
-                              if (attach.id == cr.idAttachmentCover)
-                              { card.attachmentcover = { url: ur }; }
-                              if (k == cr.attachments.length - 1) { cb(); }
-                            }
-                            else { if (k == cr.attachments.length - 1) { cb(); } }
-                          });
-                        } else { if (k == cr.attachments.length - 1) { cb(); } }
+                          //check if includable image
+                          if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+                          {
+                            var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+                            util.downloadfile(attach.url, ur, function(e) {
+                              console.log("file downloaded");
+                              if (e)
+                              {
+                                card.attachments.push({ filename: ur, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                                console.log(card.attachments);
+
+                                //get card cover using cr.idAttachmentCover
+                                if (attach.id == cr.idAttachmentCover)
+                                { card.attachmentcover = { url: ur }; }
+                                if (card.attachments.length == n) { cb(); }
+                              }
+                              else { n--; if (card.attachments.length == n) { cb(); } }
+                            });
+                          }
+                          else
+                          {
+                            //not an image, don't download but add to list
+                            card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
+                            console.log(card.attachments);
+                            if (card.attachments.length == n) { cb(); }
+                          }
+                        } else { n--; if (card.attachments.length == n) { cb(); } }
                       });
                       if (cr.attachments.length == 0) { cb(); }
                     },
                     function sort(cb) {
                       //TODO sort cards by loc
+                      console.log(i + " " + j + " SORT!");
+                      if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
+                      if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
                       cb();
 
                       //TODO sort checklists and checkitems by loc
                     },
                     function push(cb) {
-                      console.log(i + " " + j + "PUSH!");
+                      console.log(i + " " + j + " PUSH!");
                       list.cards.push(card);
                       if (list.cards.length == li.cards.length) { b.lists.push(list); }
                       if (b.lists.length == raw.lists.length) { listcallback(); }
@@ -227,6 +243,9 @@ exports.startbuild = function startbuild(board, u, odata) {
       },
       function sort(cb) {
         //TODO sort lists by loc
+        console.log("SORT LISTS");
+        b.lists = b.lists.sortByProp('pos');
+        cb();
       },
       function getotherdata(cb) {
         console.log("GET OTHER!");

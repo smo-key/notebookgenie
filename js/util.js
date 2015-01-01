@@ -45,18 +45,37 @@ exports.download = download;
 exports.downloadfile = function downloadfile(url, filename, cb)
 {
   var file = fs.createWriteStream(filename);
-  https.get(url, function(res) {
-    res.on('data', function(chunk) {
-      file.write(chunk);
-    });
-    res.on('end', function () {
+  try {
+    https.get(url, function(res) {
+      res.on('data', function(chunk) {
+        file.write(chunk);
+      });
+      res.on('end', function () {
+        file.end();
+        cb(true);
+      });
+    }).on('error', function(e) {
       file.end();
-      cb(true);
+      cb(false);
     });
-  }).on('error', function(e) {
-    file.end();
-    cb(false);
-  });
+  } catch (e) {
+    try {
+    http.get(url, function(res) {
+      res.on('data', function(chunk) {
+        file.write(chunk);
+      });
+      res.on('end', function () {
+        file.end();
+        cb(true);
+      });
+    }).on('error', function(e) {
+      file.end();
+      cb(false);
+    });
+    } catch(e) {
+      cb(false);
+    }
+  }
 }
 
 var apiver = "1";
