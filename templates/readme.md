@@ -7,7 +7,7 @@ Templates give create the basic outline or format for the LaTeX document.  These
 2. Trello2LaTeX parses the template using Mustache and its own TeX parsing library
 3. Trello2LaTeX generates both raw LaTeX document and a PDF which a user can then download
 
-###Templating 101
+##Templating 101
 - Each template is placed into a unique folder in the /templates directory - the server will use each folder to generate a list
 - Each template folder must contain the following elements:
   - **index.tex**: The main LaTeX template
@@ -17,12 +17,182 @@ Templates give create the basic outline or format for the LaTeX document.  These
 
 For now, this process is manual and requires direct server access.  After a few successful builds, we'll streamline this system so users can upload their own LaTeX templates.
 
-###Template Parsing
-Keyphrase | Example Result
-----------|----------
-<! KEY_IN_TEMPLATE.YML !> | A key, such as "test: { nothing: 0, something: 1 }", when used in the LaTeX document as <! test !> will return 0 if the user selected "nothing" and 1 if the user selected "something"
-<! org !> | Arthur Pachachura
-<! user !> | Arthur Pachachura (identical to org)
-<! board !> | Chores List
+###Basic template
+template.yml
+``` yaml
+title: My Awesome Title
+author: Me
+```
+index.tex
+``` tex
+\documentclass[12pt]{book} %set the document class - this can be whatever you want
+% ... any LaTeX formatting here
 
-Note that all Mustache processing works with templates!  (The only difference to remember is to use the <! !> set delimiters instead of {{{ }}}
+\begin{document}
+
+% make a title page
+\title{<! title >}
+\author{<! author >}
+\maketitle
+
+\end{document}
+```
+The document will turn into and compile as
+``` tex
+% ...
+\title{My Awesome Title}
+\author{Me}
+\maketitle
+% ...
+```
+
+### Using the board's data
+A hard-set author and title is great and all, but let's use the Trello board to get the title and author.
+
+index.tex
+``` tex
+% ...
+\title{<! b.title >}
+\author{<! b.org.name >}
+% ...
+```
+If the user selected to build the Trello development board at https://trello.com/b/nC8QJJoZ/trello-development, the result will be
+``` tex
+\title{Trello Development}
+\author{Trello Inc}
+```
+
+### Conditional statements
+Sometimes an if or if not statement is handy.
+``` tex
+<!# b.org.isorg > % '#' implies IF statement
+\author{<! b.org.name >}
+<!/ b.org.isorg > % '/' is an END of an if statement
+<!^ b.org.isorg > % '^' implies IF NOT
+\author{Some random user}
+<!/ b.org.isorg > % again closes statement
+```
+For board https://trello.com/b/nC8QJJoZ/trello-development:
+``` tex
+\author{Trello Inc}
+```
+For board https://trello.com/b/xUxQcZQA/test-board:
+``` tex
+\author{Some random user}
+```
+
+### Iterating through an object
+Say you want to get the name of every list in the board...
+``` tex
+<!# b.lists > % the '#' directive is used to loop through an object as well... if will only not enter the loop if b.lists is null, undefined, of length zero, or is a boolean set to false
+<! name >\\ % this states... for every b.lists, get b.lists.name (we added a newline as well)
+
+<!/ b.lists >
+```
+Result for board https://trello.com/b/nC8QJJoZ/trello-development:
+``` tex
+Info\\
+Ideas\\
+Known Issues\\
+In Progress\\
+% ...
+```
+
+### Including other TeX files
+If you really want to, you can include any TeX file using the TeX native syntax: `\include{file}`.  Mustache will parse these the same way as it does any partial: `{{< file }}`
+
+### Differences from Mustache
+- Delimiters changed to <! > to avoid problems with TeX
+- Triple mustache {{{ }}} disabled as HTML escaping is useless in TeX
+- Partial directives replaced with TeX's native `\include{}`
+
+##Template API
+
+###Board data
+The `b` (board) object contains a colelction of data retrieved from the board selected by the user.
+
+b | Example Result
+----------|----------
+b.title | `My Board`
+b.desc | `Board description goes here`
+b.url | `https://trello.com/b/nC8QJJoZ/trello-development`
+b.lastmodified | `2015-01-01T16:38:29.816Z`
+
+A `b.org` (owner of the board) is identical if a user created the board, or if the board is owned jointly by an organization.  Use `b.org.isorg` to tell whether a user or org owns the board.
+
+b.org | Example Result
+----------|----------
+b.org.name | `Trello Inc` or `Arthur Pachachura`
+b.org.url | `https://trello.com/trelloinc` or `https://trello.com/arthurpachachura1`
+b.org.isorg | `true` or `false`
+
+While Trello2LaTeX is gathering data about the board, it temporarily downloads all user avatars into the `img/` folder relative to the template.  If an avatar is not found, `b.members.avatar` will be `null`.  In these cases, use `b.members.initials` to create one.
+
+b.members | Example Result
+----------|----------
+b.members.name | `Some guy`
+b.members.initials | `SG`
+b.members.avatar | `img/538f9c01c2a21f2bbf81a610.png` (filename where the avatar is downloaded) or `null`
+b.members.username | `someguy`
+b.members.url | `https://trello.com/someguy`
+
+`b.labels` stores details about the labels of a board.  An example query of `b.labels` is `{ green: 'low', yellow: 'important', red: 'critical' }`.
+
+b.labels | Example Result
+----------|----------
+b.labels.[label] | value of label
+b.labels.red (example) | `critical`
+b.labels.purple (example) | `undefined` (will not render)
+
+#### Getting lists, cards, checklists, etc.
+The `b.lists` namespace stores all list data.  The hierarchy goes like this:
+
+| b.lists |
+| ---------- |
+| cards |
+| members, actions, voters, checklists, attachments |
+
+b.lists | Example Result
+----------|----------
+b.lists.cards | [ {Card objects - see below } ]
+b.lists.name | `To Do`
+
+b.lists.cards | Example Result
+----------|----------
+card | A card from a list in b.lists
+card.name | `Get Trello2LaTeX done`
+card.desc | `Description: do stuff...`
+card.lastmodified | `2015-01-01T16:38:29.816Z`
+card.due | `2015-01-01T00:00:00.000Z` or `null` (if no due date set)
+card.url | `https://trello.com/c/xbiE4Eyf/1-test-card`
+card.labels | [ { Identical in usage to b.labels object } ]
+card.attachments | [ { Attachments object - see below } ]
+card.attachmentcover.filename | `dl/asdfadsfasfddsfafdadfsadfs.jpg` (location on disk of cover)
+card.members | [ { Members object - identical in usage to b.members } ]
+card.votecount | `1` (length of voters object)
+card.voters | [ { Voters object - identical to members object } ]
+card.checklists | [ { Checklists object - see below } ]
+card.actions | [ { Actions object - see below } ]
+
+Trello2LaTeX also downloads all attachment images to the `dl/` folder.  It will not download non-image files (eps, png, jpg, or jpeg), but WILL create an attachment object for it with `attach.isimage` set to `false`.
+
+b.lists.cards.attachments | Example Result
+----------|----------
+attach | A file attachment
+attach.filename | `dl/deadbeefdeadbeef1234134.png` (A location on disk)
+attach.name | `deadbeefdeadbeef1234134` (Just the name)
+attach.ext | `.png` (file extension)
+attach.date | `2015-01-01T16:38:29.816Z` (date image was taken)
+attach.isimage | `true` (if png, jpg, jpeg, or eps), else `false`
+
+b.lists.cards.checklists | Example Result
+----------|----------
+check | A checklist
+check.name | `My Checklist`
+check.items | { [ Checklist item array - see below } ]
+
+b.lists.cards.checklists.items | Example Result
+----------|----------
+item | A checklist item
+item.name | `My Checklist Item`
+item.checked | `true` or `false`
