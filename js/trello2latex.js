@@ -94,6 +94,8 @@ exports.startbuild = function startbuild(board, u, odata) {
                   mem.name = member.fullName;
                   //get initials -> b.members.initials
                   mem.initials = member.initials;
+                  mem.url = member.url;
+                  mem.username = member.username;
                   console.log("GET USER!");
                   b.members.push(mem);
                   if (b.members.length == raw.members.length) { callback(); cb(); }
@@ -107,6 +109,8 @@ exports.startbuild = function startbuild(board, u, odata) {
             //get initials -> b.members.initials
             mem.initials = member.initials;
             mem.avatar = null;
+            mem.url = member.url;
+            mem.username = member.username;
             console.log("GET USER - NO AVATAR!");
             b.members.push(mem);
             if (b.members.length == raw.members.length) { callback(); }
@@ -185,7 +189,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                           var it = { name: item.name, pos: item.pos, checked: checked };
                           items.push(it);
                         });
-                        card.checklists.push({ id: c.id, name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+                        card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
                         if (card.checklists.length == cr.checklists.length) { cb(); }
                       });
                       if (cr.checklists.length == 0) { cb(); }
@@ -211,7 +215,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 
                                 //get card cover using cr.idAttachmentCover
                                 if (attach.id == cr.idAttachmentCover)
-                                { card.attachmentcover = { url: ur }; }
+                                { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
                                 if (card.attachments.length == n) { cb(); }
                               }
                               else { n--; if (card.attachments.length == n) { cb(); } }
@@ -288,7 +292,12 @@ exports.startbuild = function startbuild(board, u, odata) {
       function flushprogress(cb) {
         console.log("GET B!");
         console.log(b);
+        console.log(b.lists[1].cards);
         board = util.updateprogress(JSON.stringify(board), 40);
+        cb();
+      },
+      function gettemplatedata(cb) {
+        //get template data -> u
         cb();
       }
     ]);
