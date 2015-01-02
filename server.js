@@ -107,7 +107,7 @@ oauth_secrets = {};
 io.on('connection', function (socket) {
   console.log("CLIENT CONNECTED");
   exports.emitter.on('updateprogress', function () {
-    console.log('HAVE UPDATE!');
+    console.log('CLIENT - SEND UPDATE');
 
     var status = false;
     var id = null;
@@ -118,7 +118,6 @@ io.on('connection', function (socket) {
       id = exports.stache.building.id;
       progress = exports.stache.building.progress;
     }
-    console.log("EMIT PROGRESS!");
     socket.emit('progress', { status: status, id: id, progress: progress });
   });
 

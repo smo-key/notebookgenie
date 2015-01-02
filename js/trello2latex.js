@@ -20,7 +20,7 @@ exports.startbuild = function startbuild(board, u, odata) {
   //complete credential verification - DONE in board
   board = JSON.parse(board);
   //download JSON -> raw
-  util.trello("/boards/" + board.uid + "?lists=open&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
+  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
 
     //FIXME some user avatars DO NOT EXIST! -> set avatars to null to show LaTeX to use initials instead
 
@@ -30,6 +30,8 @@ exports.startbuild = function startbuild(board, u, odata) {
     var b = { };
     //create temp folder
     var tmp = "tmp/" + board.id + "/";
+    var max = raw.cards.length;
+    var cur = 0;
 
     flow.series([
       function preparefs1(cb) { //TODO use rimraf for rmrf!
@@ -57,6 +59,7 @@ exports.startbuild = function startbuild(board, u, odata) {
       function preparefs3(cb) {
         fs.mkdir(tmp + "img", function() {
           fs.mkdir(tmp + "dl", function() {
+            board = util.updateprogress(JSON.stringify(board), 5);
             cb();
           });
         });
@@ -237,6 +240,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                     function push(cb) {
                       console.log(i + " " + j + " PUSH!");
                       list.cards.push(card);
+                      board = util.updateprogress(JSON.stringify(board), ((++cur)/max*35) + 5);
                       if (list.cards.length == li.cards.length) { b.lists.push(list); }
                       if (b.lists.length == raw.lists.length) { listcallback(); }
                       cb();
@@ -284,7 +288,7 @@ exports.startbuild = function startbuild(board, u, odata) {
       function flushprogress(cb) {
         console.log("GET B!");
         console.log(b);
-        board = util.updateprogress(JSON.stringify(board), 20);
+        board = util.updateprogress(JSON.stringify(board), 40);
         cb();
       }
     ]);

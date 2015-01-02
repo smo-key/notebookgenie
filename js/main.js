@@ -12,7 +12,7 @@ if (isupdatable) {
     updateprogress(data);
   });
 
-  var lastupdate = null;
+//  var lastupdate = null;
 
   function updateprogress(data) {
     console.log("GOT PROGRESS!");
@@ -20,10 +20,10 @@ if (isupdatable) {
     {
       //TODO use an AJAX request to get a large portion of the html
 
-      if (((lastupdate.id != data.id) || (lastupdate.status != data.status)))
-      {
-        //if the data has changed, refresh parts of the page
-      }
+//      if (((lastupdate.id != data.id) || (lastupdate.status != data.status)))
+//      {
+//        //if the data has changed, refresh parts of the page
+//      }
 
       if (data.status) {
         //ongoing progress
