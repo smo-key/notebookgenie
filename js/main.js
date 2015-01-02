@@ -6,6 +6,40 @@ $(document).ready(function () {
   });
 });
 
+if (isupdatable) {
+  socket.on('progress', function (data) {
+    console.log(data);
+    updateprogress(data);
+  });
+
+  var lastupdate = null;
+
+  function updateprogress(data) {
+    console.log("GOT PROGRESS!");
+    if (isupdatable)
+    {
+      //TODO use an AJAX request to get a large portion of the html
+
+      if (((lastupdate.id != data.id) || (lastupdate.status != data.status)))
+      {
+        //if the data has changed, refresh parts of the page
+      }
+
+      if (data.status) {
+        //ongoing progress
+        $('#progressbarupdatable').css("width", data.progress.toString() + "%");
+        $('#progressbarupdatable').prop("aria-valuenow", data.progress.toString());
+        $('#progressbarupdatable .sr-only').html(data.progress.toString() + "% Complete");
+        $('#progressbarupdatable').addClass("active");
+      }
+      else
+      {
+
+      }
+    }
+  }
+}
+
 $('#buildprivate').click(function(){
   $('#buildprivate').addClass("disabled");
   console.log(document.URL);

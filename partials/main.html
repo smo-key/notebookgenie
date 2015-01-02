@@ -17,13 +17,6 @@
   <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="http://code.arthurpachachura.com/assets/links-main.js"></script>
   <script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
-  <script>
-    var socket = io.connect("{{{ appurl }}}");
-    socket.on('progress', function (data) {
-      console.log("GOT PROGRESS!");
-      console.log(data);
-    });
-  </script>
   <script src="https://api.trello.com/1/client.js?key={{ applicationkey }}"></script>
 
   <!--  Load CSS -->
@@ -49,6 +42,10 @@
 
     {{> modal}}
 
+    <script>
+      var isupdatable = {{ isupdatable }};
+      if (isupdatable) { var socket = io.connect("{{{ appurl }}}"); }
+    </script>
     <script type="text/javascript" src="js/main.js"></script>
 
   </body>

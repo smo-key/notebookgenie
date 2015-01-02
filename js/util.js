@@ -283,6 +283,9 @@ exports.handle404 = function handle404(res)
   res.status(400);
   res.render('main', {
     applicationkey: config.key,
+    appurl: config.domain,
+    isupdatable: false,
+    id: null,
     errorcode: "404",
     errortext: "NOT FOUND",
     date: new Date().toJSON(),

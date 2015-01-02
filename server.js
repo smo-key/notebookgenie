@@ -121,7 +121,12 @@ io.on('connection', function (socket) {
     console.log("EMIT PROGRESS!");
     socket.emit('progress', { status: status, id: id, progress: progress });
   });
+
+  socket.on('disconnect', function (socket) {
+    console.log("CLIENT DISCONNECTED");
+  });
 });
+
 
 // API POST requests
 
@@ -308,6 +313,8 @@ app.get('/build/:id', function(req, res){
       res.render('main', {
         applicationkey: config.key,
         appurl: config.domain,
+        isupdatable: false,
+        id: null,
         alertstatus: stat,
         alerttext: message,
         errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/'>build yours</a>?",
@@ -334,7 +341,9 @@ app.get('/build/:id', function(req, res){
       res.render('main', {
         applicationkey: config.key,
         appurl: config.domain,
+        isupdatable: true,
         board: board,
+        id: board.id,
         alertstatus: stat,
         alerttext: message,
         errortext: etext,
@@ -368,6 +377,8 @@ app.get('/', function (req, res) {
   res.render('main', {
     applicationkey: config.key,
     appurl: config.domain,
+    isupdatable: true,
+    id: null,
     building: exports.stache.building,
     built: exports.stache.built,
     queuecount: queuecount,
@@ -398,6 +409,8 @@ app.use(function(err, req, res, next) {
   console.log(err.stack);
   res.render('main', {
     applicationkey: config.key,
+    isupdatable: false,
+    id: null,
     errorcode: "500",
     errortext: "INTERNAL SERVER ERROR",
     stack: err.stack,

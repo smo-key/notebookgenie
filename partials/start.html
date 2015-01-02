@@ -7,7 +7,7 @@
       {{# building.public}}{{> public}}{{/ building.public}}{{^ building.public}}{{> private}}{{/ building.public}}
       {{# building.orgurl}}<a href="{{ building.orgurl }}">{{ building.org }}</a>{{/ building.orgurl}}{{^ building.orgurl}}{{ building.org }}{{/ building.orgurl}} / <b>{{# building.titleurl }}<a href="{{ building.titleurl }}">{{ building.title }}</a>{{/ building.titleurl }}{{^ building.titleurl }}{{ building.title }}{{/ building.titleurl }}</b></h5>
     <div class="progress">
-      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="{{ building.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ building.progress }}%">
+      <div class="progress-bar progress-bar-striped active" role="progressbar" id="progressbarupdatable" aria-valuenow="{{ building.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ building.progress }}%">
         <span class="sr-only">{{ building.progress }}% Complete</span>
       </div>
     </div>
