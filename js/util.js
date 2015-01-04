@@ -278,12 +278,12 @@ exports.updateprogress = function updateprogress(board, progress)
   return b;
 }
 
-exports.handle404 = function handle404(res)
+exports.handle404 = function handle404(res, config)
 {
   res.status(400);
   res.render('main', {
     applicationkey: config.key,
-    appurl: config.domain,
+    appurl: config.domain + ":" + config.port,
     isupdatable: false,
     id: null,
     errorcode: "404",

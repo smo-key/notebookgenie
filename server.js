@@ -29,12 +29,12 @@ app.set("view options", {layout: false});
 app.set('views', __dirname + '/partials');
 
 /* GET PROCESS INFORMATION */
-port = process.argv[2] || 8888; //server port
 configname = process.argv[3] || "_private.yml";
 
 /* READ SERVER CONFIG */
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
+config.port = process.argv[2] || config.port || 8000; //server port
 
 /* CREATE MUSTACHE PARTIALS STACHE */
 /*var stache = { };
@@ -90,7 +90,7 @@ app.use(cookieparser());
 var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
               accessURL: "https://trello.com/1/OAuthGetAccessToken",
               authorizeURL: "https://trello.com/1/OAuthAuthorizeToken",
-              callbackURL: config.domain + "/ajax/completeauth",
+              callbackURL: config.domain + ":" + config.port + "/ajax/completeauth",
               key: config.key,
               secret: config.secret }
 //TODO fix this callback to the global setting... or figure out a workaround
@@ -399,7 +399,7 @@ app.use('/js', express.static(__dirname + '/js'));
 
 // Handle 404
 app.use(function(req, res) {
-  util.handle404(res);
+  util.handle404(res, config);
 });
 
 // Handle 500
@@ -422,6 +422,6 @@ app.use(function(err, req, res, next) {
 });
 
 //serve HTTP
-server.listen(port);
+server.listen(config.port);
 
-console.log("Server ready on port " + port);
+console.log("Server ready on " + config.domain + ":" + config.port);

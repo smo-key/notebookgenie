@@ -22,10 +22,6 @@ exports.startbuild = function startbuild(board, u, odata) {
   //download JSON -> raw
   util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
 
-    //FIXME some user avatars DO NOT EXIST! -> set avatars to null to show LaTeX to use initials instead
-
-//    console.log(raw);
-
     //create JSON array to store board information for LaTeX -> b
     var b = { };
     //create temp folder
