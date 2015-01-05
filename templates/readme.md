@@ -97,16 +97,26 @@ Known Issues\\
 In Progress\\
 % ...
 ```
-
 ### Including other TeX files
 If you really want to, you can include any TeX file using the TeX native syntax: `\include{file}`.  Mustache will parse these the same way as it does any partial: `{{< file }}`
+
+### User-defined variables
+Sometimes it's nice to allow the user to choose the text to display.  For example, if you want the user to choose a custom title while selecting the template, you need to add a field to `template.yml`...
+``` yaml
+mytitle: { display: "Title", type: blank }
+```
+... and use it directly in the TeX file!
+``` tex
+\title{<! mytitle >}
+```
+You can lso use long forms, checkboxes, and selects!  For those, see the user API below.
 
 ### Differences from Mustache
 - Delimiters changed to <! > to avoid problems with TeX
 - Triple mustache {{{ }}} disabled as HTML escaping is useless in TeX
 - Partial directives replaced with TeX's native `\include{}`
 
-##Template API
+#Template API
 
 ###Board data
 The `b` (board) object contains a colelction of data retrieved from the board selected by the user.
@@ -196,3 +206,53 @@ b.lists.cards.checklists.items | Example Result
 item | A checklist item
 item.name | `My Checklist Item`
 item.checked | `true` or `false`
+
+#User API
+User-defined variables allows the user to set the values for use in the TeX file.  These variables are read in JSON format from `template.yml`, given to the user, and the result is then passed to the TeX file.
+
+### Basic input
+To create a basic user text box, set the YML as such, with certain accepted overloads.
+``` yaml
+variable: { display: "My Variable Name", type: "blank" }
+```
+Then in the TeX file
+``` tex
+\title{<! variable >)
+```
+
+If the user types `SOMETHING` into the text box, the result will be
+``` tex
+\title{SOMETHING}
+```
+
+### Null input
+What happens if the input is null?  In the example above, `<! variable >` will not be rendered because the user entered a string with length of zero, resulting in
+``` tex
+\title{}
+```
+Which doesn't go over very well with LaTeX.
+
+So we can set a special field in the YAML:
+``` yaml
+variable: { display: "My Variable Name". type: "blank", noblank: true }
+```
+Denying a blank field, not allowing the user to build the template if the text box is null.
+
+
+### Setting a default value
+If you want to give the user a default value if nothing is entered, set `default` in the YAML:
+``` yaml
+variable: { display: "My Variable Name", type: "blank", default: "NOTHING ENTERED" }
+```
+If the user enters nothing, the default value would be placed instead of `<! variable >`.
+
+### Making a checkbox
+
+
+## User API Overview
+
+YAML Field | What it does
+----------|----------
+`[variable]:` | The variable name, as typeset in the TeX file
+`display: "[displayname]"` | String, the text displayed to the user explaining the field
+`type: "[type]"` | Strong, one of `"blank"` (small text box), `select`
