@@ -247,7 +247,25 @@ variable: { display: "My Variable Name", type: "blank", default: "NOTHING ENTERE
 If the user enters nothing, the default value would be placed instead of `<! variable >`.
 
 ### Making a checkbox
+To make a user-friendly checkbox, try this:
+``` yaml
+mycheckbox: { display: "My Checkbox", type: "check", default: true }
+```
+The checkbox will render and the result will either be "true" or "false".  If you want to change the results, set `options`:
+``` yaml
+mycheckbox: { display: "My Checkbox", type: "check", default: true, options: { true: "That's right!". false: "Nope!  It's false!" } }
+```
+If the result is true, the TeX fil will be rendered as `That's right!`, otherwise `Nope! It's false!`.
 
+### Making a dropbown (select)
+A selection box can be set as such:
+``` yaml
+mydropdown: { display: "My Dropdown", type: "select", default: "one", options: { "one": "First", "two": "Second", "three": "Third" } }
+```
+The options displayed to the user are `one`, `two`, and `three`, and the result is typeset as `First`, `Second`, `Third`.
+
+### Making a paragraph form
+Instead of a single-line text box, a paragraph input box may be created by setting `type` to `"form"`.
 
 ## User API Overview
 
@@ -255,4 +273,6 @@ YAML Field | What it does
 ----------|----------
 `[variable]:` | The variable name, as typeset in the TeX file
 `display: "[displayname]"` | String, the text displayed to the user explaining the field
-`type: "[type]"` | Strong, one of `"blank"` (small text box), `select`
+`type: "[type]"` | String, one of `"blank"`, `"select"`, `check`. or `form`
+`default: [defaultkey]` | The default key, for example `true` in a checkbox
+`options: { [key]:[value], ...}` | Only for checkboxes and selects, assings something displayed to a LaTeX output
