@@ -31,8 +31,8 @@ index.tex
 \begin{document}
 
 % make a title page
-\title{<! title >}
-\author{<! author >}
+\title{<! title !>}
+\author{<! author !>}
 \maketitle
 
 \end{document}
@@ -52,8 +52,8 @@ A hard-set author and title is great and all, but let's use the Trello board to 
 index.tex
 ``` tex
 % ...
-\title{<! b.title >}
-\author{<! b.org.name >}
+\title{<! b.title !>}
+\author{<! b.org.name !>}
 % ...
 ```
 If the user selected to build the Trello development board at https://trello.com/b/nC8QJJoZ/trello-development, the result will be
@@ -65,12 +65,12 @@ If the user selected to build the Trello development board at https://trello.com
 ### Conditional statements
 Sometimes an if or if not statement is handy.
 ``` tex
-<!# b.org.isorg > % '#' implies IF statement
+<!* b.org.isorg !> % '*' implies IF statement
 \author{<! b.org.name >}
-<!/ b.org.isorg > % '/' is an END of an if statement
-<!^ b.org.isorg > % '^' implies IF NOT
+<!/ b.org.isorg !> % '/' is an END of an if statement
+<!~ b.org.isorg !> % '~' implies IF NOT
 \author{Some random user}
-<!/ b.org.isorg > % again closes statement
+<!/ b.org.isorg !> % again closes statement
 ```
 For board https://trello.com/b/nC8QJJoZ/trello-development:
 ``` tex
@@ -84,10 +84,10 @@ For board https://trello.com/b/xUxQcZQA/test-board:
 ### Iterating through an object
 Say you want to get the name of every list in the board...
 ``` tex
-<!# b.lists > % the '#' directive is used to loop through an object as well... if will only not enter the loop if b.lists is null, undefined, of length zero, or is a boolean set to false
-<! name >\\ % this states... for every b.lists, get b.lists.name (we added a newline as well)
+<!* b.lists !> % the '*' directive is used to loop through an object as well... if will only not enter the loop if b.lists is null, undefined, of length zero, or is a boolean set to false
+<! name !>\\ % this states... for every b.lists, get b.lists.name (we added a newline as well)
 
-<!/ b.lists >
+<!/ b.lists !>
 ```
 Result for board https://trello.com/b/nC8QJJoZ/trello-development:
 ``` tex
@@ -98,7 +98,7 @@ In Progress\\
 % ...
 ```
 ### Including other TeX files
-If you really want to, you can include any TeX file using the TeX native syntax: `\include{file}`.  Mustache will parse these the same way as it does any partial: `{{< file }}`
+If you really want to, you can include any TeX file using the TeX native syntax: `\input{nameoftemplate}`.  Mustache will parse these the same way as it does any partial: `{{> nameoftemplate }}`
 
 ### User-defined variables
 Sometimes it's nice to allow the user to choose the text to display.  For example, if you want the user to choose a custom title while selecting the template, you need to add a field to `template.yml`...
@@ -107,14 +107,17 @@ mytitle: { display: "Title", type: blank }
 ```
 ... and use it directly in the TeX file!
 ``` tex
-\title{<! mytitle >}
+\title{<! mytitle !>}
 ```
 You can lso use long forms, checkboxes, and selects!  For those, see the user API below.
 
 ### Differences from Mustache
-- Delimiters changed to <! > to avoid problems with TeX
-- Triple mustache {{{ }}} disabled as HTML escaping is useless in TeX
-- Partial directives replaced with TeX's native `\include{}`
+- Delimiters changed from `{{ }}` to `<! !>` to avoid awkwardness
+- Triple Mu tags (`{{{ }}}`) disabled as there is no need to convert to HTML
+- Normal Mu tags `<! !>` escape text for LaTeX compatibility rather than HTML
+- An `\input{nameoftemplate}` acts the same way that a partial (`{{> nameoftemplate }}`) does
+- The `#` (if / iterate) command replaced with `*` to avoid problems
+- The `^` (not) command replaced with `~` to avoid problems
 
 #Template API
 
@@ -217,7 +220,7 @@ variable: { display: "My Variable Name", type: "blank" }
 ```
 Then in the TeX file
 ``` tex
-\title{<! variable >)
+\title{<! variable !>)
 ```
 
 If the user types `SOMETHING` into the text box, the result will be
@@ -226,7 +229,7 @@ If the user types `SOMETHING` into the text box, the result will be
 ```
 
 ### Null input
-What happens if the input is null?  In the example above, `<! variable >` will not be rendered because the user entered a string with length of zero, resulting in
+What happens if the input is null?  In the example above, `<! variable !>` will not be rendered because the user entered a string with length of zero, resulting in
 ``` tex
 \title{}
 ```
