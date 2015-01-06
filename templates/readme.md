@@ -112,9 +112,12 @@ mytitle: { display: "Title", type: blank }
 You can lso use long forms, checkboxes, and selects!  For those, see the user API below.
 
 ### Differences from Mustache
-- Delimiters changed to <! > to avoid problems with TeX
-- Triple mustache {{{ }}} disabled as HTML escaping is useless in TeX
-- Partial directives replaced with TeX's native `\input{}`
+- Delimiters changed from `{{ }}` to `<! !>` to avoid awkwardness
+- Triple Mu tags (`{{{ }}}`) disabled as there is no need to convert to HTML
+- Normal Mu tags `<! !>` escape text for LaTeX compatibility rather than HTML
+- An `\input{nameoftemplate}` acts the same way that a partial (`{{> nameoftemplate }}`) does
+- The `#` (if / iterate) command replaced with `*` to avoid problems
+- The `^` (not) command replaced with `~` to avoid problems
 
 #Template API
 
