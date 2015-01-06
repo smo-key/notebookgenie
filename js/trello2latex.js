@@ -254,9 +254,6 @@ exports.startbuild = function startbuild(board, u, odata) {
             });
           });
         });
-
-        //raw.cards -> b.cards and send id to b.lists.cards
-        //FIXME strip all ids and pos data from b
       },
       function sort(cb) {
         //TODO sort lists by loc
@@ -292,9 +289,15 @@ exports.startbuild = function startbuild(board, u, odata) {
         board = util.updateprogress(JSON.stringify(board), 40);
         cb();
       },
-      function gettemplatedata(cb) {
-        //get template data -> u
+      function gettemplate(cb) {
+        //FUTURE get template data -> u
+        //FIXME copy template files -> temp
+
         cb();
+      },
+      function muparse(cb) {
+        //FIXME first get all \input and if no '\', then replace with <!< >
+        //FIXME parse Mustache
       }
     ]);
   });
