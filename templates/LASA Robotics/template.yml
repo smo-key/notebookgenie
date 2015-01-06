@@ -22,9 +22,9 @@
 # noblank | return error if blank - blank and form only (optional, default: false)
 #
 
-title: { title: "Title", type: blank, default: "My Awesome Title", noblank: true }
-subtitle: { title: "Subtitle", type: blank, default: "Subtitle", noblank: true }
-subsubtitle: { title: "Subsubtitle", type: blank, default: "" }
+title: { display: "Title", type: "blank", default: "My Awesome Title", noblank: true }
+subtitle: { display: "Subtitle", type: "blank", default: "Subtitle", noblank: true }
+subsubtitle: { display: "Subsubtitle", type: "blank", default: "" }
 
-testselect: { title: "Just a test!", type: select, options: {"one": "latex one", "two": "latex two" } }
-testcheckbox: { title: "Test checkbox!", type: check, options: {true: "That's right!", false: "LaTeX writes false..."} }
+testselect: { display: "Just a test!", type: "select", options: {"one": "latex one", "two": "latex two" } }
+testcheckbox: { display: "Test checkbox!", type: "check", options: {true: "That's right!", false: "LaTeX writes false..."} }

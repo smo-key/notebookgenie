@@ -1,40 +1,26 @@
-\def \librarypath {./} %path to library
-\input{\librarypath library_technical}
+\input{library_technical}
 
 \begin{document}
-	
-% {{=<! >=}}   Mustache set delimter - should be placed in js later
-% {{{=<@ >=}}} Mustache text set delimiter
 
 %PART AND CHAPTER DETAILS
 %u = user data, raw = raw board JSON, b = processed JSON
-\renewcommand{\currentchapter}{ <@ u.title > }
-\renewcommand{\today}{ <@ u.subtitle > }
-\renewcommand{\currentpart}{ <@ u.subsubtitle > }
-\createtitle{\librarypath}
+\renewcommand{\currentchapter}{<! b.title !>}
+\renewcommand{\today}{<! b.desc !>}
+\renewcommand{\currentpart}{Revision <! b.lastmodified !>}
+\createtitle{./}
 
-% BOARD DETAILS
-<@ b.name >
-<@ b.url >
-<@ b.id >
-<!# b.labels ><@ color><@ name><!/ b.labels>
-<@ b.lastmodified >
-<@ b.lastviewed >
+% MEMBERs
+<!* b.members !>
+\subsubsection{<! name !>}
+Hi, this is <! name !> and I'm @<! username !>.  Find me at \url{<! url !>}!
+<!/ b.members !>
 
-% MEMBERSHIPS
-<!# raw.memberships >
-%<@ id >
-%<@ idMember >
-%<@ memberType >
-<!/ raw.memberships >
-
-<!# b.memberships >
-% list all people involved
-<@ image >
-<@ name >
-<!/ b.memberships >
-
-<!# b.list >
+<!~ b.org.isorg !>
+I'm NOT an ORG.  My name is <! b.org.name !>
+<!/ b.org.isorg !>
+<!* b.org.isorg !>
+I'm an ORG and my name is <! b.org.name !>.
+<!/ b.org.isorg !>
 
 \chapter{List 1}
 
