@@ -5,6 +5,7 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var jsonsafeparse = require('json-safe-parse');
 var sync = require('sync');
+var mu = require('mutex'); //TODO change name to mu_tex
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){
@@ -14,7 +15,9 @@ Array.prototype.sortByProp = function(p){
 
 exports.startbuild = function startbuild(board, u, odata) {
   //create user preferences array
-  u = JSON.parse(u);
+  //FUTURE add YAML template data
+//  u = JSON.parse(u);
+  u = { _template: "LASA Robotics" };
   //oauth data
   odata = JSON.parse(odata);
   //complete credential verification - DONE in board
@@ -133,7 +136,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                   var card = { };
                   card.name = cr.name;
                   card.desc = cr.desc;
-                  card.lastmodified = cr.dateLastActivity;
+                  card.lastmodified = cr.dateLastActivity;board = util.updateprogress(JSON.stringify(board), 40);
                   card.due = cr.due; //TODO friendly time format
                   card.pos = cr.pos;
                   card.url = cr.url;
@@ -240,7 +243,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                     function push(cb) {
                       console.log(i + " " + j + " PUSH!");
                       list.cards.push(card);
-                      board = util.updateprogress(JSON.stringify(board), ((++cur)/max*35) + 5);
+                      board = util.updateprogress(JSON.stringify(board), ((++cur)/max*45) + 5);
                       if (list.cards.length == li.cards.length) { b.lists.push(list); }
                       if (b.lists.length == raw.lists.length) { listcallback(); }
                       cb();
@@ -286,18 +289,61 @@ exports.startbuild = function startbuild(board, u, odata) {
         console.log("GET B!");
         console.log(b);
         console.log(b.lists[1].cards);
-        board = util.updateprogress(JSON.stringify(board), 40);
+        board = util.updateprogress(JSON.stringify(board), 50);
         cb();
       },
       function gettemplate(cb) {
-        //FUTURE get template data -> u
         //FIXME copy template files -> temp
+        var template = "templates/" + u._template + "/";
+
+        fs.readdir(template, function (e, files) {
+          var i = 0;
+          var max = files.length;
+          files.forEach(function(file) {
+            if (!file.match(/(template.yml|.pdf|.aux|.synctex.gz|.out)$/)) {
+              //file is not the YML file or some annoying LaTeX junk -> copy
+              console.log("COPY: " + file);
+              fs.readFile(template + file, function(e, data) {
+                fs.writeFile(tmp + file, function() {
+                  board = util.updateprogress(JSON.stringify(board), (i/max)*20+50);
+                  if (++i == max) { cb(); }
+                });
+              });
+            } else {
+              max--; board = util.updateprogress(JSON.stringify(board), (i/max)*20+50);
+              if (i==max) { cb(); }
+            }
+          });
+        });
 
         cb();
       },
       function muparse(cb) {
-        //FIXME first get all \input and if no '\', then replace with <!< >
+        //FIXME first get all \input and if no '\', then replace with <!< > - MU_TEX NEEDS TO TAKE CARE OF THIS
         //FIXME parse Mustache
+
+        board = util.updateprogress(JSON.stringify(board), 75);
+        cb();
+      },
+      function compilelatex(cb) {
+        //FIXME compile LaTeX
+
+        board = util.updateprogress(JSON.stringify(board), 90);
+        cb();
+      },
+      function publish(cb) {
+        //FIXME clean
+        //FIXME copy PDF and LaTeX
+
+        board = util.updateprogress(JSON.stringify(board), 95);
+        cb();
+      },
+      function next(cb) {
+        //FIXME flush progress
+        //FIXME continue with queue
+
+        board = util.updateprogress(JSON.stringify(board), 100);
+        cb();
       }
     ]);
   });
