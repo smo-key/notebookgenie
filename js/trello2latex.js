@@ -29,6 +29,8 @@ exports.startbuild = function startbuild(board, u, odata) {
     var b = { };
     //create temp folder
     var tmp = "tmp/" + board.id + "/";
+    var templatedir = "templates/" + u._template + "/";
+
     var max = raw.cards.length;
     var cur = 0;
 
@@ -136,7 +138,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                   var card = { };
                   card.name = cr.name;
                   card.desc = cr.desc;
-                  card.lastmodified = cr.dateLastActivity;board = util.updateprogress(JSON.stringify(board), 40);
+                  card.lastmodified = cr.dateLastActivity;
                   card.due = cr.due; //TODO friendly time format
                   card.pos = cr.pos;
                   card.url = cr.url;
@@ -288,42 +290,70 @@ exports.startbuild = function startbuild(board, u, odata) {
       function flushprogress(cb) {
         console.log("GET B!");
         console.log(b);
-        console.log(b.lists[1].cards);
         board = util.updateprogress(JSON.stringify(board), 50);
         cb();
       },
       function gettemplate(cb) {
+        console.log("--------- GET TEMPLATES");
         //FIXME copy template files -> temp
-        var template = "templates/" + u._template + "/";
 
-        fs.readdir(template, function (e, files) {
+        fs.readdir(templatedir, function (e, files) {
           var i = 0;
           var max = files.length;
           files.forEach(function(file) {
-            if (!file.match(/(template.yml|.pdf|.aux|.synctex.gz|.out)$/)) {
+            if (!file.match(/(template.yml|template.tex|.pdf|.aux|.synctex.gz|.out|.log)$/)) {
               //file is not the YML file or some annoying LaTeX junk -> copy
-              console.log("COPY: " + file);
-              fs.readFile(template + file, function(e, data) {
-                fs.writeFile(tmp + file, function() {
-                  board = util.updateprogress(JSON.stringify(board), (i/max)*20+50);
+              console.log("----- COPY: " + file);
+              fs.readFile(templatedir + file, function(e, data) {
+                fs.writeFile(tmp + file, data, function() {
+                  board = util.updateprogress(JSON.stringify(board), (i/max)*10+50);
                   if (++i == max) { cb(); }
                 });
               });
             } else {
-              max--; board = util.updateprogress(JSON.stringify(board), (i/max)*20+50);
-              if (i==max) { cb(); }
+              max--; board = util.updateprogress(JSON.stringify(board), (i/max)*10+50);
+              if (i == max) { cb(); }
             }
           });
         });
-
-        cb();
       },
       function muparse(cb) {
         //FIXME first get all \input and if no '\', then replace with <!< > - MU_TEX NEEDS TO TAKE CARE OF THIS
-        //FIXME parse Mustache
+        //parse with Mustache
+        console.log("MUSTACHE PARSE!");
 
-        board = util.updateprogress(JSON.stringify(board), 75);
-        cb();
+        var view = { };
+        view = { b: b };
+        //copy user data to view
+        Object.keys(u).forEach(function(key) {
+          var val = u[key];
+          if (!key.match(/^_/)) {
+            //avoid anything internal (starts with underscore)
+            if(!(val === Object(val))) {
+              //copy data as it doesn't appear to be JSON (user data)
+              view[key] = val;
+            }
+          }
+        });
+
+        mu.clearCache();
+        mu.root = templatedir;
+        fs.exists(templatedir + "template.tex", function (exist) {
+          if (exist) {
+            mu.compileAndRender("template.tex", view)
+            .on('data', function(data) {
+              fs.appendFile(tmp + "template.tex", data);
+              console.log("GET DATA");
+              console.log(data.toString());
+            })
+            .on('end', function() {
+              board = util.updateprogress(JSON.stringify(board), 70);
+              cb();
+            });
+          } else { console.log("NO EXIST!"); }
+          //TODO give an error somewhere
+        });
+
       },
       function compilelatex(cb) {
         //FIXME compile LaTeX
@@ -338,7 +368,7 @@ exports.startbuild = function startbuild(board, u, odata) {
         board = util.updateprogress(JSON.stringify(board), 95);
         cb();
       },
-      function next(cb) {
+      function finish(cb) {
         //FIXME flush progress
         //FIXME continue with queue
 

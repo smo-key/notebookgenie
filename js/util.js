@@ -272,9 +272,9 @@ exports.updateboard = updateboard;
 exports.updateprogress = function updateprogress(board, progress)
 {
   var b = JSON.parse(board);
-  b.progress = progress;
+  if(progress > b.progress) { b.progress = progress;
   updateboard(JSON.stringify(b), function()
-              { svr.emitter.emit('updateprogress'); });
+              { svr.emitter.emit('updateprogress'); }); }
   return b;
 }
 
@@ -314,4 +314,6 @@ exports.sendjson = function sendjson(json, res)
   res.send();
 }
 
-
+exports.cloneobject = function cloneobject(a) {
+   return JSON.parse(JSON.stringify(a));
+}
