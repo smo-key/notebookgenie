@@ -5,6 +5,8 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var jsonsafeparse = require('json-safe-parse');
 var sync = require('sync');
+var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var mu = require('mutex'); //TODO change name to mu_tex
 
 Array.prototype.sortByProp = function(p){
@@ -357,13 +359,32 @@ exports.startbuild = function startbuild(board, u, odata) {
       },
       function compilelatex(cb) {
         //FIXME compile LaTeX
+        pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
 
-        board = util.updateprogress(JSON.stringify(board), 90);
-        cb();
+        pdflatex.stdout.on('data', function (data) {
+          console.log(data.toString());
+        });
+        pdflatex.stderr.on('data', function (data) {
+          console.error(data.toString());
+          //TODO log this somewhere
+          //FIXME add logging
+        });
+
+        pdflatex.on('exit', function (code, signal) {
+          console.log("Process exited with " + code);
+          if (code > 1 || code < 0) {
+            //TODO throw some error
+          }
+          else {
+            board = util.updateprogress(JSON.stringify(board), 90);
+            cb();
+          }
+        });
+
       },
       function publish(cb) {
         //FIXME clean
-        //FIXME copy PDF and LaTeX
+        //FIXME copy PDF, LaTeX, and log
 
         board = util.updateprogress(JSON.stringify(board), 95);
         cb();
