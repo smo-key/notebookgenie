@@ -317,12 +317,14 @@ app.get('/build/:id', function(req, res){
         alertstatus: stat,
         alerttext: message,
         errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/'>build yours</a>?",
+        status: "info",
         partials: {
-          main: "build-failed",
+          main: "build",
           helpbutton: 'helpbutton',
           public: 'public',
           private: 'private',
-          alert: alert
+          alert: alert,
+          fragment: "build-failed"
         }
       });
       return;
@@ -346,12 +348,14 @@ app.get('/build/:id', function(req, res){
         alertstatus: stat,
         alerttext: message,
         errortext: etext,
+        status: util.getstatusfromstate(state),
         partials: {
-          main: "build-" + state,
+          main: "build",
           helpbutton: 'helpbutton',
           public: 'public',
           private: 'private',
-          alert: alert
+          alert: alert,
+          fragment: "build-" + state
         }
       });
     } catch (e)
@@ -386,7 +390,8 @@ app.get('/', function (req, res) {
       helpbutton: 'helpbutton',
       public: 'public',
       private: 'private',
-      modal: 'modal-build'
+      modal: 'modal-build',
+      fragment: 'build-main'
     }
   });
 });

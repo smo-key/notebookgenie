@@ -1,13 +1,3 @@
-{{> alert }}
-
-<div class="panel panel-info {{^ board}}noshadow{{/ board}}">
-  {{# board}}
-  <div class="panel-heading">
-    <h2 class="panel-title">{{# board.public}}{{> public}}{{/ board.public}}{{^ board.public}}{{> private}}{{/ board.public}}
-        {{# board.orgurl}}<a href="{{ board.orgurl }}">{{ board.org }}</a>{{/ board.orgurl}}{{^ board.orgurl}}{{ board.org }}{{/ board.orgurl}} / <b>{{# board.titleurl }}<a href="{{ board.titleurl }}">{{ board.title }}</a>{{/ board.titleurl }}{{^ board.titleurl }}{{ board.title }}{{/ board.titleurl }}</b></h2>
-  </div>
-  {{/ board}}
-  {{# errortext }}<div class="panel-body {{^ board}}centered{{/ board}}">
-    <h5>{{{ errortext }}}</h5>
-  </div>{{/ errortext }}
-</div>
+{{# errortext }}<div class="panel-body {{^ board}}centered{{/ board}}">
+  <h5>{{{ errortext }}}</h5>
+</div>{{/ errortext }}

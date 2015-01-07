@@ -1,18 +1,10 @@
-{{> alert }}
-
-<div class="panel panel-primary">
-  <div class="panel-heading">
-    <h2 class="panel-title">{{# board.public}}{{> public}}{{/ board.public}}{{^ board.public}}{{> private}}{{/ board.public}}
-        {{# board.orgurl}}<a href="{{ board.orgurl }}">{{ board.org }}</a>{{/ board.orgurl}}{{^ board.orgurl}}{{ board.org }}{{/ board.orgurl}} / <b>{{# board.titleurl }}<a href="{{ board.titleurl }}">{{ board.title }}</a>{{/ board.titleurl }}{{^ board.titleurl }}{{ board.title }}{{/ board.titleurl }}</b></h2>
-  </div>
-  <div class="panel-body">
-    <h4><i class="fa fa-clock-o"></i>Board queued!</h4>
-    <div class="progress">
-      <div class="progress-bar progress-bar-striped progress-bar-info active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-        <span class="sr-only">Queued</span>
-      </div>
+<div class="panel-body">
+  <h4><i class="fa fa-clock-o"></i>Board queued!</h4>
+  <div class="progress">
+    <div class="progress-bar progress-bar-striped progress-bar-info active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+      <span class="sr-only">Queued</span>
     </div>
-    <br>
-    <h5>We're building other boards right now.{{# board.email }} When we're done building yours, we'll send an email to the address you provided.{{/ board.email }} Feel free to leave this page and come back anytime.</h5>
   </div>
+  <br>
+  <h5>We're building other boards right now.{{# board.email }} When we're done building yours, we'll send an email to the address you provided.{{/ board.email }} Feel free to leave this page and come back anytime.</h5>
 </div>

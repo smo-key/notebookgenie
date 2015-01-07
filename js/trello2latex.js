@@ -153,11 +153,13 @@ exports.startbuild = function startbuild(board, u, odata) {
                       console.log(i + " " + j + " GET MEMBERS");
                       //get members
                       card.members = [ ];
-                      cr.members.forEach(function(m, k) {
-                        card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                        if (card.members.length == cr.members.length) { cb(); }
-                      });
-                      if (cr.members.length == 0) { cb(); }
+                      if (!util.isnull(cr.members)) {
+                        cr.members.forEach(function(m, k) {
+                          card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                          if (card.members.length == cr.members.length) { cb(); }
+                        });
+                        if (cr.members.length == 0) { cb(); }
+                      } else { cb(); }
                     },
                     function getactions(cb) {
                       //get actions
@@ -372,7 +374,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 
         pdflatex.on('exit', function (code, signal) {
           console.log("Process exited with " + code);
-          if (code > 1 || code < 0) {
+          if (code != 0) {
             //TODO throw some error
           }
           else {
@@ -380,7 +382,6 @@ exports.startbuild = function startbuild(board, u, odata) {
             cb();
           }
         });
-
       },
       function publish(cb) {
         //FIXME clean

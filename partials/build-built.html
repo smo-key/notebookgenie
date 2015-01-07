@@ -1,25 +1,15 @@
-{{> alert }}
-
-<div class="panel panel-success">
-  <div class="panel-heading">
-    <h2 class="panel-title">{{# board.public}}{{> public}}{{/ board.public}}{{^ board.public}}{{> private}}{{/ board.public}}
-        {{# board.orgurl}}<a href="{{ board.orgurl }}">{{ board.org }}</a>{{/ board.orgurl}}{{^ board.orgurl}}{{ board.org }}{{/ board.orgurl}} / <b>{{# board.titleurl }}<a href="{{ board.titleurl }}">{{ board.title }}</a>{{/ board.titleurl }}{{^ board.titleurl }}{{ board.title }}{{/ board.titleurl }}</b></h2>
+<div class="panel-body">
+  <h4><i class="glyphicon glyphicon-ok"></i>Board successfully built!</h4>
+  <div class="btn-group centered">
+    <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+      Download <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu">
+      <li><a href="/build/{{ board.id }}.pdf">Finalized PDF</a></li>
+      <li><a href="/build/{{ board.id }}.tex">Raw LaTeX document</a></li>
+      <li><a href="/build/{{ board.id }}.log">Build log</a></li>
+    </ul>
   </div>
-  <div class="panel-body">
-    <h4><i class="glyphicon glyphicon-ok"></i>Board successfully built!</h4>
-    <div class="btn-group centered">
-      <button class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
-        Download <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li><a href="/build/{{ board.id }}.pdf">Finalized PDF</a></li>
-        <li><a href="/build/{{ board.id }}.zip">Raw LaTeX documents (.zip)</a></li>
-      </ul>
-    </div>
-    <hr>
-    <h5>Congratulations, we're done building your board! After building, we'll only store these files for about 24 hours.  Be sure to pick them up by then!</h5>
-
-
-  </div>
-
+  <hr>
+  <h5>Congratulations, we're done building your board! After building, we'll only store these files for about 24 hours.  Be sure to pick them up by then!</h5>
 </div>

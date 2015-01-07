@@ -1,0 +1,10 @@
+{{# building}}
+<div class="progress">
+  <div class="progress-bar progress-bar-striped active" role="progressbar" id="progressbarupdatable" aria-valuenow="{{ building.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ building.progress }}%">
+    <span class="sr-only">{{ building.progress }}% Complete</span>
+  </div>
+</div>
+{{/ building}}
+{{^ building}}
+<h5>We're not building anything at the moment.  Care to <a data-toggle="modal" data-target="#buildboard">build yours</a>?</h5>
+{{/ building}}

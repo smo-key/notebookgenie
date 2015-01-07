@@ -317,3 +317,9 @@ exports.sendjson = function sendjson(json, res)
 exports.cloneobject = function cloneobject(a) {
    return JSON.parse(JSON.stringify(a));
 }
+
+exports.getstatusfromstate = function getstatusfromstate(state) {
+  if (state == "building" || state == "queued") { return "primary"; }
+  if (state == "built") { return "success"; }
+  return "info";
+}
