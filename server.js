@@ -124,9 +124,9 @@ io.on('connection', function (socket) {
 
   exports.emitter.on('updatestatus', function () {
     console.log('CLIENT - SEND FRAGMENT UPDATE');
+    mu.root = __dirname + "/partials";
 
     //compile main fragment (build-main)
-    mu.root = __dirname + "/partials";
     var smain = "";
     mu.compileAndRender("build-main.html", {
       applicationkey: config.key,
@@ -140,7 +140,22 @@ io.on('connection', function (socket) {
       smain += data.toString();
     })
     .on('end', function() {
-      socket.emit('fragment', { main: smain, asdfasdf: null });
+      //build built section of main
+      var sbuilt = "";
+        mu.compileAndRender("fragment-built.html", {
+        applicationkey: config.key,
+        appurl: config.domain,
+        isupdatable: true,
+        id: null,
+        building: exports.stache.building,
+        built: exports.stache.built
+      })
+      .on('data', function(data) {
+        sbuilt += data.toString();
+      })
+      .on('end', function() {
+        socket.emit('fragment', { main: smain, built: sbuilt, asdfasdf: null });
+      });
     });
   });
 
@@ -414,7 +429,8 @@ app.get('/', function (req, res) {
       public: 'public',
       private: 'private',
       modal: 'modal-build',
-      fragment: 'build-main'
+      fragment: 'build-main',
+      fragmentbuilt: 'fragment-built'
     }
   });
 });

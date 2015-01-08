@@ -15,6 +15,7 @@ if (isupdatable) {
   socket.on('fragment', function (data) {
     console.log(data);
     $('#replaceable-main').html(data.main);
+    $('#replaceable-built').html(data.built);
   });
 
 //  var lastupdate = null;

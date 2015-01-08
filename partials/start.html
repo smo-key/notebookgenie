@@ -20,14 +20,8 @@
   <div class="panel-heading">
     <h2 class="panel-title"><i class="glyphicon glyphicon-check"></i>Recently built</h2>
   </div>
-  <div class="panel-body">
-    {{# built}}
-    <h5>{{# public}}{{> public}}{{/ public}}{{^ public}}{{> private}}{{/ public}}
-      {{# orgurl}}<a href="{{ orgurl }}">{{ org }}</a>{{/ orgurl}}{{^ orgurl}}{{ org }}{{/ orgurl}} / <b>{{# titleurl }}<a href="{{ titleurl }}">{{ title }}</a>{{/ titleurl }}{{^ titleurl }}{{ title }}{{/ titleurl }}</b></h5>
-    {{/ built}}
-    {{^ built}}
-    <h5>We haven't built anything for a while... would you like to <a data-toggle="modal" data-target="#buildboard">build yours</a>?</h5>
-    {{/ built}}
+  <div class="panel-body" id="replaceable-built">
+    {{> fragmentbuilt }}
   </div>
 </div>
 
