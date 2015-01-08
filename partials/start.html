@@ -2,11 +2,6 @@
   <div class="panel-heading">
     <h2 class="panel-title">{{# building}}<i class="fa fa-cog fa-spin"></i>{{/ building}}{{^ building}}<i class="fa fa-cog"></i>{{/ building}}Currently Building</h2></div>
   <div class="panel-body">
-    {{# building}}
-    <h5>
-      {{# building.public}}{{> public}}{{/ building.public}}{{^ building.public}}{{> private}}{{/ building.public}}
-      {{# building.orgurl}}<a href="{{ building.orgurl }}">{{ building.org }}</a>{{/ building.orgurl}}{{^ building.orgurl}}{{ building.org }}{{/ building.orgurl}} / <b>{{# building.titleurl }}<a href="{{ building.titleurl }}">{{ building.title }}</a>{{/ building.titleurl }}{{^ building.titleurl }}{{ building.title }}{{/ building.titleurl }}</b></h5>
-    {{/ building }}
     <div id="replaceable-main">
       {{> fragment }}
     </div>

@@ -12,6 +12,11 @@ if (isupdatable) {
     updateprogress(data);
   });
 
+  socket.on('fragment', function (data) {
+    console.log(data);
+    $('#replaceable-main').html(data.main);
+  });
+
 //  var lastupdate = null;
 
   function updateprogress(data) {

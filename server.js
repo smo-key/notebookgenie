@@ -15,7 +15,8 @@ var http = require("http"),
     OAuth = require('oauth').OAuth,
     flow = require('nimble'),
     domain = require('domain'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    mu = require('mu2'),
     cookieparser = require('cookie-parser');
 
 //initialize renderer
@@ -121,10 +122,32 @@ io.on('connection', function (socket) {
     socket.emit('progress', { status: status, id: id, progress: progress });
   });
 
+  exports.emitter.on('updatestatus', function () {
+    console.log('CLIENT - SEND FRAGMENT UPDATE');
+
+    //compile main fragment (build-main)
+    mu.root = __dirname + "/partials";
+    var smain = "";
+    mu.compileAndRender("build-main.html", {
+      applicationkey: config.key,
+      appurl: config.domain,
+      isupdatable: true,
+      id: null,
+      building: exports.stache.building,
+      built: exports.stache.built
+    })
+    .on('data', function(data) {
+      smain += data.toString();
+    })
+    .on('end', function() {
+      socket.emit('fragment', { main: smain, asdfasdf: null });
+    });
+  });
+
   socket.on('disconnect', function (socket) {
     console.log("CLIENT DISCONNECTED");
   });
-});
+}); //end socket.io
 
 
 // API POST requests

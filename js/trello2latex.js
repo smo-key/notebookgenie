@@ -175,67 +175,73 @@ exports.startbuild = function startbuild(board, u, odata) {
                     function getvotes(cb) {
                       console.log(i + " " + j + " GET VOTES");
                       //get votes
+                      if (!util.isnull(cr.membersVoted)) {
                       card.votecount = cr.membersVoted.length;
-                      card.voters = [ ];
-                      cr.membersVoted.forEach(function(m, k) {
-                        card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                        if (card.voters.length == cr.membersVoted.length) { cb(); }
-                      });
-                      if (cr.membersVoted.length == 0) { cb(); }
+                        card.voters = [ ];
+                        cr.membersVoted.forEach(function(m, k) {
+                          card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                          if (card.voters.length == cr.membersVoted.length) { cb(); }
+                        });
+                        if (cr.membersVoted.length == 0) { cb(); }
+                      } else { cb(); }
                     },
                     function getchecklists(cb) {
                       console.log(i + " " + j + " GET CHECKLISTS");
                       //get checklists
-                      card.checklists = [ ];
-                      cr.checklists.forEach(function(c, k) {
-                        var items = [ ];
-                        c.checkItems.forEach(function(item, l) {
-                          if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-                          var it = { name: item.name, pos: item.pos, checked: checked };
-                          items.push(it);
+                      if (!util.isnull(cr.checklists)) {
+                        card.checklists = [ ];
+                        cr.checklists.forEach(function(c, k) {
+                          var items = [ ];
+                          c.checkItems.forEach(function(item, l) {
+                            if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
+                            var it = { name: item.name, pos: item.pos, checked: checked };
+                            items.push(it);
+                          });
+                          card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+                          if (card.checklists.length == cr.checklists.length) { cb(); }
                         });
-                        card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
-                        if (card.checklists.length == cr.checklists.length) { cb(); }
-                      });
-                      if (cr.checklists.length == 0) { cb(); }
+                        if (cr.checklists.length == 0) { cb(); }
+                      } else { cb(); }
                     },
                     function getattachments(cb) {
                       console.log(i + " " + j + " GET ATTACHMENTS");
-                      var n = cr.attachments.length;
-                      //download card attachments to /tmp/dl
-                      cr.attachments.forEach(function(attach, k) {
-                        if (attach.url.match(/\.[0-9a-zA-Z]+$/))
-                        {
-                          //check if includable image
-                          if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+                      if (!util.isnull(cr.attachments)) {
+                        var n = cr.attachments.length;
+                        //download card attachments to /tmp/dl
+                        cr.attachments.forEach(function(attach, k) {
+                          if (attach.url.match(/\.[0-9a-zA-Z]+$/))
                           {
-                            var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
-                            util.downloadfile(attach.url, ur, function(e) {
-                              if (e)
-                              {
-                                card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                                        name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
-                                //TODO make date user friendly
-                                console.log(card.attachments);
+                            //check if includable image
+                            if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+                            {
+                              var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+                              util.downloadfile(attach.url, ur, function(e) {
+                                if (e)
+                                {
+                                  card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                                          name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                                  //TODO make date user friendly
+                                  console.log(card.attachments);
 
-                                //get card cover using cr.idAttachmentCover
-                                if (attach.id == cr.idAttachmentCover)
-                                { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
-                                if (card.attachments.length == n) { cb(); }
-                              }
-                              else { n--; if (card.attachments.length == n) { cb(); } }
-                            });
-                          }
-                          else
-                          {
-                            //not an image, don't download but add to list
-                            card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
-                            console.log(card.attachments);
-                            if (card.attachments.length == n) { cb(); }
-                          }
-                        } else { n--; if (card.attachments.length == n) { cb(); } }
-                      });
-                      if (cr.attachments.length == 0) { cb(); }
+                                  //get card cover using cr.idAttachmentCover
+                                  if (attach.id == cr.idAttachmentCover)
+                                  { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
+                                  if (card.attachments.length == n) { cb(); }
+                                }
+                                else { n--; if (card.attachments.length == n) { cb(); } }
+                              });
+                            }
+                            else
+                            {
+                              //not an image, don't download but add to list
+                              card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
+                              console.log(card.attachments);
+                              if (card.attachments.length == n) { cb(); }
+                            }
+                          } else { n--; if (card.attachments.length == n) { cb(); } }
+                        });
+                        if (cr.attachments.length == 0) { cb(); }
+                      } else { cb(); }
                     },
                     function sort(cb) {
                       //TODO sort cards by loc
@@ -396,6 +402,11 @@ exports.startbuild = function startbuild(board, u, odata) {
 
         board = util.updateprogress(JSON.stringify(board), 100);
         cb();
+      },
+      function moveboard(cb) {
+        svr.stache.building = null;
+        svr.stache.built.push(board);
+        svr.emitter.emit('updatestatus');
       }
     ]);
   });
