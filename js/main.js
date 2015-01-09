@@ -16,6 +16,18 @@ if (isupdatable) {
     console.log(data);
     $('#replaceable-main').html(data.main);
     $('#replaceable-built').html(data.built);
+    if (data[id] != null)
+    {
+      $('#replaceable-build').html(data[id]);
+    }
+    $('#replaceable-panel').removeClass("panel-primary");
+    $('#replaceable-panel').removeClass("panel-success");
+    $('#replaceable-panel').removeClass("panel-info");
+    $('#replaceable-panel').removeClass("panel-warning");
+    $('#replaceable-panel').removeClass("panel-danger");
+    $('#replaceable-panel').addClass("panel-" + data.status);
+
+    $('.alert').alert('close');
   });
 
 //  var lastupdate = null;

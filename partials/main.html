@@ -44,6 +44,9 @@
 
     <script>
       var isupdatable = {{ isupdatable }};
+      //ID{{# id }}
+      var id = "{{ id }}";
+      //ID{{/ id}}
       if (isupdatable) { var socket = io.connect("{{{ appurl }}}"); }
     </script>
     <script type="text/javascript" src="js/main.js"></script>

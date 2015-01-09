@@ -122,8 +122,8 @@ io.on('connection', function (socket) {
     socket.emit('progress', { status: status, id: id, progress: progress });
   });
 
-  exports.emitter.on('updatestatus', function () {
-    console.log('CLIENT - SEND FRAGMENT UPDATE');
+  exports.emitter.on('updatestatus', function (board) {
+    console.log('CLIENT - SEND FRAGMENT UPDATE ' + board.id);
     mu.root = __dirname + "/partials";
 
     //compile main fragment (build-main)
@@ -154,7 +154,27 @@ io.on('connection', function (socket) {
         sbuilt += data.toString();
       })
       .on('end', function() {
-        socket.emit('fragment', { main: smain, built: sbuilt, asdfasdf: null });
+        //build the active board ID
+        var sactive = "";
+        util.checkstache(board.id, function(state) {
+          mu.compileAndRender("build-" + state + ".html", {
+            applicationkey: config.key,
+            appurl: config.domain,
+            isupdatable: true,
+            id: board.id,
+            board: board,
+            errortext: "The board failed to build due to an error." +
+              (util.isnull(board.errormessage) ? "<hr>" + board.errormessage : "")
+          })
+          .on('data', function(data) {
+            sactive += data.toString();
+          })
+          .on('end', function() {
+            var d = { main: smain, built: sbuilt, status: util.getstatusfromstate(state) };
+            d[board.id] = sactive;
+            socket.emit('fragment', d);
+          });
+        });
       });
     });
   });
@@ -408,7 +428,7 @@ app.use('/build/css', express.static(__dirname + '/css'));
 app.use('/build/js', express.static(__dirname + '/js'));
 app.use('/build/img', express.static(__dirname + '/img'));
 app.use('/build/fonts', express.static(__dirname + '/fonts'));
-app.use('/build', express.static(__dirname + '/build'));
+app.use('/build', express.static(__dirname + '/tmp'));
 
 // Final index GET
 app.get('/', function (req, res) {

@@ -392,9 +392,16 @@ exports.startbuild = function startbuild(board, u, odata) {
       function publish(cb) {
         //FIXME clean
         //FIXME copy PDF, LaTeX, and log
-
-        board = util.updateprogress(JSON.stringify(board), 95);
-        cb();
+        fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
+          fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
+            fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+              rmrf(tmp, function() {
+                board = util.updateprogress(JSON.stringify(board), 95);
+                cb();
+              });
+            });
+          });
+        });
       },
       function finish(cb) {
         //FIXME flush progress
@@ -406,7 +413,7 @@ exports.startbuild = function startbuild(board, u, odata) {
       function moveboard(cb) {
         svr.stache.building = null;
         svr.stache.built.push(board);
-        svr.emitter.emit('updatestatus');
+        svr.emitter.emit('updatestatus', board);
       }
     ]);
   });

@@ -1,6 +1,6 @@
 {{> alert }}
 
-<div class="panel panel-{{ status }} {{^ board}}noshadow{{/ board}}">
+<div class="panel panel-{{ status }} {{^ board}}noshadow{{/ board}}" id="replaceable-panel">
   {{# board}}
   <div class="panel-heading">
     <h2 class="panel-title">{{# board.public}}{{> public}}{{/ board.public}}{{^ board.public}}{{> private}}{{/ board.public}}
