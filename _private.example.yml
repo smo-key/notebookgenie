@@ -1,0 +1,8 @@
+##### Trello2LaTeX EXAMPLE Server Configuration File #####
+
+#private keys
+key: yourdeveloperkey
+secret: yourdevelopersecret
+appname: Trello2LaTeX
+domain: http://localhost
+port: 8888
