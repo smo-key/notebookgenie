@@ -25,6 +25,7 @@ exports.startbuild = function startbuild(board, u, odata) {
   //complete credential verification - DONE in board
   board = JSON.parse(board);
   //download JSON -> raw
+  svr.emitter.emit('updatestatus', board);
   util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
 
     //create JSON array to store board information for LaTeX -> b
@@ -144,7 +145,10 @@ exports.startbuild = function startbuild(board, u, odata) {
                   card.due = cr.due; //TODO friendly time format
                   card.pos = cr.pos;
                   card.url = cr.url;
-                  card.labels = cr.labels;
+                  console.log(cr.labels);
+                  cr.labels.forEach(function(label) {
+                    
+                  });
                   card.attachments = [ ];
                   card.attachmentcover = null;
 
@@ -161,7 +165,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                         if (cr.members.length == 0) { cb(); }
                       } else { cb(); }
                     },
-                    function getactions(cb) {
+                    function getcomments(cb) {
                       //get actions
     //                card.actions = [ ];
     //                cr.actions.forEach(function(a, k) {
@@ -352,9 +356,10 @@ exports.startbuild = function startbuild(board, u, odata) {
           if (exist) {
             mu.compileAndRender("template.tex", view)
             .on('data', function(data) {
-              fs.appendFile(tmp + "template.tex", data);
-              console.log("GET DATA");
-              console.log(data.toString());
+              fs.appendFile(tmp + "template.tex", data, { flag: "a+" }, function() {
+                console.log("GET DATA");
+                console.log(data.toString());
+              });
             })
             .on('end', function() {
               board = util.updateprogress(JSON.stringify(board), 70);
@@ -395,10 +400,12 @@ exports.startbuild = function startbuild(board, u, odata) {
         fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
           fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
             fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
-              rmrf(tmp, function() {
-                board = util.updateprogress(JSON.stringify(board), 95);
-                cb();
-              });
+              cb();
+              //FIXME temporary - not removing files
+//            rmrf(tmp, function() {
+//              board = util.updateprogress(JSON.stringify(board), 95);
+//              cb();
+//            });
             });
           });
         });
