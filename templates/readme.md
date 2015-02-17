@@ -198,6 +198,12 @@ attach.ext | `.png` (file extension)
 attach.date | `2015-01-01T16:38:29.816Z` (date image was taken)
 attach.isimage | `true` (if png, jpg, jpeg, or eps), else `false`
 
+b.lists.cards.comments | Example Result
+----------|----------
+text | `Hi there, this is a comment.`
+date | `2015-01-01T16:38:29.816Z`
+author | An instance of `b.members`
+
 b.lists.cards.checklists | Example Result
 ----------|----------
 check | A checklist
