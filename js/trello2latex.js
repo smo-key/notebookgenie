@@ -10,6 +10,7 @@ var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var execSync = require('child_process').execSync;
 var mu = require('mutex'); //TODO change name to mu_tex
+var sleep = require('sleep');
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){
@@ -370,6 +371,7 @@ exports.startbuild = function startbuild(board, u, odata) {
               fs.appendFile(tmp + "template.tex", data, { flag: "a+" }, function() {
                 console.log("GET DATA");
                 console.log(data.toString());
+                sleep.usleep(1000);
               });
             })
             .on('end', function() {
