@@ -5,8 +5,10 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var jsonsafeparse = require('json-safe-parse');
 var sync = require('sync');
+var async = require('async');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var execSync = require('child_process').execSync;
 var mu = require('mutex'); //TODO change name to mu_tex
 
 Array.prototype.sortByProp = function(p){
@@ -26,7 +28,7 @@ exports.startbuild = function startbuild(board, u, odata) {
   board = JSON.parse(board);
   //download JSON -> raw
   svr.emitter.emit('updatestatus', board);
-  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
+  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all&actions=commentCard&actions_limit=1000&action_member_fields=all", board.auth, odata, function(e, raw) {
 
     //create JSON array to store board information for LaTeX -> b
     var b = { };
@@ -167,14 +169,23 @@ exports.startbuild = function startbuild(board, u, odata) {
                     },
                     function getcomments(cb) {
                       //get actions
-    //                card.actions = [ ];
-    //                cr.actions.forEach(function(a, k) {
-    //                  util.trello("/actions/" + a.id + "?member_fields=fullName,initials,username,url&memberCreator_fields=fullName,initials,username", board.auth, odata, function(e, act) {
-    ////                    console.log(act);
-    //                    //TODO generate action text from action - required for action support
-    //                  });
-    //                });
-                      cb();
+                      card.comments = [ ];
+                      cr.actions.forEach(function(act, k) {
+                        console.log(act);
+                        var action = { };
+                        action.text = act.data.text;
+                        action.date = act.date;
+                        action.author = { };
+                        action.author.id = act.memberCreator.id;
+                        action.author.avatar = "img/" + act.memberCreator.id + ".png";
+                        action.author.name = act.memberCreator.fullName;
+                        action.author.initials = act.memberCreator.initials;
+                        action.author.username = act.memberCreator.username;
+                        action.author.url = act.memberCreator.url;
+                        card.comments.push(action);
+                        if (cr.actions.length == card.comments.length) { cb(); }
+                      });
+                      if (cr.actions.length == 0) { cb(); }
                     },
                     function getvotes(cb) {
                       console.log(i + " " + j + " GET VOTES");
@@ -357,8 +368,8 @@ exports.startbuild = function startbuild(board, u, odata) {
             mu.compileAndRender("template.tex", view)
             .on('data', function(data) {
               fs.appendFile(tmp + "template.tex", data, { flag: "a+" }, function() {
-                console.log("GET DATA");
-                console.log(data.toString());
+//                console.log("GET DATA");
+//                console.log(data.toString());
               });
             })
             .on('end', function() {
@@ -370,34 +381,36 @@ exports.startbuild = function startbuild(board, u, odata) {
         });
 
       },
-      function compilelatex(cb) {
-        //FIXME compile LaTeX
-        pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
-
-        pdflatex.stdout.on('data', function (data) {
-          console.log(data.toString());
-        });
-        pdflatex.stderr.on('data', function (data) {
-          console.error(data.toString());
-          //TODO log this somewhere
-          //FIXME add logging
-        });
-
-        pdflatex.on('exit', function (code, signal) {
-          console.log("Process exited with " + code);
-          if (code != 0) {
-            //TODO throw some error
-          }
-          else {
-            board = util.updateprogress(JSON.stringify(board), 90);
-            cb();
-          }
-        });
-      },
+//      function compilelatex(cb) {
+//        //FIXME compile LaTeX
+//        console.log("----------------------COMPILE LATEX!---------------------------------------------------------------------------------------------------------------------------");
+//        pdflatex = exec('pdflatex -synctex=1 interaction=nonstopmode "template".tex', { cwd: tmp });
+//        console.log(pdflatex);
+//
+////        , function(error, stdout, stderr) {
+////          stdout.on('data', function (data) {
+////            console.log(data.toString());
+////          });
+////          stderr.on('data', function (data) {
+////            console.error(data.toString());
+////            //TODO log this somewhere
+////            //FIXME add logging
+////          });
+////        .on('exit', function (code, signal) {
+////          console.log("Process exited with " + code);
+////          if (code != 0) {
+////            //TODO throw some error
+////          }
+////          else {
+////            board = util.updateprogress(JSON.stringify(board), 90);
+////            cb();
+////          }
+////        });
+//      },
       function publish(cb) {
         //FIXME clean
         //FIXME copy PDF, LaTeX, and log
-        fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
+//        fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
           fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
             fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
               cb();
@@ -408,7 +421,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 //            });
             });
           });
-        });
+//        });
       },
       function finish(cb) {
         //FIXME flush progress
