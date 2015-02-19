@@ -368,11 +368,12 @@ exports.startbuild = function startbuild(board, u, odata) {
             mu.compileAndRender("template.tex", view)
             .on('data', function(data) {
               fs.appendFile(tmp + "template.tex", data, { flag: "a+" }, function() {
-//                console.log("GET DATA");
-//                console.log(data.toString());
+                console.log("GET DATA");
+                console.log(data.toString());
               });
             })
             .on('end', function() {
+              console.log("------------END-------------");
               board = util.updateprogress(JSON.stringify(board), 70);
               cb();
             });
