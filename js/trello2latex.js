@@ -28,7 +28,7 @@ exports.startbuild = function startbuild(board, u, odata) {
   board = JSON.parse(board);
   //download JSON -> raw
   svr.emitter.emit('updatestatus', board);
-  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all&actions=commentCard&actions_limit=1000&action_member_fields=all", board.auth, odata, function(e, raw) {
+  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
 
     //create JSON array to store board information for LaTeX -> b
     var b = { };
@@ -138,7 +138,7 @@ exports.startbuild = function startbuild(board, u, odata) {
 
               li.cards.forEach(function(c, j) {
                 //TODO allow template to set the action limit
-                util.trello("/cards/" + c.id + "?actions=all&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
+                util.trello("/cards/" + c.id + "?actions=commentCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
                   //get card
                   var card = { };
                   card.name = cr.name;
