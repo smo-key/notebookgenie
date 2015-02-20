@@ -323,3 +323,7 @@ exports.getstatusfromstate = function getstatusfromstate(state) {
   if (state == "built") { return "success"; }
   return "info";
 }
+
+exports.converttime = function converttime(time) {
+  return isnull(time) ? "" : s(time).replaceAll("T", " ").s.match(/.+(?=\.)/);
+}

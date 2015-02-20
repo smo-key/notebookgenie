@@ -10,7 +10,6 @@ var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var execSync = require('child_process').execSync;
 var mu = require('mutex'); //TODO change name to mu_tex
-var sleep = require('sleep');
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){
@@ -145,7 +144,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                   card.name = cr.name;
                   card.desc = cr.desc;
                   card.lastmodified = cr.dateLastActivity;
-                  card.due = cr.due; //TODO friendly time format
+                  card.due = util.converttime(cr.due); //TODO friendly time format
                   card.pos = cr.pos;
                   card.url = cr.url;
                   console.log(cr.labels);
@@ -175,7 +174,7 @@ exports.startbuild = function startbuild(board, u, odata) {
                         console.log(act);
                         var action = { };
                         action.text = act.data.text;
-                        action.date = act.date;
+                        action.date = util.converttime(act.date);
                         action.author = { };
                         action.author.id = act.memberCreator.id;
                         action.author.avatar = "img/" + act.memberCreator.id + ".png";
@@ -219,46 +218,46 @@ exports.startbuild = function startbuild(board, u, odata) {
                         if (cr.checklists.length == 0) { cb(); }
                       } else { cb(); }
                     },
-                    function getattachments(cb) {
-                      console.log(i + " " + j + " GET ATTACHMENTS");
-                      if (!util.isnull(cr.attachments)) {
-                        var n = cr.attachments.length;
-                        //download card attachments to /tmp/dl
-                        cr.attachments.forEach(function(attach, k) {
-                          if (attach.url.match(/\.[0-9a-zA-Z]+$/))
-                          {
-                            //check if includable image
-                            if (attach.url.match(/\.(png|jpe?g|eps)+/i))
-                            {
-                              var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
-                              util.downloadfile(attach.url, ur, function(e) {
-                                if (e)
-                                {
-                                  card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                                          name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
-                                  //TODO make date user friendly
-                                  console.log(card.attachments);
-
-                                  //get card cover using cr.idAttachmentCover
-                                  if (attach.id == cr.idAttachmentCover)
-                                  { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
-                                  if (card.attachments.length == n) { cb(); }
-                                }
-                                else { n--; if (card.attachments.length == n) { cb(); } }
-                              });
-                            }
-                            else
-                            {
-                              //not an image, don't download but add to list
-                              card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
-                              console.log(card.attachments);
-                              if (card.attachments.length == n) { cb(); }
-                            }
-                          } else { n--; if (card.attachments.length == n) { cb(); } }
-                        });
-                        if (cr.attachments.length == 0) { cb(); }
-                      } else { cb(); }
-                    },
+//                    function getattachments(cb) {
+//                      console.log(i + " " + j + " GET ATTACHMENTS");
+//                      if (!util.isnull(cr.attachments)) {
+//                        var n = cr.attachments.length;
+//                        //download card attachments to /tmp/dl
+//                        cr.attachments.forEach(function(attach, k) {
+//                          if (attach.url.match(/\.[0-9a-zA-Z]+$/))
+//                          {
+//                            //check if includable image
+//                            if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+//                            {
+//                              var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+//                              util.downloadfile(attach.url, ur, function(e) {
+//                                if (e)
+//                                {
+//                                  card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+//                                                          name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+//                                  //TODO make date user friendly
+//                                  console.log(card.attachments);
+//
+//                                  //get card cover using cr.idAttachmentCover
+//                                  if (attach.id == cr.idAttachmentCover)
+//                                  { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
+//                                  if (card.attachments.length == n) { cb(); }
+//                                }
+//                                else { n--; if (card.attachments.length == n) { cb(); } }
+//                              });
+//                            }
+//                            else
+//                            {
+//                              //not an image, don't download but add to list
+//                              card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
+//                              console.log(card.attachments);
+//                              if (card.attachments.length == n) { cb(); }
+//                            }
+//                          } else { n--; if (card.attachments.length == n) { cb(); } }
+//                        });
+//                        if (cr.attachments.length == 0) { cb(); }
+//                      } else { cb(); }
+//                    },
                     function sort(cb) {
                       //TODO sort cards by loc
                       console.log(i + " " + j + " SORT!");
@@ -307,7 +306,7 @@ exports.startbuild = function startbuild(board, u, odata) {
         b.org.name = board.org;
         if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
         else { b.org.isorg = true; }
-        b.lastmodified = raw.dateLastActivity; //TODO make this from ISO -> human readable
+        b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
 
         //TODO get additional data from org (image, etc.)
 
@@ -366,16 +365,15 @@ exports.startbuild = function startbuild(board, u, odata) {
         mu.root = templatedir;
         fs.exists(templatedir + "template.tex", function (exist) {
           if (exist) {
-            mu.compileAndRender("template.tex", view)
-            .on('data', function(data) {
-              fs.appendFile(tmp + "template.tex", data, { flag: "a+" }, function() {
-                console.log("GET DATA");
-                console.log(data.toString());
-                sleep.usleep(1000);
-              });
-            })
-            .on('end', function() {
-              console.log("------------END-------------");
+            var file = fs.createWriteStream(__dirname + "/../" + tmp + "template.tex", { flags: 'a+', end: false });
+            var stream = mu.compileAndRender("template.tex", view);
+            stream.pipe(file, { end: false });
+            file.on('error', function(err) {
+              throw err;
+            });
+
+            stream.on('end', function() {
+              console.log("-------------------------------------------END-----------------------------");
               board = util.updateprogress(JSON.stringify(board), 70);
               cb();
             });
