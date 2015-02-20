@@ -7,7 +7,7 @@ var flow = require('nimble');
 var OAuth = require('oauth').OAuth;
 var t2t = require("./trello2latex.js");
 var svr = require("../server.js");
-
+var date = require("./date.js");
 function prep_genjson(status, message, public)
 {
   var json = {
@@ -325,5 +325,13 @@ exports.getstatusfromstate = function getstatusfromstate(state) {
 }
 
 exports.converttime = function converttime(time) {
-  return isnull(time) ? "" : s(time).replaceAll("T", " ").s.match(/.+(?=\.)/);
+ if (!isnull(time)){
+    var str = s(time).replaceAll("T", " ").s.match(/.+(?=\.)/);
+    str += " UTC"
+    console.log(str);
+    return new Date(str).add({ hours: -1 }).toString("M/d/yyyy HH:mm");
+ } 
+ else{
+    return "";
+ }
 }
