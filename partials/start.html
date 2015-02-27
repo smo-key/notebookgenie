@@ -1,3 +1,10 @@
+<button type="button" class="btn btn-success" onclick="location.href='/login'">
+  <span class="octicon octicon-lock" aria-hidden="true"></span>
+  <b>Login</b> to build your board
+</button>
+
+<hr>
+
 <div class="panel panel-primary">
   <div class="panel-heading">
     <h2 class="panel-title">{{# building}}<i class="fa fa-cog fa-spin"></i>{{/ building}}{{^ building}}<i class="fa fa-cog"></i>{{/ building}}Currently Building</h2></div>
@@ -24,10 +31,3 @@
     {{> fragmentbuilt }}
   </div>
 </div>
-
-<hr>
-
-<button type="button" class="btn btn-success" data-toggle="modal" data-target="#buildboard">
-  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-  Build a board
-</button>

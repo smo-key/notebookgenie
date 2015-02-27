@@ -1,5 +1,6 @@
 /***** BASE *****/
-body {
+body
+{
   margin: 0px;
   background-color: #f0f0f0;
   overflow: hidden;
@@ -7,8 +8,10 @@ body {
   height: 100%;
   display: block;
 }
-hr {
+hr
+{
   border-top: 1px solid #ccc;
+  margin-top: 12px;
 }
 
 #loadingsuper
@@ -58,6 +61,17 @@ hr {
 .invisible { display: none; }
 button .octicon {
   padding-right: 8px;
+  font-size: 1.1em;
+}
+
+button {
+  transition: background-color 0.2s, border 0.2s;
+}
+a {
+  transition: color 0.2s, text-decoration 0.2s;
+}
+a:hover, a:active, a:focus, a:visited {
+  text-decoration: none;
 }
 
 .panel {

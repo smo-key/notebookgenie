@@ -210,7 +210,6 @@ app.use('/ajax/authorize', function(req, res) {
       }
       oauth_secrets[token] = tokenSecret;
       console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
-      res.cookie('boardid', id, { httpOnly: true, path: '/' });
       util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
     });
   });
@@ -374,7 +373,7 @@ app.get('/build/:id', function(req, res){
         id: null,
         alertstatus: stat,
         alerttext: message,
-        errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/'>build yours</a>?",
+        errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/login'>build yours</a>?",
         status: "info",
         partials: {
           main: "build",

@@ -4,7 +4,6 @@ var flow = require('nimble');
 var fs = require("fs");
 var rmrf = require("rimraf");
 var jsonsafeparse = require('json-safe-parse');
-var sync = require('sync');
 var async = require('async');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
