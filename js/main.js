@@ -33,16 +33,8 @@ if (isupdatable) {
 //  var lastupdate = null;
 
   function updateprogress(data) {
-    console.log("GOT PROGRESS!");
     if (isupdatable)
     {
-      //TODO use an AJAX request to get a large portion of the html
-
-//      if (((lastupdate.id != data.id) || (lastupdate.status != data.status)))
-//      {
-//        //if the data has changed, refresh parts of the page
-//      }
-
       if (data.status) {
         //ongoing progress
         $('#progressbarupdatable').css("width", data.progress.toString() + "%");
@@ -50,36 +42,15 @@ if (isupdatable) {
         $('#progressbarupdatable .sr-only').html(data.progress.toString() + "% Complete");
         $('#progressbarupdatable').addClass("active");
       }
-      else
-      {
-
-      }
     }
   }
 }
-
-$('#buildprivate').click(function(){
-  $('#buildprivate').addClass("disabled");
-  console.log(document.URL);
-  $.ajax({
-    url: '/ajax/authorize',
-    type: 'POST',
-    data: { url: $('#inputurl').val() },
-    success: function(data) {
-      window.location.replace(data.url);
-    },
-    failure: function() {
-      console.log("Get application key failure.");
-      $('#buildprivate').removeClass("disabled");
-    }
-  });
-});
 
 $('#buildpublic').click(function(){
   $('#buildpublic').addClass("disabled");
   console.log(document.URL);
   $.ajax({
-    url: '/ajax/build',
+    url: '/api/build',
     type: 'POST',
     data: { url: $('#inputurl').val() },
     success: function(data) {
@@ -102,7 +73,7 @@ $('#inputurl').change(function(){
   $('#urlstatus').html("");
 
   $.ajax({
-    url: '/ajax/prepurl',
+    url: '/api/prepurl',
     type: 'POST',
     data: { url: $('#inputurl').val() },
     success: function(data) {

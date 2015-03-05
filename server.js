@@ -15,6 +15,7 @@ var http = require("http"),
     OAuth = require('oauth').OAuth,
     flow = require('nimble'),
     domain = require('domain'),
+    async = require('async'),
     EventEmitter = require('events').EventEmitter,
     mu = require('mu2'),
     cookieparser = require('cookie-parser');
@@ -91,7 +92,7 @@ app.use(cookieparser());
 var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
               accessURL: "https://trello.com/1/OAuthGetAccessToken",
               authorizeURL: "https://trello.com/1/OAuthAuthorizeToken",
-              callbackURL: config.domain + ":" + config.port + "/ajax/completeauth",
+              callbackURL: config.domain + ":" + config.port + "/api/completeauth",
               key: config.key,
               secret: config.secret }
 //TODO fix this callback to the global setting... or figure out a workaround
@@ -187,7 +188,7 @@ io.on('connection', function (socket) {
 
 // API POST requests
 
-app.use('/ajax/prepurl', function(req, res) {
+app.use('/api/prepurl', function(req, res) {
   //Check if valid URL
   var url = req.body.url;
   util.prepurl(url, function(status) {
@@ -195,27 +196,42 @@ app.use('/ajax/prepurl', function(req, res) {
   });
 });
 
-app.use('/ajax/authorize', function(req, res) {
-  var url = req.body.url;
-  oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
-  util.prepurl(url, function(status, id) {
-    if (status.status != 2) { console.log("AUTHORIZE STATUS ERROR!"); return; } //TODO error handling
-    //send an OAuth request to get the application name and key
-    oauth.getOAuthRequestToken(function(error, token, tokenSecret, results) {
-      if (error)
-      {
-        console.log("AUTHORIZE error!");
-        //TODO client-side error dialog handling
-        return;
-      }
-      oauth_secrets[token] = tokenSecret;
-      console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
-      util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
-    });
+app.get('/login', function (req, res) {
+  var queuecount = exports.stache.queued.length;
+  if (queuecount == 0) { queuecount = null; }
+
+  res.render('main', {
+    applicationkey: config.key,
+    appurl: config.domain,
+    isupdatable: false,
+    id: null,
+    partials: {
+      main: 'login',
+      private: 'private'
+    }
   });
 });
 
-app.use('/ajax/completeauth', function(req, res) {
+app.use('/api/authorize', function(req, res) {
+  oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
+//  util.prepurl(url, function(status, id) {
+//    if (status.status != 2) { console.log("AUTHORIZE STATUS ERROR!"); return; } //TODO error handling
+    //send an OAuth request to get the application name and key
+  oauth.getOAuthRequestToken(function(error, token, tokenSecret, results) {
+    if (error)
+    {
+      console.log("AUTHORIZE error!");
+      //TODO client-side error dialog handling
+      return;
+    }
+    oauth_secrets[token] = tokenSecret;
+    console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
+    util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
+  });
+//  });
+});
+
+app.use('/api/completeauth', function(req, res) {
 
   oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
 
@@ -229,114 +245,108 @@ app.use('/ajax/completeauth', function(req, res) {
   oauth.getOAuthAccessToken(token, tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results)
   {
     //store accessToken and accessTokenSecret
-    var id = "";
-    try
-    {
-      id = req.cookies.boardid;
-    } catch (e)
-    {
-      error = true;
-    }
 
     var status = "success";
     var text = S("<span class='glyphicon glyphicon-ok'></span>Sign in successful!").escapeHTML().s;
-    if(error)
-    {
-      console.log(error);
-      status = "danger";
-      text = S("We couldn't sign you in to your account.").escapeHTML().s;
-      error = true;
-    } else { error = false; }
+    //FIXME error handling -> 404-ish page (no cookies!) - read previous commits
 
     var auth = { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret };
+    oauth_secrets[token] = auth;
+    //send token back, ready to get remainder of data
 
-    //TODO check for board duplicates (SHARE WITH PUBLIC AUTH)
-
-    //redirect
-    var boardjson = { };
-    flow.series([
-      function checkexist(cb) {
-        if (!error)
-        {
-          //check if the board id in question is accessable by this user
-          util.trello("/members/me/boards", auth, odata, function(er,json) {
-            if (er)
-            {
-              status = "danger";
-              text = S("We couldn't check if the board belongs to you.").escapeHTML().s;
-              error = true; cb();
-            } else
-            {
-              error = true;
-              json.forEach(function(board) {
-                if (board.shortLink == id) { error = false; boardjson = board; }
-              });
-              if (error)
-              {
-                status = "danger";
-                text = S("The board is inaccessible from your account.").escapeHTML().s;
-                error = true; cb();
-              } else { cb(); }
-            }
-          });
-        } else { cb(); }
-      },
-      function queue(cb) {
-        if (!error)
-        {
-          util.queueadd(false, id, boardjson, auth, odata, function() {
-            cb();
-          });
-        } else { cb(); }
-      },
-      function send(cb) {
-        res.cookie('text', text, { httpOnly: true, path: '/' });
-        res.cookie('status', status, { httpOnly: true, path: '/' });
-        res.writeHead(302, { 'Location': "/build/" + id });
-        res.send();
-        cb();
-      }
-    ]);
+    res.writeHead(302, { 'Location': "/build/start?token="+token });
+    res.send();
   });
 });
 
+app.get('/build/start', function(req, res){
+  query = url.parse(req.url, true).query;
+  token = query.token;
+  var auth = oauth_secrets[token];
+  util.trello('/members/me?fields=username,fullName,url', auth, odata, function(e, user) {
+    var data = { };
+    data.user = { };
+    data.user.name = user.fullName;
+    data.user.url = user.url;
+    data.user.username = user.username;
+    res.render('main', {
+      applicationkey: config.key,
+      appurl: config.domain,
+      isupdatable: false,
+      user: data.user,
+      partials: {
+        main: "buildstart",
+        fragment: "buildstart-1",
+        public: 'public',
+        private: 'private'
+      }
+    });
+  });
+});
 
-app.use('/ajax/build', function(req, res) {
-  //build a PUBLIC repo
-  util.prepurl(req.body.url, function(status, id) {
-    if (status.status != 2) { return; }//TODO error handling
+app.get('/build', function(req, res){
+  query = url.parse(req.url, true).query;
+  token = query.token;
+  var auth = oauth_secrets[token];
+  var data = { };
 
-    var stat = "success";
-    var text = S("<span class='glyphicon glyphicon-ok'></span>Build started!  You're good to go!").escapeHTML().s;
-    var boardjson = { };
+  //get user info
+  util.trello('/members/me?fields=username,fullName,url', auth, odata, function(e, user) {
+    //get board data
+    //FIXME error handling
+    data.user = { };
+    data.user.name = user.fullName;
+    data.user.url = user.url;
+    data.user.username = user.username;
+    util.trello('/members/me/boards?filter=open&fields=name,url,shortUrl,shortLink,idOrganization,initials', auth, odata, function(e, boards) {
+      data.boards = [ ];
+      async.eachSeries(boards, function(b, cb) {
+        var board = { };
+        board.id = b.id;
+        board.title = b.name;
+        board.titleurl = b.url;
+        board.shortid = b.shortLink;
 
-    //redirect
-    flow.series([
-      function getjson(cb) {
-        try
+        if (util.isnull(b.idOrganization))
         {
-          util.download("https://trello.com/b/" + id + ".json", function(data) {
-            //TODO error checking
-            boardjson = JSON.parse(data);
+          //user-owned, just get first member name and url
+          util.trello("/boards/" + b.id + "/members" + "?filter=owners", auth, odata, function(e, d) {
+            util.trello("/members/" + d[0].id , auth, odata, function(e, m) {
+              //TODO error catching
+              board.org = m.fullName;
+              board.orgurl = m.url;
+              data.boards.push(board);
+              cb();
+            });
+          });
+        }
+        else
+        {
+          //organization-owned, get org name and url
+          util.trello("/boards/" + b.id + "/organization", auth, odata, function(e, m) {
+            //TODO error catching
+            board.org = m.displayName;
+            board.orgurl = m.url;
+            data.boards.push(board);
             cb();
           });
-        } catch (e)
-        {
-          cb();
         }
-      },
-      function queue(cb) {
-        util.queueadd(true, id, boardjson, null, odata, function() {
-          cb();
+      }, function() {
+        res.render('main', {
+          applicationkey: config.key,
+          appurl: config.domain,
+          isupdatable: false,
+          boards: data.boards,
+          user: data.user,
+          partials: {
+            main: "buildstart",
+            fragment: "buildstart-2",
+            public: 'public',
+            private: 'private'
+          }
         });
-      },
-      function send(cb) {
-        res.cookie('text', text, { httpOnly: true, path: '/' });
-        res.cookie('status', stat, { httpOnly: true, path: '/' });
-        util.sendjson({ url: "/build/" + id }, res);
-        cb();
-      }
-    ]);
+      });
+    });
   });
 });
 

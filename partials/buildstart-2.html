@@ -1,0 +1,13 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h2 class="panel-title">Select a board</h2></div>
+  <div class="panel-body">
+    <div class="btn-group" data-toggle="buttons">
+      {{# boards}}
+      <label class="btn btn-default boardselect">
+        <input type="radio" name="board" id="{{id}}" autocomplete="off">{{ org }} / <b>{{ title }}</b>
+      </label><br>
+      {{/ boards}}
+    </div>
+  </div>
+</div>

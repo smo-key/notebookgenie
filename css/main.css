@@ -74,6 +74,24 @@ a:hover, a:active, a:focus, a:visited {
   text-decoration: none;
 }
 
+.btn-group .btn-default {
+  border: 0;
+  width: 100%;
+}
+.btn-group .btn-default:active,
+.btn-group .btn-default:focus,
+.btn-group .btn-default:visited,
+.btn-group .btn-default.active
+{
+  box-shadow: 0;
+  background-color: #337ab7;
+  color: #fff;
+}
+
+.btn-group>.btn:first-child:not(:last-child):not(.dropdown-toggle) {
+  border-radius: 0!important;
+}
+
 .panel {
   text-align: left;
   border-radius: 0px;
@@ -175,7 +193,7 @@ a:hover, a:active, a:focus, a:visited {
 
 button.btn,
 .progress {
-  border-radius: 0;
+  border-radius: 0!important;
 }
 #loading button.btn {
   font-size: 16px;

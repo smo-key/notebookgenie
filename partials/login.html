@@ -1,0 +1,20 @@
+<div class="panel panel-primary noshadow">
+  <div class="panel-body centered">
+    {{> private}} Waiting for Trello...
+  </div>
+</div>
+
+<script>
+$.ajax({
+  url: '/api/authorize',
+  type: 'POST',
+  data: { url: $('#inputurl').val() },
+  success: function(data) {
+    window.location.replace(data.url);
+  },
+  failure: function() {
+    console.log("Get application key failure.");
+    $('#buildprivate').removeClass("disabled");
+  }
+});
+</script>
