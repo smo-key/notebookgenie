@@ -1,0 +1,29 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    <h2 class="panel-title">2. Select a template</h2></div>
+  <div class="panel-body">
+    <div id="selecttemplate" class="btn-group" data-toggle="buttons">
+      {{# templates}}
+      <label class="btn btn-default">
+        <input type="radio" name="board" id="{{name}}" autocomplete="off"><b>{{ name }}</b>
+      </label><br>
+      {{/ templates}}
+    </div>
+  </div>
+</div>
+
+<script>
+  {{> querystring}}
+
+//  $('#selecttemplate label').click(function() {
+//    $.ajax({
+//      url: '/build/templates?token=' + QueryString.token,
+//      type: 'POST',
+//      data: { id: $('#selectboard label.active').prop('id') },
+//      success: function(data) {
+//        window.location.replace(data.url);
+//      }
+//    });
+//  });
+
+</script>

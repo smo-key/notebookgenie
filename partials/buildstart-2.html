@@ -1,13 +1,34 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    <h2 class="panel-title">Select a board</h2></div>
+    <h2 class="panel-title">1. Select a board</h2></div>
   <div class="panel-body">
-    <div class="btn-group" data-toggle="buttons">
+    <div id="selectboard" class="btn-group" data-toggle="buttons">
       {{# boards}}
-      <label class="btn btn-default boardselect">
+      <label class="btn btn-default">
         <input type="radio" name="board" id="{{id}}" autocomplete="off">{{ org }} / <b>{{ title }}</b>
       </label><br>
       {{/ boards}}
     </div>
   </div>
 </div>
+
+<script>
+  {{> querystring}}
+  var selected_board = false;
+
+
+  $('#selectboard label').click(function() {
+    if (!selected_board) {
+      $.ajax({
+        url: '/build/templates?token=' + QueryString.token,
+        type: 'POST',
+        success: function(data) {
+          $('#contentfragment').append(data.templates);
+          selected_board = true;
+        }
+      });
+    }
+  });
+
+
+</script>

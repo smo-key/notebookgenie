@@ -29,6 +29,7 @@ app.engine('html', cons.mustache);
 app.set('view engine', 'html');
 app.set("view options", {layout: false});
 app.set('views', __dirname + '/partials');
+mu.root = __dirname + "/partials";
 
 /* GET PROCESS INFORMATION */
 configname = process.argv[3] || "_private.yml";
@@ -125,7 +126,6 @@ io.on('connection', function (socket) {
 
   exports.emitter.on('updatestatus', function (board) {
     console.log('CLIENT - SEND FRAGMENT UPDATE ' + board.id);
-    mu.root = __dirname + "/partials";
 
     //compile main fragment (build-main)
     var smain = "";
@@ -143,7 +143,7 @@ io.on('connection', function (socket) {
     .on('end', function() {
       //build built section of main
       var sbuilt = "";
-        mu.compileAndRender("fragment-built.html", {
+      mu.compileAndRender("fragment-built.html", {
         applicationkey: config.key,
         appurl: config.domain,
         isupdatable: true,
@@ -278,13 +278,14 @@ app.get('/build/start', function(req, res){
         main: "buildstart",
         fragment: "buildstart-1",
         public: 'public',
-        private: 'private'
+        private: 'private',
+        querystring: 'querystring'
       }
     });
   });
 });
 
-app.get('/build', function(req, res){
+app.get('/build/getboards', function(req, res){
   query = url.parse(req.url, true).query;
   token = query.token;
   var auth = oauth_secrets[token];
@@ -332,22 +333,80 @@ app.get('/build', function(req, res){
           });
         }
       }, function() {
-        res.render('main', {
-          applicationkey: config.key,
-          appurl: config.domain,
-          isupdatable: false,
-          boards: data.boards,
-          user: data.user,
-          partials: {
-            main: "buildstart",
-            fragment: "buildstart-2",
-            public: 'public',
-            private: 'private'
-          }
-        });
+        var d = { };
+        d.auth = auth;
+        d.user = data;
+        oauth_secrets[token] = d;
+        res.writeHead(302, { 'Location': "/build/?token="+token });
+        res.send();
       });
     });
   });
+});
+
+app.get('/build/', function(req, res){
+  query = url.parse(req.url, true).query;
+  token = query.token;
+  var auth = oauth_secrets[token].auth;
+  var user = oauth_secrets[token].user;
+  res.render('main', {
+    applicationkey: config.key,
+    appurl: config.domain,
+    isupdatable: false,
+    boards: user.boards,
+    user: user.user,
+    wide: true,
+    partials: {
+      main: "buildstart",
+      fragment: "buildstart-2",
+      public: 'public',
+      private: 'private',
+      querystring: 'querystring'
+    }
+  });
+});
+
+app.post('/build/templates', function(req, res){
+  //get list of templates
+  var data = oauth_secrets[url.parse(req.url, true).query.token];
+  data.templates = [ ];
+  fs.readdir('templates', function(e, dirs) {
+    async.each(dirs, function(dir, cb) {
+      if (fs.statSync('templates/' + dir).isDirectory()) {
+        var hasyml = fs.existsSync('templates/' + dir + "/template.yml");
+        var hastex = fs.existsSync('templates/' + dir + "/template.tex");
+        var hasimg = false;  //TODO look for template image
+        if (hasyml && hastex)
+        {
+          //read YAML and parse
+          fs.readFile('templates/' + dir + "/template.yml", function(ymldata) {
+            yml = yaml.safeLoad(ymldata);
+            console.log(yml);
+            var template = { name: dir };
+            //TODO serve template images - for now text is fine
+            data.templates.push(template);
+            cb();
+          });
+        } else { cb(); }
+      } else { cb(); }
+    }, function() {
+      var s = "";
+      oauth_secrets[url.parse(req.url, true).query.token] = data;
+      mu.compileAndRender("buildstart-3.html", {
+        templates: data.templates
+      })
+      .on('data', function(data) {
+        s += data.toString();
+      })
+      .on('end', function() {
+        util.sendjson({ templates: s }, res);
+      });
+    });
+  });
+});
+
+app.post('/build/options', function(req, res) {
+  //get both template settings and overall board settings
 });
 
 app.get('/build/:id', function(req, res){
