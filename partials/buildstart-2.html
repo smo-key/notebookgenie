@@ -1,3 +1,8 @@
+<div class="alert alert-success" role="alert">
+  <h5><span class="octicon octicon-check"></span>
+Signed in as <b>{{user.name}}</b></h5>
+</div>
+
 <div class="panel panel-primary">
   <div class="panel-heading">
     <h2 class="panel-title">1. Select a board</h2></div>
@@ -13,15 +18,13 @@
 </div>
 
 <script>
-  {{> querystring}}
   var selected_board = false;
-
 
   $('#selectboard label').click(function() {
     if (!selected_board) {
       $.ajax({
         url: '/build/templates?token=' + QueryString.token,
-        type: 'POST',
+        type: 'GET',
         success: function(data) {
           $('#contentfragment').append(data.templates);
           selected_board = true;
@@ -29,6 +32,5 @@
       });
     }
   });
-
 
 </script>

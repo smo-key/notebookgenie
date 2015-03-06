@@ -1,0 +1,25 @@
+<div class="panel panel-primary" id="templateoptions">
+  <div class="panel-heading">
+    <h2 class="panel-title">3. Select template options</h2></div>
+  <div class="panel-body">
+    <div class="btn-group" data-toggle="buttons">
+      {{# template}}
+      {{^ istext}}
+      <div class="form-group has-feedback">
+        <label class="control-label" for="{{ id }}">{{ display }}</label>
+
+        {{# isblank }}
+        <input type="text" class="form-control" id="{{ id }}" placeholder="{{ default }}">
+  <!--   TODO: Implement default and isblank in blank and form -->
+        {{/ isblank }}
+
+        {{# isform }}
+          <textarea class="form-control" rows="3" placeholder="{{ default }}"></textarea>
+  <!--   TODO: Implement default and isblank in blank and form -->
+        {{/ isform }}
+      </div>
+      {{/ istext}}
+      {{/ template}}
+    </div>
+  </div>
+</div>

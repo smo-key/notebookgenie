@@ -18,13 +18,14 @@
 #  form   :  paragraph input, same as blank but bigger
 # options | array list of options to present the user - select and check only.
 #         |   Keys are displayed to the user, values are turned into LaTeX.
-# default | default value (optional, first value if select, false if check, blank if blank or form)
+# default | default value (optional - blank and form only
 # noblank | return error if blank - blank and form only (optional, default: false)
 #
+something: My grand text
 
 title: { display: "Title", type: "blank", default: "My Awesome Title", noblank: true }
 subtitle: { display: "Subtitle", type: "blank", default: "Subtitle", noblank: true }
-subsubtitle: { display: "Subsubtitle", type: "blank", default: "" }
+subsubtitle: { display: "Subsubtitle", type: "form", default: "some amount of text goes here" }
 
-testselect: { display: "Just a test!", type: "select", options: {"one": "latex one", "two": "latex two" } }
+testselect: { display: "Just a test!", type: "select", options: {"one and one": "latex one", "two or two": "latex two" } }
 testcheckbox: { display: "Test checkbox!", type: "check", options: {true: "That's right!", false: "LaTeX writes false..."} }

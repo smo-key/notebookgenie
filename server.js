@@ -224,7 +224,10 @@ app.use('/api/authorize', function(req, res) {
       //TODO client-side error dialog handling
       return;
     }
-    oauth_secrets[token] = tokenSecret;
+    oauth_secrets[token] = { };
+    oauth_secrets[token].auth = { };
+    oauth_secrets[token].auth.token = token;
+    oauth_secrets[token].auth.tokenSecret = tokenSecret;
     console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
     util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
   });
@@ -238,8 +241,7 @@ app.use('/api/completeauth', function(req, res) {
   query = url.parse(req.url, true).query;
 
   token = query.oauth_token;
-  tokenSecret = oauth_secrets[token];
-  delete oauth_secrets[token];
+  tokenSecret = oauth_secrets[token].auth.tokenSecret;
   verifier = query.oauth_verifier;
 
   oauth.getOAuthAccessToken(token, tokenSecret, verifier, function(error, accessToken, accessTokenSecret, results)
@@ -251,7 +253,7 @@ app.use('/api/completeauth', function(req, res) {
     //FIXME error handling -> 404-ish page (no cookies!) - read previous commits
 
     var auth = { token: token, tokenSecret: tokenSecret, accessToken: accessToken, accessTokenSecret: accessTokenSecret };
-    oauth_secrets[token] = auth;
+    oauth_secrets[token].auth = auth;
     //send token back, ready to get remainder of data
 
     res.writeHead(302, { 'Location': "/build/start?token="+token });
@@ -262,7 +264,7 @@ app.use('/api/completeauth', function(req, res) {
 app.get('/build/start', function(req, res){
   query = url.parse(req.url, true).query;
   token = query.token;
-  var auth = oauth_secrets[token];
+  var auth = oauth_secrets[token].auth;
   util.trello('/members/me?fields=username,fullName,url', auth, odata, function(e, user) {
     var data = { };
     data.user = { };
@@ -288,7 +290,7 @@ app.get('/build/start', function(req, res){
 app.get('/build/getboards', function(req, res){
   query = url.parse(req.url, true).query;
   token = query.token;
-  var auth = oauth_secrets[token];
+  var auth = oauth_secrets[token].auth;
   var data = { };
 
   //get user info
@@ -366,10 +368,11 @@ app.get('/build/', function(req, res){
   });
 });
 
-app.post('/build/templates', function(req, res){
+app.get('/build/templates', function(req, res){
   //get list of templates
   var data = oauth_secrets[url.parse(req.url, true).query.token];
   data.templates = [ ];
+  data.templateoptions = { };
   fs.readdir('templates', function(e, dirs) {
     async.each(dirs, function(dir, cb) {
       if (fs.statSync('templates/' + dir).isDirectory()) {
@@ -379,12 +382,63 @@ app.post('/build/templates', function(req, res){
         if (hasyml && hastex)
         {
           //read YAML and parse
-          fs.readFile('templates/' + dir + "/template.yml", function(ymldata) {
-            yml = yaml.safeLoad(ymldata);
-            console.log(yml);
-            var template = { name: dir };
+          fs.readFile('templates/' + dir + '/template.yml', function(er, ymldata) {
             //TODO serve template images - for now text is fine
+            var template = { name: dir };
+            var templateopt = [ ];
+            //get template options data
+            yml = yaml.safeLoad(ymldata);
+
+            for (var k in yml) {
+              if (yml.hasOwnProperty(k)) {
+                var v = { data: yml[k] };
+                v.istext = false;
+                v.isselect = false;
+                v.isblank = false;
+                v.ischeck = false;
+                v.isform = false;
+                v.id = k;
+
+                if (util.isnull(yml[k].type))
+                {
+                  //just text
+                  v.display = yml[k];
+                  v.istext = true;
+                }
+                else
+                {
+                  //not just text - find out what
+                  if (yml[k].type == 'select')
+                  {
+                    v.isselect = true;
+                    v.options = [ ];
+                    //parse the options
+                    for (var key in yml[k].options)
+                    {
+                      if (yml[k].options.hasOwnProperty(key))
+                      {
+                        v.options.push({ display: key });
+                      }
+                    }
+                    console.log(v.options);
+                  }
+                  if (yml[k].type == 'blank')
+                  { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                  if (yml[k].type == 'check')
+                  { v.ischeck = true; }
+                  if (yml[k].type == 'form')
+                  { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                  v.display = yml[k].display;
+                }
+
+                templateopt.push(v);
+              }
+            }
+
+            console.log(templateopt);
+
             data.templates.push(template);
+            data.templateoptions[template.name] = templateopt;
             cb();
           });
         } else { cb(); }
@@ -405,8 +459,20 @@ app.post('/build/templates', function(req, res){
   });
 });
 
-app.post('/build/options', function(req, res) {
+app.get('/build/options', function(req, res) {
   //get both template settings and overall board settings
+  var data = oauth_secrets[url.parse(req.url, true).query.token];
+  var template = data.templateoptions[url.parse(req.url, true).query.template];
+  var s = "";
+  mu.compileAndRender("buildstart-4.html", {
+    template: template
+  })
+  .on('data', function(data) {
+    s += data.toString();
+  })
+  .on('end', function() {
+    util.sendjson({ templateoptions: s }, res);
+  });
 });
 
 app.get('/build/:id', function(req, res){
