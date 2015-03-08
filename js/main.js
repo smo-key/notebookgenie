@@ -55,9 +55,6 @@ function updateContainer() {
 
 //activate tooltips
 $('[data-toggle="tooltip"]').tooltip();
-//make copyright text
-$("#copyright").html("Trello2LaTeX Copyright © " + new Date().getFullYear().toString() + " Arthur Pachachura<br><b>Licensed under MIT</b>");
-updateContainer();
 
 $(window).resize(function() {
   updateContainer();

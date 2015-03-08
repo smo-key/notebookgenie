@@ -10,7 +10,7 @@ Signed in as <b>{{user.name}}</b></h5>
     <div id="selectboard" class="btn-group" data-toggle="buttons">
       {{# boards}}
       <label class="btn btn-default">
-        <input type="radio" name="board" id="{{id}}" autocomplete="off">{{ org }} / <b>{{ title }}</b>
+        <input type="radio" name="board" id="{{ uid }}" autocomplete="off">{{ org }} / <b>{{ title }}</b>
       </label><br>
       {{/ boards}}
     </div>

@@ -35,6 +35,9 @@ exports.startbuild = function startbuild(board, u, odata) {
     var tmp = "tmp/" + board.id + "/";
     var templatedir = "templates/" + u._template + "/";
 
+    console.log(board);
+    console.log(board.uid);
+
     var max = raw.cards.length;
     var cur = 0;
 
@@ -127,96 +130,95 @@ exports.startbuild = function startbuild(board, u, odata) {
         //get lists and their cards, checklists, etc.
         b.lists = [ ];
         raw.lists.forEach(function(l, i) {
-          sync(function() {
-            util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
-              //get list
-              var list = { };
-              list.cards = [ ];
-              list.name = li.name;
-              list.pos = li.pos;
+          util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
+            //get list
+            var list = { };
+            list.cards = [ ];
+            list.name = li.name;
+            list.pos = li.pos;
 
-              li.cards.forEach(function(c, j) {
-                //TODO allow template to set the action limit
-                util.trello("/cards/" + c.id + "?actions=commentCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
-                  //get card
-                  var card = { };
-                  card.name = cr.name;
-                  card.desc = cr.desc;
-                  card.lastmodified = cr.dateLastActivity;
-                  card.due = util.converttime(cr.due); //TODO friendly time format
-                  card.pos = cr.pos;
-                  card.url = cr.url;
-                  console.log(cr.labels);
-                  cr.labels.forEach(function(label) {
-                    
-                  });
-                  card.attachments = [ ];
-                  card.attachmentcover = null;
+            li.cards.forEach(function(c, j) {
+              //TODO allow template to set the action limit
+              util.trello("/cards/" + c.id + "?actions=commentCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
+                //get card
+                var card = { };
+                card.name = cr.name;
+                card.desc = cr.desc;
+                card.lastmodified = cr.dateLastActivity;
+                card.due = util.converttime(cr.due); //TODO friendly time format
+                card.pos = cr.pos;
+                card.url = cr.url;
+                console.log(cr.labels);
+                cr.labels.forEach(function(label) {
 
-                  flow.series([
-                    function getmembers(cb) {
-                      console.log(i + " " + j + " GET MEMBERS");
-                      //get members
-                      card.members = [ ];
-                      if (!util.isnull(cr.members)) {
-                        cr.members.forEach(function(m, k) {
-                          card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                          if (card.members.length == cr.members.length) { cb(); }
-                        });
-                        if (cr.members.length == 0) { cb(); }
-                      } else { cb(); }
-                    },
-                    function getcomments(cb) {
-                      //get actions
-                      card.comments = [ ];
-                      cr.actions.forEach(function(act, k) {
-                        console.log(act);
-                        var action = { };
-                        action.text = act.data.text;
-                        action.date = util.converttime(act.date);
-                        action.author = { };
-                        action.author.id = act.memberCreator.id;
-                        action.author.avatar = "img/" + act.memberCreator.id + ".png";
-                        action.author.name = act.memberCreator.fullName;
-                        action.author.initials = act.memberCreator.initials;
-                        action.author.username = act.memberCreator.username;
-                        action.author.url = act.memberCreator.url;
-                        card.comments.push(action);
-                        if (cr.actions.length == card.comments.length) { cb(); }
+                });
+                card.attachments = [ ];
+                card.attachmentcover = null;
+
+                flow.series([
+                  function getmembers(cb) {
+                    console.log(i + " " + j + " GET MEMBERS");
+                    //get members
+                    card.members = [ ];
+                    if (!util.isnull(cr.members)) {
+                      cr.members.forEach(function(m, k) {
+                        card.members.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        if (card.members.length == cr.members.length) { cb(); }
                       });
-                      if (cr.actions.length == 0) { cb(); }
-                    },
-                    function getvotes(cb) {
-                      console.log(i + " " + j + " GET VOTES");
-                      //get votes
-                      if (!util.isnull(cr.membersVoted)) {
-                      card.votecount = cr.membersVoted.length;
-                        card.voters = [ ];
-                        cr.membersVoted.forEach(function(m, k) {
-                          card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
-                          if (card.voters.length == cr.membersVoted.length) { cb(); }
+                      if (cr.members.length == 0) { cb(); }
+                    } else { cb(); }
+                  },
+                  function getcomments(cb) {
+                    //get actions
+                    card.comments = [ ];
+                    cr.actions.forEach(function(act, k) {
+                      console.log(act);
+                      var action = { };
+                      action.text = act.data.text;
+                      action.date = util.converttime(act.date);
+                      action.author = { };
+                      action.author.id = act.memberCreator.id;
+                      action.author.avatar = "img/" + act.memberCreator.id + ".png";
+                      action.author.name = act.memberCreator.fullName;
+                      action.author.initials = act.memberCreator.initials;
+                      action.author.username = act.memberCreator.username;
+                      action.author.url = act.memberCreator.url;
+                      card.comments.push(action);
+                      if (cr.actions.length == card.comments.length) { cb(); }
+                    });
+                    if (cr.actions.length == 0) { cb(); }
+                  },
+                  function getvotes(cb) {
+                    console.log(i + " " + j + " GET VOTES");
+                    //get votes
+                    if (!util.isnull(cr.membersVoted)) {
+                    card.votecount = cr.membersVoted.length;
+                      card.voters = [ ];
+                      cr.membersVoted.forEach(function(m, k) {
+                        card.voters.push({ avatar: "img/" + m.id + ".png", name: m.fullName, initials: m.initials, username: m.username, url: m.url });
+                        if (card.voters.length == cr.membersVoted.length) { cb(); }
+                      });
+                      if (cr.membersVoted.length == 0) { cb(); }
+                    } else { cb(); }
+                  },
+                  function getchecklists(cb) {
+                    console.log(i + " " + j + " GET CHECKLISTS");
+                    //get checklists
+                    if (!util.isnull(cr.checklists)) {
+                      card.checklists = [ ];
+                      cr.checklists.forEach(function(c, k) {
+                        var items = [ ];
+                        c.checkItems.forEach(function(item, l) {
+                          if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
+                          var it = { name: item.name, pos: item.pos, checked: checked };
+                          items.push(it);
                         });
-                        if (cr.membersVoted.length == 0) { cb(); }
-                      } else { cb(); }
-                    },
-                    function getchecklists(cb) {
-                      console.log(i + " " + j + " GET CHECKLISTS");
-                      //get checklists
-                      if (!util.isnull(cr.checklists)) {
-                        card.checklists = [ ];
-                        cr.checklists.forEach(function(c, k) {
-                          var items = [ ];
-                          c.checkItems.forEach(function(item, l) {
-                            if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-                            var it = { name: item.name, pos: item.pos, checked: checked };
-                            items.push(it);
-                          });
-                          card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
-                          if (card.checklists.length == cr.checklists.length) { cb(); }
-                        });
-                        if (cr.checklists.length == 0) { cb(); }
-                      } else { cb(); }
-                    },
+                        card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+                        if (card.checklists.length == cr.checklists.length) { cb(); }
+                      });
+                      if (cr.checklists.length == 0) { cb(); }
+                    } else { cb(); }
+                  },
 //                    function getattachments(cb) {
 //                      console.log(i + " " + j + " GET ATTACHMENTS");
 //                      if (!util.isnull(cr.attachments)) {
@@ -257,30 +259,29 @@ exports.startbuild = function startbuild(board, u, odata) {
 //                        if (cr.attachments.length == 0) { cb(); }
 //                      } else { cb(); }
 //                    },
-                    function sort(cb) {
-                      //TODO sort cards by loc
-                      console.log(i + " " + j + " SORT!");
-                      if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
-                      if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
-                      cb();
+                  function sort(cb) {
+                    //TODO sort cards by loc
+                    console.log(i + " " + j + " SORT!");
+                    if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
+                    if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
+                    cb();
 
-                      //TODO sort checklists and checkitems by loc
-                    },
-                    function push(cb) {
-                      console.log(i + " " + j + " PUSH!");
-                      list.cards.push(card);
-                      board = util.updateprogress(JSON.stringify(board), ((++cur)/max*45) + 5);
-                      if (list.cards.length == li.cards.length) { b.lists.push(list); }
-                      if (b.lists.length == raw.lists.length) { listcallback(); }
-                      cb();
-                    }
-                  ]);
-                });
+                    //TODO sort checklists and checkitems by loc
+                  },
+                  function push(cb) {
+                    console.log(i + " " + j + " PUSH!");
+                    list.cards.push(card);
+                    board = util.updateprogress(JSON.stringify(board), ((++cur)/max*45) + 5);
+                    if (list.cards.length == li.cards.length) { b.lists.push(list); }
+                    if (b.lists.length == raw.lists.length) { listcallback(); }
+                    cb();
+                  }
+                ]);
               });
-
-              if (li.cards.length == 0) { b.lists.push(list); }
-              if ((b.lists.length == raw.lists.length) && (li.cards.length == 0)) { listcallback(); }
             });
+
+            if (li.cards.length == 0) { b.lists.push(list); }
+            if ((b.lists.length == raw.lists.length) && (li.cards.length == 0)) { listcallback(); }
           });
         });
       },

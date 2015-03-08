@@ -61,15 +61,15 @@
 
 <script>
 $('#buildnow').click(function(event) {
-  var url = '/build/now?token=' + QueryString.token;
   $('#buildnow').prop("disabled", true);
   $('#buildcustom').prop("disabled", true);
   console.log($('#selectboard label.active input').prop('id'));
   $.ajax({
-    url: url,
-    type: 'GET',
-    data: { customs: { }, board: $('#selectboard label.active input').prop('id') },
+    url: '/build/now',
+    type: 'POST',
+    data: { token: QueryString.token, customs: { }, board: $('#selectboard label.active input').prop('id') },
     success: function(data) {
+      console.log(data.url);
       window.location.replace(data.url);
     }
   });

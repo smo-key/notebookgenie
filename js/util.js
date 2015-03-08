@@ -144,7 +144,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(public, id, json, authdata, odata, callback)
+exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, callback)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -159,35 +159,39 @@ exports.queueadd = function queueadd(public, id, json, authdata, odata, callback
   if (public) { board.titleurl = json.shortUrl; } else
               { board.titleurl = null }
   board.template = "LASA Robotics"; //TODO un-hardset
-  board.email = null; //TODO add user field
-  //board.user = ""; //TODO get username that initiated the login
-  board.uid = json.id;
+  board.email = null;
+  board.uid = uid;
+
+  console.log(id);
+  console.log(uid);
 
   flow.series([
     function getdata(cb)
     {
-      if (isnull(json.idOrganization))
-      {
-        //user-owned, just get first member name and url
-        trello("/boards/" + board.uid + "/members" + "?filter=owners", authdata, odata, function(e, d) {
-          trello("/members/" + d[0].id , authdata, odata, function(e, data) {
+      trello("/boards/" + board.uid + "?fields=all", authdata, odata, function(e, brd) {
+        if (isnull(brd.idOrganization))
+        {
+          //user-owned, just get first member name and url
+          trello("/boards/" + board.uid + "/members" + "?filter=owners", authdata, odata, function(e, d) {
+            trello("/members/" + d[0].id , authdata, odata, function(e, data) {
+              //TODO error catching
+              board.org = data.fullName;
+              board.orgurl = data.url;
+              cb(); return;
+            });
+          });
+        }
+        else
+        {
+          //organization-owned, get org name and url
+          trello("/boards/" + board.uid + "/organization", authdata, odata, function(e, data) {
             //TODO error catching
-            board.org = data.fullName;
+            board.org = data.displayName;
             board.orgurl = data.url;
             cb(); return;
           });
-        });
-      }
-      else
-      {
-        //organization-owned, get org name and url
-        trello("/boards/" + board.uid + "/organization", authdata, odata, function(e, data) {
-          //TODO error catching
-          board.org = data.displayName;
-          board.orgurl = data.url;
-          cb(); return;
-        });
-      }
+        }
+      });
     },
     function pushboard(cb)
     {

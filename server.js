@@ -39,23 +39,6 @@ configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
 config.port = process.argv[2] || config.port || 8000; //server port
 
-/* CREATE MUSTACHE PARTIALS STACHE */
-/*var stache = { };
-var walker  = walk.walk('./partials', { followLinks: false });
-walker.on('file', function(root, stat, next) {
-  var key   = path.basename(stat.name, path.extname(stat.name));
-  var value = fs.readFileSync(root + '/' + stat.name).toString();
-  stache[key] = value;
-  next();
-});
-walker.on('end', function() {
-  console.log(stache);
-  app.engine('html', cons.mustache);
-  app.set('view engine', 'html');
-  app.set("view options", {layout: false});
-  app.set('views', __dirname + '/partials');
-});*/
-
 exports.stache = {
   building: null,
   queued: [ ],
@@ -205,6 +188,7 @@ app.get('/login', function (req, res) {
     appurl: config.domain,
     isupdatable: false,
     id: null,
+    year: new Date().getFullYear().toString(),
     partials: {
       main: 'login',
       private: 'private'
@@ -276,6 +260,7 @@ app.get('/build/start', function(req, res){
       appurl: config.domain,
       isupdatable: false,
       user: data.user,
+      year: new Date().getFullYear().toString(),
       partials: {
         main: "buildstart",
         fragment: "buildstart-1",
@@ -305,10 +290,10 @@ app.get('/build/getboards', function(req, res){
       data.boards = [ ];
       async.eachSeries(boards, function(b, cb) {
         var board = { };
-        board.id = b.id;
+        board.id = b.shortLink;
         board.title = b.name;
         board.titleurl = b.url;
-        board.shortid = b.shortLink;
+        board.uid = b.id;
 
         if (util.isnull(b.idOrganization))
         {
@@ -358,6 +343,7 @@ app.get('/build/', function(req, res){
     boards: user.boards,
     user: user.user,
     wide: true,
+    year: new Date().getFullYear().toString(),
     partials: {
       main: "buildstart",
       fragment: "buildstart-2",
@@ -488,10 +474,22 @@ app.get('/build/options', function(req, res) {
   });
 });
 
-app.get('/build/now', function(req, res) {
-  var token = url.parse(req.url, true).query.token;
+app.post('/build/now', function(req, res) {
+  var token = req.body.token;
+  var uid = req.body.board;
+  var customs = req.body.customs; //TODO send customs to parsing
   var data = oauth_secrets[token];
-  
+  data.user.boards.forEach(function(board) {
+    if (board.uid == uid)
+    {
+      console.log(board);
+      util.queueadd(false, board.id, uid, { }, data.auth, odata, function() {
+        var url = "/build/" + board.id;
+        console.log(url);
+        util.sendjson({ url: url }, res);
+      });
+    }
+  });
 });
 
 app.get('/build/:id', function(req, res){
@@ -529,6 +527,7 @@ app.get('/build/:id', function(req, res){
         alerttext: message,
         errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/login'>build yours</a>?",
         status: "info",
+        year: new Date().getFullYear().toString(),
         partials: {
           main: "build",
           helpbutton: 'helpbutton',
@@ -560,6 +559,7 @@ app.get('/build/:id', function(req, res){
         alerttext: message,
         errortext: etext,
         status: util.getstatusfromstate(state),
+        year: new Date().getFullYear().toString(),
         partials: {
           main: "build",
           helpbutton: 'helpbutton',
@@ -596,6 +596,7 @@ app.get('/', function (req, res) {
     building: exports.stache.building,
     built: exports.stache.built,
     queuecount: queuecount,
+    year: new Date().getFullYear().toString(),
     partials: {
       main: 'start',
       helpbutton: 'helpbutton',
