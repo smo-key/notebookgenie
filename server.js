@@ -388,58 +388,71 @@ app.get('/build/templates', function(req, res){
             var templateopt = [ ];
             //get template options data
             yml = yaml.safeLoad(ymldata);
-
-            for (var k in yml) {
-              if (yml.hasOwnProperty(k)) {
-                var v = { data: yml[k] };
-                v.istext = false;
-                v.isselect = false;
-                v.isblank = false;
-                v.ischeck = false;
-                v.isform = false;
-                v.id = k;
-
-                if (util.isnull(yml[k].type))
-                {
-                  //just text
-                  v.display = yml[k];
-                  v.istext = true;
-                }
-                else
-                {
-                  //not just text - find out what
-                  if (yml[k].type == 'select')
-                  {
-                    v.isselect = true;
-                    v.options = [ ];
-                    //parse the options
-                    for (var key in yml[k].options)
-                    {
-                      if (yml[k].options.hasOwnProperty(key))
-                      {
-                        v.options.push({ display: key });
-                      }
-                    }
-                    console.log(v.options);
-                  }
-                  if (yml[k].type == 'blank')
-                  { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
-                  if (yml[k].type == 'check')
-                  { v.ischeck = true; }
-                  if (yml[k].type == 'form')
-                  { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
-                  v.display = yml[k].display;
-                }
-
-                templateopt.push(v);
-              }
+            console.log(yml);
+            if (yml === undefined || yml == null || yml.length == 0)
+            {
+              
+              template.nooptions = true;
+              templateopt = { nooptions: true };
+              
+              data.templates.push(template);
+              data.templateoptions[template.name] = templateopt;
+              cb();
             }
+            else
+            {
+              for (var k in yml) {
+                if (yml.hasOwnProperty(k)) {
+                  var v = { data: yml[k] };
+                  v.istext = false;
+                  v.isselect = false;
+                  v.isblank = false;
+                  v.ischeck = false;
+                  v.isform = false;
+                  v.id = k;
 
-            console.log(templateopt);
+                  if (util.isnull(yml[k].type))
+                  {
+                    //just text
+                    v.display = yml[k];
+                    v.istext = true;
+                  }
+                  else
+                  {
+                    //not just text - find out what
+                    if (yml[k].type == 'select')
+                    {
+                      v.isselect = true;
+                      v.options = [ ];
+                      //parse the options
+                      for (var key in yml[k].options)
+                      {
+                        if (yml[k].options.hasOwnProperty(key))
+                        {
+                          v.options.push({ display: key });
+                        }
+                      }
+                      console.log(v.options);
+                    }
+                    if (yml[k].type == 'blank')
+                    { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                    if (yml[k].type == 'check')
+                    { v.ischeck = true; }
+                    if (yml[k].type == 'form')
+                    { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                    v.display = yml[k].display;
+                  }
 
-            data.templates.push(template);
-            data.templateoptions[template.name] = templateopt;
-            cb();
+                  templateopt.push(v);
+                }
+              }
+              
+              console.log(templateopt);
+
+              data.templates.push(template);
+              data.templateoptions[template.name] = templateopt;
+              cb();
+            }
           });
         } else { cb(); }
       } else { cb(); }
@@ -473,6 +486,12 @@ app.get('/build/options', function(req, res) {
   .on('end', function() {
     util.sendjson({ templateoptions: s }, res);
   });
+});
+
+app.get('/build/now', function(req, res) {
+  var token = url.parse(req.url, true).query.token;
+  var data = oauth_secrets[token];
+  
 });
 
 app.get('/build/:id', function(req, res){

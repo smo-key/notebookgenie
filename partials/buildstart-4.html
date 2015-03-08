@@ -2,24 +2,76 @@
   <div class="panel-heading">
     <h2 class="panel-title">3. Select template options</h2></div>
   <div class="panel-body">
-    <div class="btn-group" data-toggle="buttons">
-      {{# template}}
-      {{^ istext}}
+<!--    <div class="btn-group" data-toggle="buttons">-->
+    {{# template.nooptions }}
+    No customizable options for this template.  You're good to go!
+    {{/ template.nooptions }}
+    {{^ template.nooptions }}
+    {{# template}}
+    {{^ istext}}
+      {{# isblank }}
       <div class="form-group has-feedback">
         <label class="control-label" for="{{ id }}">{{ display }}</label>
-
-        {{# isblank }}
         <input type="text" class="form-control" id="{{ id }}" placeholder="{{ default }}">
-  <!--   TODO: Implement default and isblank in blank and form -->
-        {{/ isblank }}
-
-        {{# isform }}
-          <textarea class="form-control" rows="3" placeholder="{{ default }}"></textarea>
-  <!--   TODO: Implement default and isblank in blank and form -->
-        {{/ isform }}
+<!--   TODO: Implement default and isblank in blank and form -->
       </div>
-      {{/ istext}}
-      {{/ template}}
-    </div>
+      {{/ isblank }}
+
+      {{# isform }}
+      <div class="form-group has-feedback">
+        <label class="control-label" for="{{ id }}">{{ display }}</label>
+        <textarea class="form-control" id="{{ id }}" rows="3" placeholder="{{ default }}"></textarea>
+<!--   TODO: Implement default and isblank in blank and form -->
+      </div>
+      {{/ isform }}
+
+      {{# ischeck }}
+      <form>
+      <div class="checkbox">
+        <label><input type="checkbox" id="{{ id }}"><b> {{ display }}</b></label>
+      </div>
+      </form>
+      {{/ ischeck }}
+
+      {{# isselect }}
+      <div class="form-group has-feedback">
+        <label class="control-label" for="{{ id }}">{{ display }}</label>
+        <select class="form-control">
+          {{# options }}
+          <option>{{ display }}</option>
+          {{/ options }}
+        </select>
+      </div>
+      {{/ isselect }}
+    {{/ istext }}
+    {{/ template }}
+    {{/ template.nooptions }}
+<!--    </div>-->
   </div>
 </div>
+
+<button type="button" class="btn btn-success" id="buildnow">
+  &nbsp;<span class="octicon octicon-zap" aria-hidden="true"></span>
+  &nbsp;Build entire board <b>now</b>
+</button>
+<button type="button" class="btn btn-default" id="buildcustom">
+  <span class="octicon octicon-tools" aria-hidden="true"></span>
+  Customize
+</button>
+
+<script>
+$('#buildnow').click(function(event) {
+  var url = '/build/now?token=' + QueryString.token;
+  $('#buildnow').prop("disabled", true);
+  $('#buildcustom').prop("disabled", true);
+  console.log($('#selectboard label.active input').prop('id'));
+  $.ajax({
+    url: url,
+    type: 'GET',
+    data: { customs: { }, board: $('#selectboard label.active input').prop('id') },
+    success: function(data) {
+      window.location.replace(data.url);
+    }
+  });
+});
+</script>
