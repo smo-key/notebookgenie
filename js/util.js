@@ -154,10 +154,8 @@ exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, cal
   board.auth = authdata;
   board.public = public;
   board.org = "";
-  board.title = json.name;
+
   board.orgurl = null;
-  if (public) { board.titleurl = json.shortUrl; } else
-              { board.titleurl = null }
   board.template = "LASA Robotics"; //TODO un-hardset
   board.email = null;
   board.uid = uid;
@@ -169,6 +167,9 @@ exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, cal
     function getdata(cb)
     {
       trello("/boards/" + board.uid + "?fields=all", authdata, odata, function(e, brd) {
+        board.title = brd.name;
+        board.titleurl = brd.shortUrl;
+        board.public = (brd.prefs.permissionLevel == "public");
         if (isnull(brd.idOrganization))
         {
           //user-owned, just get first member name and url
@@ -195,6 +196,7 @@ exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, cal
     },
     function pushboard(cb)
     {
+      console.log(board);
       //check if nothing is building
       if (isnull(svr.stache.building))
       {
@@ -293,6 +295,7 @@ exports.handle404 = function handle404(res, config)
     errorcode: "404",
     errortext: "NOT FOUND",
     date: new Date().toJSON(),
+    year: new Date().getFullYear().toString(),
     partials: {
       main: 'crash',
       helpbutton: 'helpbutton'

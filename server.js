@@ -154,8 +154,7 @@ io.on('connection', function (socket) {
             sactive += data.toString();
           })
           .on('end', function() {
-            var d = { main: smain, built: sbuilt, status: util.getstatusfromstate(state) };
-            d[board.id] = sactive;
+            var d = { main: smain, built: sbuilt, active: sactive, id: board.id, status: util.getstatusfromstate(state) };
             socket.emit('fragment', d);
           });
         });
@@ -632,6 +631,7 @@ app.use(function(err, req, res, next) {
     errortext: "INTERNAL SERVER ERROR",
     stack: err.stack,
     date: new Date().toJSON(),
+    year: new Date().getFullYear().toString(),
     partials: {
       main: 'crash',
       helpbutton: 'helpbutton'

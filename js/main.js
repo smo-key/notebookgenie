@@ -8,21 +8,25 @@ if (isupdatable) {
     console.log(data);
     $('#replaceable-main').html(data.main);
     $('#replaceable-built').html(data.built);
-    if (data[id] != null)
+    $('[data-toggle="tooltip"]').tooltip();
+    if (id !== undefined)
     {
-      $('#replaceable-build').html(data[id]);
+      if (id != null)
+      {
+        if (data.id == id)
+        {
+          $('#replaceable-build').html(data.active);
+          $('#replaceable-panel').removeClass("panel-primary");
+          $('#replaceable-panel').removeClass("panel-success");
+          $('#replaceable-panel').removeClass("panel-info");
+          $('#replaceable-panel').removeClass("panel-warning");
+          $('#replaceable-panel').removeClass("panel-danger");
+          $('#replaceable-panel').addClass("panel-" + data.status);
+          $('.alert').alert('close');
+        }
+      }
     }
-    $('#replaceable-panel').removeClass("panel-primary");
-    $('#replaceable-panel').removeClass("panel-success");
-    $('#replaceable-panel').removeClass("panel-info");
-    $('#replaceable-panel').removeClass("panel-warning");
-    $('#replaceable-panel').removeClass("panel-danger");
-    $('#replaceable-panel').addClass("panel-" + data.status);
-
-    $('.alert').alert('close');
   });
-
-//  var lastupdate = null;
 
   function updateprogress(data) {
     if (isupdatable)
