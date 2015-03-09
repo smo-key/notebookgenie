@@ -30,13 +30,24 @@ app.set("view options", {layout: false});
 app.set('views', __dirname + '/partials');
 mu.root = __dirname + "/partials";
 
-/* GET PROCESS INFORMATION */
-configname = process.argv[3] || "_private.yml";
-
 /* READ SERVER CONFIG */
-configdata = fs.readFileSync(configname);
-config = yaml.safeLoad(configdata);
-config.port = process.env.PORT || config.port || 8000; //server port
+var config = { };
+if (fs.existsSync("_private.yml"))
+{
+  //we're running locally
+  configdata = fs.readFileSync("_private.yml");
+  config = yaml.safeLoad(configdata);
+  config.port = process.env.PORT || config.port || 8000; //server port
+}
+else
+{
+  //running on remote server
+  config.appname = process.env.appname || "Trello2LaTeX";
+  config.domain = process.env.domain;
+  config.key = process.env.key;
+  config.secret = process.env.secret;
+  config.port = process.env.PORT || 8000; //server port
+}
 
 exports.stache = {
   building: null,
