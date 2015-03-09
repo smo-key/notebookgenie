@@ -12,6 +12,7 @@
     "express": "^4.12.2",
     "js-yaml": "^3.2.7",
     "morgan": "^1.5.1",
+    "mu2": "^0.5.20",
     "mutex": "git+https://github.com/smo-key/MuTeX.git",
     "nimble": "0.0.2",
     "oauth": "^0.9.12",
