@@ -170,8 +170,8 @@ exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata,
     {
       trello("/boards/" + board.uid + "?fields=all", authdata, odata, function(e, brd) {
         board.title = brd.name;
-        board.titleurl = brd.shortUrl;
         board.public = (brd.prefs.permissionLevel == "public");
+        board.titleurl = board.public ? brd.shortUrl : null;
         if (isnull(brd.idOrganization))
         {
           //user-owned, just get first member name and url
