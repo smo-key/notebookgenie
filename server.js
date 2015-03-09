@@ -37,7 +37,7 @@ configname = process.argv[3] || "_private.yml";
 /* READ SERVER CONFIG */
 configdata = fs.readFileSync(configname);
 config = yaml.safeLoad(configdata);
-config.port = process.argv[2] || config.port || 8000; //server port
+config.port = process.env.PORT || config.port || 8000; //server port
 
 exports.stache = {
   building: null,
