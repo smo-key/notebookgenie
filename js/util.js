@@ -163,6 +163,8 @@ exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata,
   console.log(id);
   console.log(uid);
 
+  if (cardlist == false) { cardlist = [ ]; }
+
   flow.series([
     function getdata(cb)
     {

@@ -259,44 +259,69 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
       },
       function getlists(listcallback) {
         console.log("GET LISTS");
-        //get lists and their cards, checklists, etc.
         b.lists = [ ];
-        raw.lists.forEach(function(l, i) {
-          util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
-            //get list
-            var list = { };
-            list.cards = [ ];
-            list.name = li.name;
-            list.pos = li.pos;
+        if (!isselect)
+        {
+          //get lists and their cards, checklists, etc.
+          raw.lists.forEach(function(l, i) {
+            util.trello("/lists/" + l.id + "?cards=open", board.auth, odata, function(e, li) {
+              //get list
+              var list = { };
+              list.cards = [ ];
+              list.name = li.name;
+              list.pos = li.pos;
+              list.autoselect = false;
 
-            li.cards.forEach(function(c, j) {
+              li.cards.forEach(function(c, j) {
+                buildcard(c, board, odata, function(card) {
+                  flow.series([
+                    function sort(cb) {
+                      //sort cards by position
+                      console.log(i + " " + j + " SORT!");
+                      if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
+                      if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
+                      cb();
+
+                      //TODO sort checklists and checkitems by loc
+                    },
+                    function push(cb) {
+                      console.log(i + " " + j + " PUSH!");
+                      list.cards.push(card);
+                      board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+                      if (list.cards.length == li.cards.length) { b.lists.push(list); }
+                      if (b.lists.length == raw.lists.length) { listcallback(); }
+                      cb();
+                    }
+                  ]);
+                });
+              });
+
+              if (li.cards.length == 0) { b.lists.push(list); }
+              if ((b.lists.length == raw.lists.length) && (li.cards.length == 0)) { listcallback(); }
+            });
+          });
+        } else {
+          console.log("BEING SELECTIVE!");
+          //selecting cards now by cardlist
+          var list = { };
+          list.cards = [ ];
+          list.name = "Cards";
+          list.autoselect = true;
+          list.pos = 1;
+          async.eachSeries(cardlist, function(cid, cb) {
+            //FUTURE test if type is by URL or UID
+
+            util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
               buildcard(c, board, odata, function(card) {
-                flow.series([
-                  function sort(cb) {
-                    //sort cards by position
-                    console.log(i + " " + j + " SORT!");
-                    if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
-                    if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
-                    cb();
-
-                    //TODO sort checklists and checkitems by loc
-                  },
-                  function push(cb) {
-                    console.log(i + " " + j + " PUSH!");
-                    list.cards.push(card);
-                    board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-                    if (list.cards.length == li.cards.length) { b.lists.push(list); }
-                    if (b.lists.length == raw.lists.length) { listcallback(); }
-                    cb();
-                  }
-                ]);
+                list.cards.push(card);
+                cb();
               });
             });
-
-            if (li.cards.length == 0) { b.lists.push(list); }
-            if ((b.lists.length == raw.lists.length) && (li.cards.length == 0)) { listcallback(); }
+          }, function(done) {
+            b.lists.push(list);
+            listcallback();
           });
-        });
+        }
       },
       function sort(cb) {
         //TODO sort lists by loc
@@ -379,17 +404,23 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
         fs.exists(templatedir + "template.tex", function (exist) {
           if (exist) {
             var file = fs.createWriteStream(__dirname + "/../" + tmp + "template.tex", { flags: 'a+', end: false });
-            var stream = mu.compileAndRender("template.tex", view);
-            stream.pipe(file, { end: false });
-            file.on('error', function(err) {
-              throw err;
-            });
+            try
+            {
+              var stream = mu.compileAndRender("template.tex", view);
+              stream.pipe(file, { end: false });
+              file.on('error', function(err) {
+                throw err;
+              });
 
-            stream.on('end', function() {
-              console.log("-------------------------------------------END-----------------------------");
-              board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
-              cb();
-            });
+              stream.on('end', function() {
+                board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
+                cb();
+              });
+            } catch (e) {
+              //FIXME error handling to user
+              console.error(e.stack);
+              return;
+            }
           } else { console.log("NO EXIST!"); }
           //TODO give an error somewhere
         });
