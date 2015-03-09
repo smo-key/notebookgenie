@@ -314,12 +314,15 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           list.name = "Cards";
           list.autoselect = true;
           list.pos = 1;
+	  			var max = cardlist.length;
+	  			var cur = 0;
           async.eachSeries(cardlist, function(cid, cb) {
             //FUTURE test if type is by URL or UID
-
+.3
             util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
               buildcard(c, board, odata, function(card) {
                 list.cards.push(card);
+                board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
                 cb();
               });
             });
