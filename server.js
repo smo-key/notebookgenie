@@ -86,7 +86,7 @@ app.use(cookieparser());
 var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
               accessURL: "https://trello.com/1/OAuthGetAccessToken",
               authorizeURL: "https://trello.com/1/OAuthAuthorizeToken",
-              callbackURL: config.domain + ":" + config.port + "/api/completeauth",
+              callbackURL: config.domain + "/api/completeauth",
               key: config.key,
               secret: config.secret }
 //TODO fix this callback to the global setting... or figure out a workaround
@@ -228,6 +228,8 @@ app.use('/api/authorize', function(req, res) {
 });
 
 app.use('/api/completeauth', function(req, res) {
+
+  console.log("START AUTH");
 
   oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
 
