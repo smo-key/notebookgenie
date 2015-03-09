@@ -87,13 +87,18 @@ a:hover, a:active, a:focus, a:visited {
 .btn-group .btn-default:visited,
 .btn-group .btn-default.active
 {
-  box-shadow: 0;
+  box-shadow: none;
   background-color: #337ab7;
   color: #fff;
   text-align: left;
 }
 .btn-group>.btn:first-child:not(:last-child):not(.dropdown-toggle) {
   border-radius: 0!important;
+}
+
+.maxheight {
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .panel {

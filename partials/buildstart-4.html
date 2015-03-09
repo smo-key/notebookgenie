@@ -63,7 +63,6 @@
 $('#buildnow').click(function(event) {
   $('#buildnow').prop("disabled", true);
   $('#buildcustom').prop("disabled", true);
-  console.log($('#selectboard label.active input').prop('id'));
   $.ajax({
     url: '/build/now',
     type: 'POST',
@@ -73,5 +72,13 @@ $('#buildnow').click(function(event) {
       window.location.replace(data.url);
     }
   });
+});
+
+$('#buildcustom').click(function(event) {
+  $('#buildnow').prop("disabled", true);
+  $('#buildcustom').prop("disabled", true);
+  var customs = { };
+  var url = '/build/custom?token=' + QueryString.token + "&customs=" + JSON.stringify(customs) + "&board=" + $('#selectboard label.active input').prop('id');
+  window.location.replace(url);
 });
 </script>

@@ -481,13 +481,80 @@ app.post('/build/now', function(req, res) {
   data.user.boards.forEach(function(board) {
     if (board.uid == uid)
     {
-      console.log(board);
       util.queueadd(false, board.id, uid, { }, data.auth, odata, function() {
         var url = "/build/" + board.id;
         console.log(url);
         util.sendjson({ url: url }, res);
       });
     }
+  });
+});
+
+app.get('/build/custom', function(req, res) {
+  var token = url.parse(req.url, true).query.token;
+  var data = oauth_secrets[token];
+  var uid = url.parse(req.url, true).query.board;
+  data.uid = uid;
+  data.customs = JSON.parse(url.parse(req.url, true).query.customs); //TODO send customs to parsing
+  console.log(uid);
+  data.custom = true;
+  data.user.boards.forEach(function(board) {
+    if (board.uid == uid)
+    {
+      //get list of cards
+      console.log("GET LIST OF CARDS");
+      data.allcards = [ ];
+      util.trello("/boards/" + board.uid + "/lists?cards=all&card_fields=name,shortUrl,shortLink", data.auth, odata, function(e, lists) {
+        //TODO error catching
+        console.log(lists);
+        console.log(board.uid);
+        async.eachSeries(lists,
+        function(list, cb) {
+          async.eachSeries(list.cards, function(card, callb) {
+            var c = { uid: card.id, id: card.shortLink, name: card.name, url: card.shortUrl, list: list.name };
+            data.allcards.push(c);
+            console.log(data.allcards);
+            callb();
+          }, function() { cb(); });
+        },
+        function(done) {
+          data.boarddata = board;
+          oauth_secrets[token] = data;
+          console.log("Done!");
+          console.log(data.allcards);
+          res.render('main', {
+            applicationkey: config.key,
+            appurl: config.domain,
+            isupdatable: false,
+            cards: data.allcards,
+            wide: true,
+            year: new Date().getFullYear().toString(),
+            partials: {
+              main: "buildstart",
+              fragment: "buildstart-custom",
+              public: 'public',
+              private: 'private',
+              querystring: 'querystring'
+            }
+          });
+        });
+      });
+    }
+  });
+});
+
+app.post('/build/finish', function(req, res) {
+  //finish custom build setup
+  var token = req.body.token;
+  var cards = req.body.cards;
+  var iscardsuid = req.body.isuid;
+  var data = oauth_secrets[token];
+  //TODO send data.customs to parsing
+  var uid = data.uid;
+  util.queueadd(false, data.boarddata.id, data.boarddata.uid, { }, data.auth, odata, function() {
+    var url = "/build/" + data.boarddata.id;
+    console.log(url);
+    util.sendjson({ url: url }, res);
   });
 });
 

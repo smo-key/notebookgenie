@@ -55,11 +55,15 @@ function updateContainer() {
   {
     $("#loadingcontainer").removeClass("centered-top");
   }
+  var h = $cH;
+  if (h > 800) { h = 800; }
+  $('.maxheight').css("max-height", h - 200);
 }
 
 //activate tooltips
 $('[data-toggle="tooltip"]').tooltip();
 
+updateContainer();
 $(window).resize(function() {
   updateContainer();
 });

@@ -1,0 +1,51 @@
+<div class="panel panel-primary" id="cardselect">
+  <div class="panel-heading">
+    <h2 class="panel-title">Select cards</h2></div>
+  <div class="panel-body maxheight">
+    <div class="btn-group" data-toggle="buttons">
+      {{# cards }}
+      <label class="btn btn-default active">
+        <input type="checkbox" name="card" id="{{ uid }}" autocomplete="off">{{ list }} \ <b>{{ name }}</b>
+      </label><br>
+      {{/ cards }}
+    </div>
+  </div>
+</div>
+
+<button type="button" class="btn btn-success" id="buildnow">
+  <span class="octicon octicon-playback-play" aria-hidden="true"></span>
+  Build board <b>now</b>
+</button>
+<hr>
+<!--
+<button type="button" class="btn btn-default" id="importlist">
+  <span class="octicon octicon-cloud-upload" aria-hidden="true"></span>
+  Import card list (.txt)
+</button>
+<button type="button" class="btn btn-default" id="exportlist">
+  <span class="octicon octicon-cloud-download" aria-hidden="true"></span>
+  Export card list (.txt)
+</button>
+-->
+
+<script>
+$('#buildnow').click(function(event) {
+  $('#buildnow').prop("disabled", true);
+  var crds = $('#cardselect .btn.active input').get();
+  var cards = [ ];
+  crds.forEach(function(card) {
+    cards.push($(card).prop('id'));
+  });
+  console.log(cards);
+  $.ajax({
+    url: '/build/finish',
+    type: 'POST',
+    data: { token: QueryString.token, cards: cards, isuid: true },
+    success: function(data) {
+      console.log("DATA GET!");
+      console.log(data.url);
+      window.location.replace(data.url);
+    }
+  });
+});
+</script>
