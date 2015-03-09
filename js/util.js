@@ -144,7 +144,7 @@ exports.prepurl = function prepurl(url, cb)
   });
 };
 
-exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, callback)
+exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata, callback)
 {
   //TODO check if already present in building or queued (remove if in built)
 
@@ -203,7 +203,7 @@ exports.queueadd = function queueadd(public, id, uid, json, authdata, odata, cal
         board.progress = 0;
         svr.stache.building = board;
 
-        t2t.startbuild(JSON.stringify(board), JSON.stringify({ }), JSON.stringify(odata));
+        t2t.startbuild(JSON.stringify(board), JSON.stringify({ }), JSON.stringify(odata), JSON.stringify(cardlist));
 
         callback(); cb(); return;
       }
