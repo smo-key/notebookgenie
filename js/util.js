@@ -286,25 +286,6 @@ exports.updateprogress = function updateprogress(board, progress)
   return b;
 }
 
-exports.handle404 = function handle404(res, config)
-{
-  res.status(400);
-  res.render('main', {
-    applicationkey: config.key,
-    appurl: config.domain + ":" + config.port,
-    isupdatable: false,
-    id: null,
-    errorcode: "404",
-    errortext: "NOT FOUND",
-    date: new Date().toJSON(),
-    year: new Date().getFullYear().toString(),
-    partials: {
-      main: 'crash',
-      helpbutton: 'helpbutton'
-    }
-  });
-}
-
 exports.getdomain = function getdomain(url) {
   var parts = url.split("/");
   if (url.match("/:\/\//"))

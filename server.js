@@ -38,15 +38,19 @@ if (fs.existsSync("_private.yml"))
   configdata = fs.readFileSync("_private.yml");
   config = yaml.safeLoad(configdata);
   config.port = process.env.PORT || config.port || 8000; //server port
+  config.domainredirect = config.domain + ":" + config.port;
+  config.redirectsecure = false;
 }
 else
 {
   //running on remote server
   config.appname = process.env.appname || "Trello2LaTeX";
+  config.port = process.env.PORT || 8000; //server port
   config.domain = process.env.domain;
   config.key = process.env.key;
   config.secret = process.env.secret;
-  config.port = process.env.PORT || 8000; //server port
+  config.redirectsecure = true;
+  config.domainredirect = config.domain;
 }
 
 exports.stache = {
@@ -86,7 +90,7 @@ app.use(cookieparser());
 var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
               accessURL: "https://trello.com/1/OAuthGetAccessToken",
               authorizeURL: "https://trello.com/1/OAuthAuthorizeToken",
-              callbackURL: config.domain + "/api/completeauth",
+              callbackURL: config.domainredirect + "/api/completeauth",
               key: config.key,
               secret: config.secret }
 //TODO fix this callback to the global setting... or figure out a workaround
@@ -127,6 +131,7 @@ io.on('connection', function (socket) {
       appurl: config.domain,
       isupdatable: true,
       id: null,
+      redirectsecure: config.redirectsecure,
       building: exports.stache.building,
       built: exports.stache.built
     })
@@ -141,6 +146,7 @@ io.on('connection', function (socket) {
         appurl: config.domain,
         isupdatable: true,
         id: null,
+        redirectsecure: config.redirectsecure,
         building: exports.stache.building,
         built: exports.stache.built
       })
@@ -155,6 +161,7 @@ io.on('connection', function (socket) {
             applicationkey: config.key,
             appurl: config.domain,
             isupdatable: true,
+            redirectsecure: config.redirectsecure,
             id: board.id,
             board: board,
             errortext: "The board failed to build due to an error." +
@@ -197,6 +204,7 @@ app.get('/login', function (req, res) {
     appurl: config.domain,
     isupdatable: false,
     id: null,
+    redirectsecure: config.redirectsecure,
     year: new Date().getFullYear().toString(),
     partials: {
       main: 'login',
@@ -271,6 +279,7 @@ app.get('/build/start', function(req, res){
       appurl: config.domain,
       isupdatable: false,
       user: data.user,
+      redirectsecure: config.redirectsecure,
       year: new Date().getFullYear().toString(),
       partials: {
         main: "buildstart",
@@ -353,6 +362,7 @@ app.get('/build/', function(req, res){
     isupdatable: false,
     boards: user.boards,
     user: user.user,
+    redirectsecure: config.redirectsecure,
     wide: true,
     year: new Date().getFullYear().toString(),
     partials: {
@@ -540,6 +550,7 @@ app.get('/build/custom', function(req, res) {
             isupdatable: false,
             cards: data.allcards,
             wide: true,
+            redirectsecure: config.redirectsecure,
             year: new Date().getFullYear().toString(),
             partials: {
               main: "buildstart",
@@ -606,6 +617,7 @@ app.get('/build/:id', function(req, res){
         errortext: "There is no board in build queue at this address.<br>Would you like to <a href='/login'>build yours</a>?",
         status: "info",
         year: new Date().getFullYear().toString(),
+        redirectsecure: config.redirectsecure,
         partials: {
           main: "build",
           helpbutton: 'helpbutton',
@@ -637,6 +649,7 @@ app.get('/build/:id', function(req, res){
         alerttext: message,
         errortext: etext,
         status: util.getstatusfromstate(state),
+        redirectsecure: config.redirectsecure,
         year: new Date().getFullYear().toString(),
         partials: {
           main: "build",
@@ -675,6 +688,7 @@ app.get('/', function (req, res) {
     built: exports.stache.built,
     queuecount: queuecount,
     year: new Date().getFullYear().toString(),
+    redirectsecure: config.redirectsecure,
     partials: {
       main: 'start',
       helpbutton: 'helpbutton',
@@ -695,7 +709,22 @@ app.use('/js', express.static(__dirname + '/js'));
 
 // Handle 404
 app.use(function(req, res) {
-  util.handle404(res, config);
+  res.status(400);
+  res.render('main', {
+    applicationkey: config.key,
+    appurl: config.domain + ":" + config.port,
+    isupdatable: false,
+    id: null,
+    errorcode: "404",
+    errortext: "NOT FOUND",
+    date: new Date().toJSON(),
+    year: new Date().getFullYear().toString(),
+    redirectsecure: config.redirectsecure,
+    partials: {
+      main: 'crash',
+      helpbutton: 'helpbutton'
+    }
+  });
 });
 
 // Handle 500
@@ -709,6 +738,7 @@ app.use(function(err, req, res, next) {
     errorcode: "500",
     errortext: "INTERNAL SERVER ERROR",
     stack: err.stack,
+    redirectsecure: config.redirectsecure,
     date: new Date().toJSON(),
     year: new Date().getFullYear().toString(),
     partials: {

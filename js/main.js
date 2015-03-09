@@ -1,3 +1,10 @@
+if (location.protocol !== 'https:' && redirectsecure) {
+  // page is insecure
+  var oldURL = window.location.hostname + window.location.pathname;
+  var newURL = "https://" + oldURL;
+  window.location = newURL;
+}
+
 if (isupdatable) {
   socket.on('progress', function (data) {
     console.log(data);
