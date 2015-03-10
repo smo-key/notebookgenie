@@ -5,9 +5,22 @@
 %PART AND CHAPTER DETAILS
 %u = user data, raw = raw board JSON, b = processed JSON
 \renewcommand{\currentchapter}{<! b.title !>}
-\renewcommand{\today}{<!* b.desc !><! b.desc !><!/ b.desc !><!~ b.desc !>Created by Trello2LaTeX<!/ b.desc !>}
+\renewcommand{\today}{<!* b.desc !><! b.desc !><!/ b.desc !><!~ b.desc !>FTC Notebook 2014-2015<!/ b.desc !>}
 \renewcommand{\currentpart}{Revision <! b.lastmodified !>}
 \createtitle{./}
+
+% TABLE OF CONTENTS
+\setcounter{chapter}{1}
+\renewcommand{\thesection}{Table of Contents}
+\renewcommand\contentsname{}
+\setcounter{tocdepth}{4}
+\tableofcontents
+\renewcommand{\thesection}{}
+\cleardoublepage
+\phantomsection
+
+\blankpage
+\newpage
 
 % MEMBERs
 \section{Members}
@@ -15,13 +28,23 @@
 <! name !> (@<! username !>) - \url{<! url !>}\\
 <!/ b.members !>
 
-\section{Cards}
 <!* b.lists !>
-<!~ autoselect !>\subsection{<! name !>}<!/ autoselect !>
+<!~ autoselect !>\section{<! name !>}<!/ autoselect !>
 
 <!* cards !>
-\subsubsection{<! name !> - \url{<! url !>}}
-Description: <! desc !>\\
+\subsection{<! name !>}
+<!* desc !><! desc !>\\<!/ desc !>
+<!* attachments !>
+<!* isimage !>
+\begin{figure}
+  \color{darkgray}
+  \centering
+  \includegraphics[height=0.4\linewidth]{dl/<! name !>}
+  \caption[]{<! friendlyname !>}
+  \label{fig:<! name !>}
+\end{figure}
+<!/ isimage !>
+<!/ attachments !>
 <!* comments !>
 {\bf <! author.name !>} (<! date !>): <! text !>
 <!/ comments !>

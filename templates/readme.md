@@ -122,7 +122,7 @@ You can lso use long forms, checkboxes, and selects!  For those, see the user AP
 #Template API
 
 ###Board data
-The `b` (board) object contains a colelction of data retrieved from the board selected by the user.
+The `b` (board) object contains a collection of data retrieved from the board selected by the user.
 
 b | Example Result
 ----------|----------

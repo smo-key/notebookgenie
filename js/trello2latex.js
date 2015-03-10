@@ -26,7 +26,7 @@ function buildcard(c, board, odata, finalcallback) {
     //get card
     var card = { };
     card.name = cr.name;
-    card.desc = cr.desc;
+    card.desc = cr.desc.trim();
     card.lastmodified = cr.dateLastActivity;
     card.due = util.converttime(cr.due); //TODO friendly time format
     card.pos = cr.pos;
@@ -116,7 +116,8 @@ function buildcard(c, board, odata, finalcallback) {
                     if (e)
                     {
                       card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                              name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                                              name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                              friendlyname: attach.name });
                       //TODO make date user friendly
                       console.log(card.attachments);
 
@@ -131,7 +132,7 @@ function buildcard(c, board, odata, finalcallback) {
                 else
                 {
                   //not an image, don't download but add to list
-                  card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
+                  card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false, friendlyname: attach.name });
                   console.log(card.attachments);
                   if (card.attachments.length == n) { cb(); }
                 }
@@ -187,7 +188,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
   board = JSON.parse(board);
   //download JSON -> raw
   svr.emitter.emit('updatestatus', board);
-  util.trello("/boards/" + board.uid + "?lists=open&cards=visible&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
+  util.trello("/boards/" + board.uid + "?lists=open&cards=open&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
 
     //create JSON array to store board information for LaTeX -> b
     var b = { };
@@ -340,8 +341,8 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           list.name = "Cards";
           list.autoselect = true;
           list.pos = 1;
-	  			var max = cardlist.length;
-	  			var cur = 0;
+          var max = cardlist.length;
+          var cur = 0;
           async.eachSeries(cardlist, function(cid, cb) {
             //FUTURE test if type is by URL or UID
 .3
@@ -489,6 +490,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 //      },
       function archive(cb) {
         var zip = zipnode();
+        console.log("START ZIPPING!");
         zipdir(tmp, "", zip, function(zip) {
           var data = zip.generate({base64:false,compression:'DEFLATE'});
           fs.writeFile('tmp/' + board.id + '.zip', data, 'binary', function() {
@@ -505,10 +507,10 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
             cb();
             //clean
-            rmrf(tmp, function() {
-              board = util.updateprogress(JSON.stringify(board), 95);
-              cb();
-            });
+//            rmrf(tmp, function() {
+//              board = util.updateprogress(JSON.stringify(board), 95);
+//              cb();
+//            });
           });
         });
 //      });
