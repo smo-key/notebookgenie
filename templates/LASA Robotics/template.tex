@@ -3,30 +3,22 @@
 \begin{document}
 
 %PART AND CHAPTER DETAILS
-%u = user data, raw = raw board JSON, b = processed JSON
-\renewcommand{\currentchapter}{<! b.title !>}
-\renewcommand{\today}{<!* b.desc !><! b.desc !><!/ b.desc !><!~ b.desc !>FTC Notebook 2014-2015<!/ b.desc !>}
-\renewcommand{\currentpart}{Revision <! b.lastmodified !>}
+\renewcommand{\currentchapter}{FTC - 4290 - "High PHidelity"}
+\renewcommand{\today}{FTC Notebook 2014-2015}
+\renewcommand{\currentpart}{Revision 3/10/2015 11:31}
 \createtitle{./}
 
 % TABLE OF CONTENTS
 \setcounter{chapter}{1}
+\setcounter{page}{1}
 \renewcommand{\thesection}{Table of Contents}
 \renewcommand\contentsname{}
 \setcounter{tocdepth}{4}
 \tableofcontents
 \renewcommand{\thesection}{}
-\cleardoublepage
-\phantomsection
+\clearpage
 
-\blankpage
-\newpage
-
-% MEMBERs
-\section{Members}
-<!* b.members !>
-<! name !> (@<! username !>) - \url{<! url !>}\\
-<!/ b.members !>
+\input{introdoc}
 
 <!* b.lists !>
 <!~ autoselect !>\section{<! name !>}<!/ autoselect !>
