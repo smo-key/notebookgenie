@@ -8,6 +8,7 @@ var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var execSync = require('child_process').execSync;
 var mu = require('mutex'); //TODO change name to mu_tex
+var zipnode = new require('node-zip');
 
 var multiplicand = 90;
 
@@ -19,6 +20,8 @@ Array.prototype.sortByProp = function(p){
 
 function buildcard(c, board, odata, finalcallback) {
   //TODO allow template to set the action limit
+  var tmp = "tmp/" + board.id + "/";
+  
   util.trello("/cards/" + c.id + "?actions=commentCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
     //get card
     var card = { };
@@ -98,45 +101,45 @@ function buildcard(c, board, odata, finalcallback) {
             if (cr.checklists.length == 0) { cb(); }
           } else { cb(); }
         },
-  //                    function getattachments(cb) {
-  //                      if (!util.isnull(cr.attachments)) {
-  //                        var n = cr.attachments.length;
-  //                        //download card attachments to /tmp/dl
-  //                        cr.attachments.forEach(function(attach, k) {
-  //                          if (attach.url.match(/\.[0-9a-zA-Z]+$/))
-  //                          {
-  //                            //check if includable image
-  //                            if (attach.url.match(/\.(png|jpe?g|eps)+/i))
-  //                            {
-  //                              var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
-  //                              util.downloadfile(attach.url, ur, function(e) {
-  //                                if (e)
-  //                                {
-  //                                  card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-  //                                                          name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
-  //                                  //TODO make date user friendly
-  //                                  console.log(card.attachments);
-  //
-  //                                  //get card cover using cr.idAttachmentCover
-  //                                  if (attach.id == cr.idAttachmentCover)
-  //                                  { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
-  //                                  if (card.attachments.length == n) { cb(); }
-  //                                }
-  //                                else { n--; if (card.attachments.length == n) { cb(); } }
-  //                              });
-  //                            }
-  //                            else
-  //                            {
-  //                              //not an image, don't download but add to list
-  //                              card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
-  //                              console.log(card.attachments);
-  //                              if (card.attachments.length == n) { cb(); }
-  //                            }
-  //                          } else { n--; if (card.attachments.length == n) { cb(); } }
-  //                        });
-  //                        if (cr.attachments.length == 0) { cb(); }
-  //                      } else { cb(); }
-  //                    },
+        function getattachments(cb) {
+          if (!util.isnull(cr.attachments)) {
+            var n = cr.attachments.length;
+            //download card attachments to /tmp/dl
+            cr.attachments.forEach(function(attach, k) {
+              if (attach.url.match(/\.[0-9a-zA-Z]+$/))
+              {
+                //check if includable image
+                if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+                {
+                  var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+                  util.downloadfile(attach.url, ur, function(e) {
+                    if (e)
+                    {
+                      card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                              name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true });
+                      //TODO make date user friendly
+                      console.log(card.attachments);
+
+                      //get card cover using cr.idAttachmentCover
+                      if (attach.id == cr.idAttachmentCover)
+                      { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
+                      if (card.attachments.length == n) { cb(); }
+                    }
+                    else { n--; if (card.attachments.length == n) { cb(); } }
+                  });
+                }
+                else
+                {
+                  //not an image, don't download but add to list
+                  card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false });
+                  console.log(card.attachments);
+                  if (card.attachments.length == n) { cb(); }
+                }
+              } else { n--; if (card.attachments.length == n) { cb(); } }
+            });
+            if (cr.attachments.length == 0) { cb(); }
+          } else { cb(); }
+        },
         function done(cb) { finalcallback(card); cb(); }
       ]);
     } catch (e)
@@ -148,6 +151,29 @@ function buildcard(c, board, odata, finalcallback) {
 }
 
 
+function zipdir(dir, base, zip, cb) {
+  fs.readdir(dir, function(err, files) {
+    async.eachSeries(files, function(file, callback) {
+      fs.readFile(dir + file, function(e, data) {
+        fs.stat(dir + file, function(er, stats) {
+          if (stats.isFile()) {
+            zip.file(base + file, data);
+            callback();
+          }
+          if (stats.isDirectory())
+          {
+            zipdir(dir + file + '/', base + file + '/', zip, function(z) {
+              zip = z;
+              callback();
+            });
+          }
+        });
+      });
+    }, function(done) {
+      cb(zip);
+    });
+  });
+}
 
 
 exports.startbuild = function startbuild(board, u, odata, cardlist) {
@@ -373,7 +399,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           var i = 0;
           var max = files.length;
           files.forEach(function(file) {
-            if (!file.match(/(template.yml|template.tex|.pdf|.aux|.synctex.gz|.out|.log)$/)) {
+            if (!file.match(/(.yml|template.tex|.pdf|.aux|.synctex.gz|.out|.log|dl|img)$/)) {
               //file is not the YML file or some annoying LaTeX junk -> copy
               console.log("----- COPY: " + file);
               fs.readFile(templatedir + file, function(e, data) {
@@ -461,21 +487,31 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 ////          }
 ////        });
 //      },
+      function archive(cb) {
+        var zip = zipnode();
+        zipdir(tmp, "", zip, function(zip) {
+          var data = zip.generate({base64:false,compression:'DEFLATE'});
+          fs.writeFile('tmp/' + board.id + '.zip', data, 'binary', function() {
+            //TODO error catching
+            cb();
+          });
+        });
+      },
       function publish(cb) {
         //FIXME clean
         //FIXME copy PDF, LaTeX, and log
-//        fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
-          fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
-            fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+//      fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
+        fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
+          fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+            cb();
+            //clean
+            rmrf(tmp, function() {
+              board = util.updateprogress(JSON.stringify(board), 95);
               cb();
-              //FIXME temporary - not removing files
-//            rmrf(tmp, function() {
-//              board = util.updateprogress(JSON.stringify(board), 95);
-//              cb();
-//            });
             });
           });
-//        });
+        });
+//      });
       },
       function finish(cb) {
         //FIXME flush progress

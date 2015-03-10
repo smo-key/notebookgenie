@@ -503,6 +503,7 @@ app.post('/build/now', function(req, res) {
   data.user.boards.forEach(function(board) {
     if (board.uid == uid)
     {
+      delete oauth_secrets[token];
       util.queueadd(false, board.id, uid, false, data.auth, odata, function() {
         var url = "/build/" + board.id;
         console.log(url);
@@ -572,6 +573,7 @@ app.post('/build/finish', function(req, res) {
   var cards = req.body.cards;
   var iscardsuid = req.body.isuid; //FUTURE if cards are NOT in UID format, they are in URL format, parse here
   var data = oauth_secrets[token];
+  delete oauth_secrets[token];
   //TODO send data.customs to parsing
   var uid = data.uid;
   util.queueadd(false, data.boarddata.id, data.boarddata.uid, cards, data.auth, odata, function() {
