@@ -507,10 +507,10 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
             cb();
             //clean
-//            rmrf(tmp, function() {
-//              board = util.updateprogress(JSON.stringify(board), 95);
-//              cb();
-//            });
+            rmrf(tmp, function() {
+              board = util.updateprogress(JSON.stringify(board), 95);
+              cb();
+            });
           });
         });
 //      });
