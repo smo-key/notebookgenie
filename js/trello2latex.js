@@ -7,8 +7,8 @@ var async = require('async');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var execSync = require('child_process').execSync;
-var mu = require('mutex'); //TODO change name to mu_tex
-var zipnode = new require('node-zip');
+var mu = require('mutex'); //NOTE change name to mu_tex
+var yazl = new require('yazl');
 
 var multiplicand = 90;
 
@@ -152,26 +152,24 @@ function buildcard(c, board, odata, finalcallback) {
 }
 
 
-function zipdir(dir, base, zip, cb) {
+function zipdir(dir, base, zipfile, cb) {
   fs.readdir(dir, function(err, files) {
     async.eachSeries(files, function(file, callback) {
-      fs.readFile(dir + file, function(e, data) {
-        fs.stat(dir + file, function(er, stats) {
-          if (stats.isFile()) {
-            zip.file(base + file, data);
+      fs.stat(dir + file, function(er, stats) {
+        if (stats.isFile()) {
+          zipfile.addFile(dir + file, base + file);
+          callback();
+        }
+        if (stats.isDirectory())
+        {
+          zipdir(dir + file + '/', base + file + '/', zipfile, function(z) {
+            zipfile = z;
             callback();
-          }
-          if (stats.isDirectory())
-          {
-            zipdir(dir + file + '/', base + file + '/', zip, function(z) {
-              zip = z;
-              callback();
-            });
-          }
-        });
+          });
+        }
       });
     }, function(done) {
-      cb(zip);
+      cb(zipfile);
     });
   });
 }
@@ -489,13 +487,13 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 ////        });
 //      },
       function archive(cb) {
-        var zip = zipnode();
-        console.log("START ZIPPING!");
-        zipdir(tmp, "", zip, function(zip) {
-          var data = zip.generate({base64:false,compression:'DEFLATE'});
-          fs.writeFile('tmp/' + board.id + '.zip', data, 'binary', function(){
-            //TODO error catching
-            cb();
+        console.log("ZIPPING!");
+        zipdir(tmp, "", new yazl.ZipFile(), function(zip) {
+          zip.end(function() {
+            zip.outputStream.pipe(fs.createWriteStream("tmp/" + board.id + ".zip")).on("close", function(done) {
+              console.log("DONE WRITING ZIP!");
+              cb();
+            });
           });
         });
       },
@@ -505,7 +503,6 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 //      fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
         fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
           fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
-            cb();
             //clean
             rmrf(tmp, function() {
               board = util.updateprogress(JSON.stringify(board), 95);
@@ -516,8 +513,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 //      });
       },
       function finish(cb) {
-        //FIXME flush progress
-        //FIXME continue with queue
+        //FIXME IMPORTANT continue with queue
 
         board = util.updateprogress(JSON.stringify(board), 100);
         cb();
