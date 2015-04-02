@@ -93,7 +93,7 @@ var odata = { requestURL: "https://trello.com/1/OAuthGetRequestToken",
               callbackURL: config.domainredirect + "/api/completeauth",
               key: config.key,
               secret: config.secret }
-//TODO fix this callback to the global setting... or figure out a workaround
+//TODO fix this callback to be a global setting... or figure out a workaround
 
 //need to store token: tokenSecret pairs; in a real application, this should be more permanent (redis would be a good choice)
 oauth_secrets = {};
@@ -408,6 +408,7 @@ app.get('/build/templates', function(req, res){
             }
             else
             {
+              template.nooptions = false;
               for (var k in yml) {
                 if (yml.hasOwnProperty(k)) {
                   var v = { data: yml[k] };
@@ -454,7 +455,10 @@ app.get('/build/templates', function(req, res){
                 }
               }
               
+              //FIXME IMPORTANT add sending template options to the render function
+              console.log("ADDING TEMPLATE OPTIONS!");
               console.log(templateopt);
+              console.log("JUST ADDED TEMPLATE OPTIONS!");
 
               data.templates.push(template);
               data.templateoptions[template.name] = templateopt;

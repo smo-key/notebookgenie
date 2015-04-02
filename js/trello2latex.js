@@ -493,7 +493,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
         console.log("START ZIPPING!");
         zipdir(tmp, "", zip, function(zip) {
           var data = zip.generate({base64:false,compression:'DEFLATE'});
-          fs.writeFile('tmp/' + board.id + '.zip', data, 'binary', function() {
+          fs.writeFile('tmp/' + board.id + '.zip', data, 'binary', function(){
             //TODO error catching
             cb();
           });
