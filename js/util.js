@@ -172,14 +172,16 @@ exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata,
         board.title = brd.name;
         board.public = (brd.prefs.permissionLevel == "public");
         board.titleurl = board.public ? brd.shortUrl : null;
+
         if (isnull(brd.idOrganization))
         {
           //user-owned, just get first member name and url
           trello("/boards/" + board.uid + "/members" + "?filter=owners", authdata, odata, function(e, d) {
             trello("/members/" + d[0].id , authdata, odata, function(e, data) {
               //TODO error catching
-              board.org = data.fullName;
-              board.orgurl = data.url;
+              board.orgpublic = board.public;
+              board.org = board.orgpublic ? data.fullName : "A Trello User";
+              board.orgurl = board.orgpublic ? data.url : null;
               cb(); return;
             });
           });
@@ -189,8 +191,9 @@ exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata,
           //organization-owned, get org name and url
           trello("/boards/" + board.uid + "/organization", authdata, odata, function(e, data) {
             //TODO error catching
+            board.orgpublic = (data.prefs.permissionLevel == "public");
             board.org = data.displayName;
-            board.orgurl = data.url;
+            board.orgurl = board.orgpublic ? data.url : null;
             cb(); return;
           });
         }

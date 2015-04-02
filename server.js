@@ -306,7 +306,7 @@ app.get('/build/getboards', function(req, res){
     data.user.name = user.fullName;
     data.user.url = user.url;
     data.user.username = user.username;
-    util.trello('/members/me/boards?filter=open&fields=name,url,shortUrl,shortLink,idOrganization,initials', auth, odata, function(e, boards) {
+    util.trello('/members/me/boards?filter=open&fields=name,url,shortUrl,shortLink,idOrganization,initials,prefs', auth, odata, function(e, boards) {
       data.boards = [ ];
       async.eachSeries(boards, function(b, cb) {
         var board = { };
@@ -314,6 +314,7 @@ app.get('/build/getboards', function(req, res){
         board.title = b.name;
         board.titleurl = b.url;
         board.uid = b.id;
+        board.public = (b.prefs.permissionLevel == "public");
 
         if (util.isnull(b.idOrganization))
         {
