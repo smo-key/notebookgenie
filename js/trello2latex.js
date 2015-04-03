@@ -185,7 +185,7 @@ function compilepass(pass, passes, tmp, cb) {
 
   pdflatex.on('close', function (code) {
     console.log('LATEX COMPILE PASS ' + pass + ' COMPLETE - exited with code ' + code);
-    if (code != 0) {
+    if (code > 1) {
       cb(code, true); //return as an error
       return;
     }
