@@ -175,6 +175,30 @@ function zipdir(dir, base, zipfile, cb) {
 }
 
 
+function compilepass(pass, passes, tmp, cb) {
+  console.log("COMPILE LATEX PASS " + pass + "! ---------");
+  var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
+
+  pdflatex.stdout.on('data', function (data) {
+    console.log(data.toString());
+  });
+
+  pdflatex.on('close', function (code) {
+    console.log('LATEX COMPILE PASS ' + pass + ' COMPLETE - exited with code ' + code);
+    if (code != 0) {
+      cb(code, true); //return as an error
+      return;
+    }
+    else
+    {
+      pass++;
+      if (pass > passes) { cb(code, false); return; } //return ok
+      else { compilepass(pass, passes, tmp, cb); return; } //recursivize
+    }
+  });
+}
+
+
 exports.startbuild = function startbuild(board, u, odata, cardlist) {
   //create user preferences array
   //FUTURE add YAML template data
@@ -461,17 +485,8 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 
       },
       function compilelatex(cb) {
-        //FIXME compile LaTeX
-        console.log("-----COMPILE LATEX!-----");
-        var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
-        console.log(pdflatex);
-
-        pdflatex.stdout.on('data', function (data) {
-          console.log(data.toString());
-        });
-
-        pdflatex.on('close', function (code) {
-          console.log('child process exited with code ' + code);
+        //compile LaTeX
+        compilepass(1, 3, tmp, function(code, err) {
           board = util.updateprogress(JSON.stringify(board), 90);
           cb();
         });
@@ -493,10 +508,11 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
         fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
           fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
             fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
-              //clean
-              rmrf(tmp, function() {
-                cb();
-              });
+              //FIXME clean
+//              rmrf(tmp, function() {
+//                cb();
+//              });
+              cb();
             });
           });
         });
