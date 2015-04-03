@@ -10,7 +10,7 @@ var execSync = require('child_process').execSync;
 var mu = require('mutex'); //NOTE change name to mu_tex
 var yazl = new require('yazl');
 
-var multiplicand = 90;
+var multiplicand = 75; //start creating pdf at five plus this
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){
@@ -460,57 +460,46 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
         });
 
       },
-//      function compilelatex(cb) {
-//        //FIXME compile LaTeX
-//        console.log("----------------------COMPILE LATEX!---------------------------------------------------------------------------------------------------------------------------");
-//        pdflatex = exec('pdflatex -synctex=1 interaction=nonstopmode "template".tex', { cwd: tmp });
-//        console.log(pdflatex);
-//
-////        , function(error, stdout, stderr) {
-////          stdout.on('data', function (data) {
-////            console.log(data.toString());
-////          });
-////          stderr.on('data', function (data) {
-////            console.error(data.toString());
-////            //TODO log this somewhere
-////            //FIXME add logging
-////          });
-////        .on('exit', function (code, signal) {
-////          console.log("Process exited with " + code);
-////          if (code != 0) {
-////            //TODO throw some error
-////          }
-////          else {
-////            board = util.updateprogress(JSON.stringify(board), 90);
-////            cb();
-////          }
-////        });
-//      },
+      function compilelatex(cb) {
+        //FIXME compile LaTeX
+        console.log("-----COMPILE LATEX!-----");
+        var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
+        console.log(pdflatex);
+
+        pdflatex.stdout.on('data', function (data) {
+          console.log(data.toString());
+        });
+
+        pdflatex.on('close', function (code) {
+          console.log('child process exited with code ' + code);
+          board = util.updateprogress(JSON.stringify(board), 90);
+          cb();
+        });
+      },
       function archive(cb) {
         console.log("ZIPPING!");
         zipdir(tmp, "", new yazl.ZipFile(), function(zip) {
           zip.end(function() {
             zip.outputStream.pipe(fs.createWriteStream("tmp/" + board.id + ".zip")).on("close", function(done) {
               console.log("DONE WRITING ZIP!");
+              board = util.updateprogress(JSON.stringify(board), 99);
               cb();
             });
           });
         });
       },
       function publish(cb) {
-        //FIXME clean
-        //FIXME copy PDF, LaTeX, and log
-//      fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
-        fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
-          fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
-            //clean
-            rmrf(tmp, function() {
-              board = util.updateprogress(JSON.stringify(board), 95);
-              cb();
+        //copy PDF, LaTeX, and log
+        fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
+          fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
+            fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+              //clean
+              rmrf(tmp, function() {
+                cb();
+              });
             });
           });
         });
-//      });
       },
       function finish(cb) {
         //FIXME IMPORTANT continue with queue
