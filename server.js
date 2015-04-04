@@ -758,4 +758,5 @@ app.use(function(err, req, res, next) {
 //serve HTTP
 server.listen(config.port);
 
+console.log("Server running from " + __dirname)
 console.log("Server ready on " + config.domain + ":" + config.port);
