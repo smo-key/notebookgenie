@@ -32,6 +32,8 @@ mu.root = __dirname + "/partials";
 
 /* READ SERVER CONFIG */
 var config = { };
+process.chdir(__dirname);
+
 if (fs.existsSync("_private.yml"))
 {
   //we're running locally
