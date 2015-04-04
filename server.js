@@ -35,15 +35,18 @@ var config = { };
 if (fs.existsSync("_private.yml"))
 {
   //we're running locally
+  console.log("Running locally!");
   configdata = fs.readFileSync("_private.yml");
   config = yaml.safeLoad(configdata);
   config.port = process.env.PORT || config.port || 8000; //server port
   config.domainredirect = config.domain + ":" + config.port;
   config.redirectsecure = false;
+  console.log(config);
 }
 else
 {
   //running on remote server
+  console.log("Running remotely!");
   config.appname = process.env.appname || "Trello2LaTeX";
   config.port = process.env.PORT || 8000; //server port
   config.domain = process.env.domain;
@@ -51,6 +54,7 @@ else
   config.secret = process.env.secret;
   config.redirectsecure = true;
   config.domainredirect = config.domain;
+  console.log(config);
 }
 
 exports.stache = {
