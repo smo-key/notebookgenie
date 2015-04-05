@@ -765,4 +765,4 @@ app.use(function(err, req, res, next) {
 server.listen(config.port);
 
 console.log("Server running from " + __dirname)
-console.log("Server ready on " + config.domain + ":" + config.port);
+console.log("Server ready on " + config.domain + " routed to port " + config.port);
