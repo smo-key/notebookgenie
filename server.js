@@ -397,80 +397,83 @@ app.get('/build/templates', function(req, res){
         {
           //read YAML and parse
           fs.readFile('templates/' + dir + '/template.yml', function(er, ymldata) {
-            //TODO serve template images - for now text is fine
-            var template = { name: dir };
-            var templateopt = [ ];
-            //get template options data
-            yml = yaml.safeLoad(ymldata);
-            console.log(yml);
-            if (yml === undefined || yml == null || yml.length == 0)
-            {
-              
-              template.nooptions = true;
-              templateopt = { nooptions: true };
-              
-              data.templates.push(template);
-              data.templateoptions[template.name] = templateopt;
-              cb();
-            }
-            else
-            {
-              template.nooptions = false;
-              for (var k in yml) {
-                if (yml.hasOwnProperty(k)) {
-                  var v = { data: yml[k] };
-                  v.istext = false;
-                  v.isselect = false;
-                  v.isblank = false;
-                  v.ischeck = false;
-                  v.isform = false;
-                  v.id = k;
+            fs.readFile('templates/user.yml', function(er, ymluserdata) {
+              //TODO serve template images - for now text is fine
+              var template = { name: dir };
+              var templateopt = [ ];
+              //get template options data
+              ymlall = ymluserdata.toString().concat(ymldata.toString());
+              yml = yaml.safeLoad(ymlall);
+              console.log(yml);
+              if (yml === undefined || yml == null || yml.length == 0)
+              {
 
-                  if (util.isnull(yml[k].type))
-                  {
-                    //just text
-                    v.display = yml[k];
-                    v.istext = true;
-                  }
-                  else
-                  {
-                    //not just text - find out what
-                    if (yml[k].type == 'select')
-                    {
-                      v.isselect = true;
-                      v.options = [ ];
-                      //parse the options
-                      for (var key in yml[k].options)
-                      {
-                        if (yml[k].options.hasOwnProperty(key))
-                        {
-                          v.options.push({ display: key });
-                        }
-                      }
-                      console.log(v.options);
-                    }
-                    if (yml[k].type == 'blank')
-                    { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
-                    if (yml[k].type == 'check')
-                    { v.ischeck = true; }
-                    if (yml[k].type == 'form')
-                    { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
-                    v.display = yml[k].display;
-                  }
+                template.nooptions = true;
+                templateopt = { nooptions: true };
 
-                  templateopt.push(v);
-                }
+                data.templates.push(template);
+                data.templateoptions[template.name] = templateopt;
+                cb();
               }
-              
-              //FIXME IMPORTANT add sending template options to the render function
-              console.log("ADDING TEMPLATE OPTIONS!");
-              console.log(templateopt);
-              console.log("JUST ADDED TEMPLATE OPTIONS!");
+              else
+              {
+                template.nooptions = false;
+                for (var k in yml) {
+                  if (yml.hasOwnProperty(k)) {
+                    var v = { data: yml[k] };
+                    v.istext = false;
+                    v.isselect = false;
+                    v.isblank = false;
+                    v.ischeck = false;
+                    v.isform = false;
+                    v.id = k;
 
-              data.templates.push(template);
-              data.templateoptions[template.name] = templateopt;
-              cb();
-            }
+                    if (util.isnull(yml[k].type))
+                    {
+                      //just text
+                      v.display = yml[k];
+                      v.istext = true;
+                    }
+                    else
+                    {
+                      //not just text - find out what
+                      if (yml[k].type == 'select')
+                      {
+                        v.isselect = true;
+                        v.options = [ ];
+                        //parse the options
+                        for (var key in yml[k].options)
+                        {
+                          if (yml[k].options.hasOwnProperty(key))
+                          {
+                            v.options.push({ display: key });
+                          }
+                        }
+                        console.log(v.options);
+                      }
+                      if (yml[k].type == 'blank')
+                      { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                      if (yml[k].type == 'check')
+                      { v.ischeck = true; }
+                      if (yml[k].type == 'form')
+                      { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+                      v.display = yml[k].display;
+                    }
+
+                    templateopt.push(v);
+                  }
+                }
+
+                //FIXME IMPORTANT add sending template options to the render function
+                console.log("ADDING TEMPLATE OPTIONS!");
+                console.log(templateopt);
+                console.log("JUST ADDED TEMPLATE OPTIONS!");
+
+                data.templates.push(template);
+                data.templateoptions[template.name] = templateopt;
+                cb();
+              }
+            });
           });
         } else { cb(); }
       } else { cb(); }
