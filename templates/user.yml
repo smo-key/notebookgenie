@@ -1,4 +1,4 @@
 #User-Selectable Options part of Trello2LaTeX
 
 #Reverse card and checklist order?
-reverseorder: { display: "Card Order", type: "select", options: { "Oldest First": true, "Newest First": false } }
+reverseorder: { display: "Card Order", type: "select", options: { "Oldest First (notebook-style)": true, "Newest First (chat-style)": false } }

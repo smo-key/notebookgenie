@@ -446,7 +446,7 @@ app.get('/build/templates', function(req, res){
                         {
                           if (yml[k].options.hasOwnProperty(key))
                           {
-                            v.options.push({ display: key });
+                            v.options.push({ display: key, result: yml[k].options[key] });
                           }
                         }
                         console.log(v.options);
@@ -498,6 +498,8 @@ app.get('/build/options', function(req, res) {
   var data = oauth_secrets[url.parse(req.url, true).query.token];
   var template = data.templateoptions[url.parse(req.url, true).query.template];
   var s = "";
+  data.template = template;
+  oauth_secrets[url.parse(req.url, true).query.token] = data;
   mu.compileAndRender("buildstart-4.html", {
     template: template
   })
@@ -512,13 +514,13 @@ app.get('/build/options', function(req, res) {
 app.post('/build/now', function(req, res) {
   var token = req.body.token;
   var uid = req.body.board;
-  var customs = req.body.customs; //TODO send customs to parsing
+  var fields = req.body.fields; //TODO send customs to parsing
   var data = oauth_secrets[token];
   data.user.boards.forEach(function(board) {
     if (board.uid == uid)
     {
       delete oauth_secrets[token];
-      util.queueadd(false, board.id, uid, false, data.auth, odata, function() {
+      util.queueadd(false, board.id, uid, false, data.auth, odata, fields, function() {
         var url = "/build/" + board.id;
         console.log(url);
         util.sendjson({ url: url }, res);
@@ -532,7 +534,7 @@ app.get('/build/custom', function(req, res) {
   var data = oauth_secrets[token];
   var uid = url.parse(req.url, true).query.board;
   data.uid = uid;
-  data.customs = JSON.parse(url.parse(req.url, true).query.customs); //TODO send customs to parsing
+  data.customs = JSON.parse(url.parse(req.url, true).query.fields);
   console.log(uid);
   data.custom = true;
   data.user.boards.forEach(function(board) {
@@ -590,7 +592,7 @@ app.post('/build/finish', function(req, res) {
   delete oauth_secrets[token];
   //TODO send data.customs to parsing
   var uid = data.uid;
-  util.queueadd(false, data.boarddata.id, data.boarddata.uid, cards, data.auth, odata, function() {
+  util.queueadd(false, data.boarddata.id, data.boarddata.uid, cards, data.auth, odata, data.customs, function() {
     var url = "/build/" + data.boarddata.id;
     console.log(url);
     util.sendjson({ url: url }, res);

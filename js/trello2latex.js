@@ -18,7 +18,7 @@ Array.prototype.sortByProp = function(p){
   });
 };
 
-function buildcard(c, board, odata, finalcallback) {
+function buildcard(c, board, odata, u, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
   
@@ -40,7 +40,7 @@ function buildcard(c, board, odata, finalcallback) {
       card.attachments = [ ];
       card.attachmentcover = null;
 
-      flow.series([
+      async.series([
         function getmembers(cb) {
           //get members
           card.members = [ ];
@@ -67,12 +67,18 @@ function buildcard(c, board, odata, finalcallback) {
             action.author.initials = act.memberCreator.initials;
             action.author.username = act.memberCreator.username;
             action.author.url = act.memberCreator.url;
+
+            action.iscomment = true;
+            //FIXME action.isattachment = false
+
             card.comments.push(action);
             if (cr.actions.length == card.comments.length) { cb(); }
           });
           if (cr.actions.length == 0) { cb(); }
         },
         function getvotes(cb) {
+          if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
+
           //get votes
           if (!util.isnull(cr.membersVoted)) {
           card.votecount = cr.membersVoted.length;
@@ -86,20 +92,21 @@ function buildcard(c, board, odata, finalcallback) {
         },
         function getchecklists(cb) {
           //get checklists
-          if (!util.isnull(cr.checklists)) {
-            card.checklists = [ ];
-            cr.checklists.forEach(function(c, k) {
-              var items = [ ];
-              c.checkItems.forEach(function(item, l) {
-                if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-                var it = { name: item.name, pos: item.pos, checked: checked };
-                items.push(it);
-              });
+          card.checklists = [ ];
+          async.eachSeries(cr.checklists, function(c, cb1) {
+            var items = [ ];
+
+            async.eachSeries(c.checkItems, function(item, cb2) {
+              if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
+              var it = { name: item.name, pos: item.pos, checked: checked };
+              items.push(it);
+              cb2();
+            }, function() {
               card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
-              if (card.checklists.length == cr.checklists.length) { cb(); }
+              cb1();
             });
-            if (cr.checklists.length == 0) { cb(); }
-          } else { cb(); }
+          }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(); });
+          if (util.isnull(cr.checklists)) { console.log("NO CHECKLISTS!"); cb(); }
         },
         function getattachments(cb) {
           if (!util.isnull(cr.attachments)) {
@@ -146,6 +153,7 @@ function buildcard(c, board, odata, finalcallback) {
     } catch (e)
     {
       console.error(e.stack);
+      //throw e
       return;
     }
   });
@@ -202,12 +210,13 @@ function compilepass(pass, passes, tmp, cb) {
 exports.startbuild = function startbuild(board, u, odata, cardlist) {
   //create user preferences array
   //FUTURE add YAML template data
-//  u = JSON.parse(u);
-  u = { _template: "LASA Robotics" };
+  u = JSON.parse(u);
+  console.log(u);
   //oauth data
   odata = JSON.parse(odata);
   //complete credential verification - DONE in board
   board = JSON.parse(board);
+  console.log(board);
   //download JSON -> raw
   svr.emitter.emit('updatestatus', board);
   util.trello("/boards/" + board.uid + "?lists=open&cards=open&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
@@ -216,7 +225,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
     var b = { };
     //create temp folder
     var tmp = "tmp/" + board.id + "/";
-    var templatedir = "templates/" + u._template + "/";
+    var templatedir = "templates/" + board.template + "/";
 
     cardlist = JSON.parse(cardlist);
 
@@ -328,7 +337,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
               list.autoselect = false;
 
               li.cards.forEach(function(c, j) {
-                buildcard(c, board, odata, function(card) {
+                buildcard(c, board, odata, u, function(card) {
                   flow.series([
                     function sort(cb) {
                       //sort cards by position
@@ -336,8 +345,6 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
                       if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
                       if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
                       cb();
-
-                      //TODO sort checklists and checkitems by loc
                     },
                     function push(cb) {
                       console.log(i + " " + j + " PUSH!");
@@ -367,9 +374,8 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
           var cur = 0;
           async.eachSeries(cardlist, function(cid, cb) {
             //FUTURE test if type is by URL or UID
-.3
             util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-              buildcard(c, board, odata, function(card) {
+              buildcard(c, board, odata, u, function(card) {
                 list.cards.push(card);
                 board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
                 cb();

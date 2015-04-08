@@ -10,35 +10,33 @@
     {{# template}}
     {{^ istext}}
       {{# isblank }}
-      <div class="form-group has-feedback">
-        <label class="control-label" for="{{ id }}">{{ display }}</label>
-        <input type="text" class="form-control" id="{{ id }}" placeholder="{{ default }}">
+      <div class="odiv form-group has-feedback" id="{{ id }}" otype="blank">
+        <label class="control-label">{{ display }}</label>
+        <input class="oitem" type="text" class="form-control" placeholder="{{ default }}">
 <!--   TODO: Implement default and isblank in blank and form -->
       </div>
       {{/ isblank }}
 
       {{# isform }}
-      <div class="form-group has-feedback">
-        <label class="control-label" for="{{ id }}">{{ display }}</label>
-        <textarea class="form-control" id="{{ id }}" rows="3" placeholder="{{ default }}"></textarea>
+      <div class="odiv form-group has-feedback" id="{{ id }}" otype="form">
+        <label class="control-label">{{ display }}</label>
+        <textarea class="oitem form-control" rows="3" placeholder="{{ default }}"></textarea>
 <!--   TODO: Implement default and isblank in blank and form -->
       </div>
       {{/ isform }}
-
       {{# ischeck }}
       <form>
-      <div class="checkbox">
-        <label><input type="checkbox" id="{{ id }}"><b> {{ display }}</b></label>
+      <div class="odiv checkbox" id="{{ id }}" otype="check">
+        <label><input class="oitem" type="checkbox"><b> {{ display }}</b></label>
       </div>
       </form>
       {{/ ischeck }}
-
       {{# isselect }}
-      <div class="form-group has-feedback">
-        <label class="control-label" for="{{ id }}">{{ display }}</label>
-        <select class="form-control">
+      <div class="odiv form-group has-feedback" id="{{ id }}" otype="select">
+        <label class="control-label">{{ display }}</label>
+        <select class="oitem form-control">
           {{# options }}
-          <option>{{ display }}</option>
+          <option output="{{ result }}">{{ display }}</option>
           {{/ options }}
         </select>
       </div>
@@ -46,7 +44,6 @@
     {{/ istext }}
     {{/ template }}
     {{/ template.nooptions }}
-<!--    </div>-->
   </div>
 </div>
 
@@ -60,13 +57,33 @@
 </button>
 
 <script>
+function getuserfields() {
+  var fields = { };
+  $('.odiv').each(function(i) {
+    var id = $(this).prop('id');
+    var type = $(this).attr('otype');
+    var fielditem = $('#' + id + ' .oitem');
+    //get result
+    switch (type)
+    {
+      case 'check':
+        fields[id] = fielditem.attr('checked'); break;
+      case 'select':
+        fields[id] = $($('#' + id + ' .oitem option:selected')).attr('output'); break;
+    }
+  });
+  //NOTE sort by i to ensure they are in order?
+  console.log(fields);
+  return fields;
+}
+
 $('#buildnow').click(function(event) {
   $('#buildnow').prop("disabled", true);
   $('#buildcustom').prop("disabled", true);
   $.ajax({
     url: '/build/now',
     type: 'POST',
-    data: { token: QueryString.token, customs: { }, board: $('#selectboard label.active input').prop('id') },
+    data: { token: QueryString.token, board: $('#selectboard label.active input').prop('id'), fields: getuserfields() },
     success: function(data) {
       console.log(data.url);
       window.location.replace(data.url);
@@ -77,8 +94,8 @@ $('#buildnow').click(function(event) {
 $('#buildcustom').click(function(event) {
   $('#buildnow').prop("disabled", true);
   $('#buildcustom').prop("disabled", true);
-  var customs = { };
-  var url = '/build/custom?token=' + QueryString.token + "&customs=" + JSON.stringify(customs) + "&board=" + $('#selectboard label.active input').prop('id');
+  var fields = getuserfields();
+  var url = '/build/custom?token=' + QueryString.token + "&fields=" + JSON.stringify(fields) + "&board=" + $('#selectboard label.active input').prop('id');
   window.location.replace(url);
 });
 </script>
