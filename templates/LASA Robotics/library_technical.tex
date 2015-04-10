@@ -23,6 +23,7 @@
 \usepackage{pifont}
 \usepackage{wasysym}
 \usepackage{dingbat}
+\usepackage{etoolbox}
 
 \newcommand{\boxchecked}{\checkmark\hspace{2.5pt}}
 \newcommand{\boxunchecked}{{\large \Square} }
@@ -30,15 +31,48 @@
 \titleformat{\chapter}{\normalfont\huge\bfseries}{\thesection}{0em}{}
 
 %location definition
-\newcommand{\currentpart}{}
-\let\oldpart\part
-\renewcommand{\part}[1]{\oldpart{#1}\renewcommand{\currentpart}{#1}}
-\newcommand{\currentchapter}{}
-\let\oldchapter\chapter
-\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
-\newcommand{\currentsection}{}
+%\newcommand{\currentpart}{}
+%\let\oldpart\part
+%\renewcommand{\part}[1]{\oldpart{#1}\renewcommand{\currentpart}{#1}}
+%\newcommand{\currentchapter}{}
+%\let\oldchapter\chapter
+%\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
+
+% Patch the sectioning commands to provide a hook to be used later
+\newcommand{\chaptertitle}{}
+\newcommand{\sectiontitle}{}
 \let\oldsection\section
-\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\currentsection}{#1}}
+\renewcommand{\section}[1]{\oldsection{#1}\renewcommand{\sectiontitle}{#1}}
+\newcommand{\subsectiontitle}{}
+\newcommand{\subsubsectiontitle}{}
+\preto{\chapter}{\def\leveltitle{\chaptertitle}}
+%\preto{\section}{\def\leveltitle{\sectiontitle}}
+\preto{\subsection}{\def\leveltitle{\subsectiontitle}}
+\preto{\subsubsection}{\def\leveltitle{\subsubsectiontitle}}
+
+\makeatletter
+% \@sect is called with normal sectioning commands
+% Argument #8 to \@sect is the title
+% Thus \section{Title} will do \gdef\sectiontitle{Title}
+\pretocmd{\@sect}
+{\expandafter\gdef\leveltitle{#8}}
+{}{}
+% \@ssect is called with *-sectioning commands
+% Argument #5 to \@ssect is the title
+\pretocmd{\@ssect}
+{\expandafter\gdef\leveltitle{#5}}
+{}{}
+% \@chapter is called by \chapter (without *)
+% Argument #2 to \@chapter is the title
+\pretocmd{\@chapter}
+{\expandafter\gdef\leveltitle{#2}}
+{}{}
+% \@schapter is called with \chapter*
+% Argument #1 to \@schapter is the title
+\pretocmd{\@schapter}
+{\expandafter\gdef\leveltitle{#1}}
+{}{}
+\makeatother
 
 %fonts
 \renewcommand*{\familydefault}{\sfdefault}
@@ -48,13 +82,15 @@
 
 %colors
 \definecolor{purple}{RGB}{154,1,205}
-\definecolor{gray}{gray}{0.9}
+\definecolor{gray}{gray}{0.30}
+\definecolor{darkgray}{gray}{0.30}
+\definecolor{darkgrey}{gray}{0.30}
 \color{purple}
 
 %definitions
 \title{}
 \author{}
-\setcounter{chapter}{1}
+%\setcounter{chapter}{1}
 \renewcommand{\thesection}{}
 
 \renewcommand{\thesubsection}{}
@@ -115,7 +151,7 @@
 		\centering
 		{\color{white}
 		{\titlefont
-			\currentchapter\\
+			\chaptertitle\\
 		}
 		\vspace{10 mm}
 		{\datefont
@@ -127,7 +163,7 @@
 		\centering
 		{\color{white}
 		{\subfont
-			\currentpart
+			\sectiontitle
 		}}
 	\end{textblock*}
 	\pagecolor{purple}
@@ -157,11 +193,11 @@
 	}
 	\fancyhead[RE]{
 		\color{black}
-		\currentsection
+		\sectiontitle
 	}
 	\fancyhead[LO]{
 		\color{black}
-		\currentsection
+		\sectiontitle
 	}
 	
 	\pagecolor{white}

@@ -3,17 +3,18 @@
 \begin{document}
 
 %PART AND CHAPTER DETAILS
-\renewcommand{\currentchapter}{FTC - 4290 - "High PHidelity"}
+\renewcommand{\chaptertitle}{FTC - 4290 - "High PHidelity"}
 \renewcommand{\today}{FTC Notebook 2014-2015}
-\renewcommand{\currentpart}{Revision <!b.lastmodified!>}
+\renewcommand{\sectiontitle}{Revision 4/9/2015 16:42}
 \createtitle{./}
 
 % TABLE OF CONTENTS
 \setcounter{chapter}{1}
 \setcounter{page}{1}
-\renewcommand{\thesection}{Table of Contents}
-\renewcommand\contentsname{}
-\setcounter{tocdepth}{4}
+%\section{Table of Contents}
+\renewcommand\contentsname{Table of Contents}
+\setcounter{tocdepth}{2}
+\renewcommand{\sectiontitle}{Table of Contents}
 \tableofcontents
 \renewcommand{\thesection}{}
 \clearpage
@@ -36,7 +37,6 @@
 <!* attachments !>
 <!* isimage !>
 \begin{figure}
-  \color{darkgray}
   \centering
   \includegraphics[height=0.4\linewidth]{dl/<! name !>}
   \caption[]{<! friendlyname !>}
@@ -45,7 +45,7 @@
 <!/ isimage !>
 <!/ attachments !>
 <!* comments !>
-{\bf <! author.name !>} (<! date !>): <! text !>
+{\bf <! author.name !>} {\color{darkgray} (<! date !>)}: <! text !>
 <!/ comments !>
 <!/ cards !>
 
