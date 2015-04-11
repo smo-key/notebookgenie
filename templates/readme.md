@@ -180,7 +180,7 @@ card.due | `2015-01-01T00:00:00.000Z` or `null` (if no due date set)
 card.url | `https://trello.com/c/xbiE4Eyf/1-test-card`
 card.labels | [ { Identical in usage to b.labels object } ]
 card.attachments | [ { Attachments object - see below } ]
-card.attachmentcover.filename | `dl/asdfadsfasfddsfafdadfsadfs.jpg` (location on disk of cover)
+card.attachmentcover | { Attachments object - see below }
 card.members | [ { Members object - identical in usage to b.members } ]
 card.votecount | `1` (length of voters object)
 card.voters | [ { Voters object - identical to members object } ]
