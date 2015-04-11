@@ -22,7 +22,7 @@ function buildcard(c, board, odata, u, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
   
-  util.trello("/cards/" + c.id + "?actions=commentCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
+  util.trello("/cards/" + c.id + "?actions=commentCard,addAttachmentToCard,deleteAttachmentFromCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
     //get card
     var card = { };
     card.name = cr.name;
@@ -52,33 +52,7 @@ function buildcard(c, board, odata, u, finalcallback) {
             if (cr.members.length == 0) { cb(); }
           } else { cb(); }
         },
-        function getcomments(cb) {
-          //get actions
-          card.comments = [ ];
-          cr.actions.forEach(function(act, k) {
-            console.log(act);
-            var action = { };
-            action.text = act.data.text;
-            action.date = util.converttime(act.date);
-            action.author = { };
-            action.author.id = act.memberCreator.id;
-            action.author.avatar = "img/" + act.memberCreator.id + ".png";
-            action.author.name = act.memberCreator.fullName;
-            action.author.initials = act.memberCreator.initials;
-            action.author.username = act.memberCreator.username;
-            action.author.url = act.memberCreator.url;
-
-            action.iscomment = true;
-            //FIXME action.isattachment = false
-
-            card.comments.push(action);
-            if (cr.actions.length == card.comments.length) { cb(); }
-          });
-          if (cr.actions.length == 0) { cb(); }
-        },
         function getvotes(cb) {
-          if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
-
           //get votes
           if (!util.isnull(cr.membersVoted)) {
           card.votecount = cr.membersVoted.length;
@@ -124,13 +98,14 @@ function buildcard(c, board, odata, u, finalcallback) {
                     {
                       card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
                                               name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                              friendlyname: attach.name });
-                      //TODO make date user friendly
+                                              friendlyname: attach.name, id: attach.id });
                       console.log(card.attachments);
 
                       //get card cover using cr.idAttachmentCover
                       if (attach.id == cr.idAttachmentCover)
-                      { card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0] }; }
+                      { console.log("GET CARD ATTACHMENT!!!!-----------------------"); card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                              name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                              friendlyname: attach.name, id: attach.id }; }
                       if (card.attachments.length == n) { cb(); }
                     }
                     else { n--; if (card.attachments.length == n) { cb(); } }
@@ -139,7 +114,8 @@ function buildcard(c, board, odata, u, finalcallback) {
                 else
                 {
                   //not an image, don't download but add to list
-                  card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false, friendlyname: attach.name });
+                  card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false,
+                                          friendlyname: attach.name, id: attach.id });
                   console.log(card.attachments);
                   if (card.attachments.length == n) { cb(); }
                 }
@@ -147,6 +123,79 @@ function buildcard(c, board, odata, u, finalcallback) {
             });
             if (cr.attachments.length == 0) { cb(); }
           } else { cb(); }
+        },
+        function getcomments(cb) {
+          //get actions
+          card.comments = [ ];
+          async.eachSeries(cr.actions, function(act, cb1) {
+            var action = { };
+
+            action.iscomment = (act.type == 'commentCard');
+            action.isattachment = (act.type == 'addAttachmentToCard');
+            action.isdeleteattachment = (act.type == 'deleteAttachmentFromCard');
+            if ((action.isdeleteattachment || action.isattachment) && (act.data.attachment.id == cr.idAttachmentCover))
+            {
+              //ignore covers if they are an attachment
+              console.log("IGNORE SUPER GIANT ATTACHMENT THINGY!------------------------------");
+              cb1();
+            }
+            else if (action.isdeleteattachment)
+            {
+              //TODO remove attachment from comment list if it was removed from card OR is cover (ignore covers)
+              console.log("GET DELETE ATTACHMENT THINGY!------------------------------");
+              cb1();
+            }
+            else
+            {
+              //add attachment as comment if it was added to the card
+              if (action.isattachment) {
+                console.log(act);
+                console.log("GET GIANT ATTACHMENT THINGY! ------------------------------");
+                console.log(act.data.attachment.id);
+                async.each(card.attachments, function(attach, cb2) {
+                  if (attach.id == act.data.attachment.id)
+                  {
+                    //we have equal IDs - add attachment object into action
+                    action.attachment = attach;
+                    console.log("WE HAVE EQUAL ATTACHMENTS!--------------------------");
+                    cb2();
+                  }
+                  else { cb2(); }
+                }, function(done) {
+                  //get remaining information, applies to both attachments and comments
+                  action.text = act.data.text;
+                  action.date = util.converttime(act.date);
+                  action.author = { };
+                  action.author.id = act.memberCreator.id;
+                  action.author.avatar = "img/" + act.memberCreator.id + ".png";
+                  action.author.name = act.memberCreator.fullName;
+                  action.author.initials = act.memberCreator.initials;
+                  action.author.username = act.memberCreator.username;
+                  action.author.url = act.memberCreator.url;
+                  card.comments.push(action);
+                  cb1();
+                });
+              }
+              else {
+                //get remaining information, applies to both attachments and comments
+                action.text = act.data.text;
+                action.date = util.converttime(act.date);
+                action.author = { };
+                action.author.id = act.memberCreator.id;
+                action.author.avatar = "img/" + act.memberCreator.id + ".png";
+                action.author.name = act.memberCreator.fullName;
+                action.author.initials = act.memberCreator.initials;
+                action.author.username = act.memberCreator.username;
+                action.author.url = act.memberCreator.url;
+                card.comments.push(action);
+                cb1();
+              }
+            }
+          }, function(done) {
+            if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
+            cb();
+          });
+          //if (cr.actions.length == 0) {  }
         },
         function done(cb) { finalcallback(card); cb(); }
       ]);

@@ -27,6 +27,13 @@
 <!* cards !>
 \subsection{<! name !>}
 <!* desc !><! desc !>\\<!/ desc !>
+<!* attachmentcover !>
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.4\linewidth]{dl/<! name !>}
+  \label{fig:<! name !>}
+\end{figure}
+<!/ attachmentcover !>
 <!* checklists !>
 \subsubsection{<! name !>}
 <!* items !>
@@ -34,19 +41,27 @@
 <!/ items !>
 <!/ checklists !>\mbox{}\\
 
-<!* attachments !>
-<!* isimage !>
-\begin{figure}
-  \centering
-  \includegraphics[height=0.4\linewidth]{dl/<! name !>}
-  \caption[]{<! friendlyname !>}
-  \label{fig:<! name !>}
-\end{figure}
-<!/ isimage !>
-<!/ attachments !>
+
 <!* comments !>
+
+<!* iscomment !>
 {\bf <! author.name !>} {\color{darkgray} (<! date !>)}: <! text !>
+<!/ iscomment !>
+
+<!* isattachment !>
+<!* attachment.isimage !>
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.3\linewidth]{dl/<! attachment.name !>}
+  \caption[]{<! attachment.friendlyname !>}
+  \label{fig:<! attachment.name !>}
+\end{figure}
+<!/ attachment.isimage !>
+<!/ isattachment !>
+
 <!/ comments !>
+\newpage
+\clearpage
 <!/ cards !>
 
 <!/ b.lists !>
