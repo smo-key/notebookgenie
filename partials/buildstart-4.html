@@ -67,9 +67,11 @@ function getuserfields() {
     switch (type)
     {
       case 'check':
-        fields[id] = fielditem.attr('checked'); break;
+        fields[id] = fielditem.prop('checked'); break;
       case 'select':
         fields[id] = $($('#' + id + ' .oitem option:selected')).attr('output'); break;
+      case 'form': case 'blank':
+        fields[id] = fielditem.val(); break;
     }
   });
   //NOTE sort by i to ensure they are in order?

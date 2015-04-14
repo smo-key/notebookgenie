@@ -92,21 +92,30 @@ function buildcard(c, board, odata, u, finalcallback) {
                 //check if includable image
                 if (attach.url.match(/\.(png|jpe?g|eps)+/i))
                 {
-                  var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0];
+                  var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-z]+$/i)[0].toLowerCase();
                   util.downloadfile(attach.url, ur, function(e) {
                     if (e)
                     {
-                      card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                              name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                              friendlyname: attach.name, id: attach.id });
-                      console.log(card.attachments);
+                      var caption = attach.name;
+                      async.each(Object.keys(u.captionlist), function(key, cb1) {
+                        //if (u.captionlist.hasOwnProperty(key)) {
+                          if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
+                          else { cb1(); }
+                        //} else { cb1(); }
+                      }, function(done) {
+                        console.log("GET REMAINDER OF ATTACHMENT!--------------");
+                        card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                                name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                                friendlyname: caption, id: attach.id });
+                        console.log(card.attachments);
 
-                      //get card cover using cr.idAttachmentCover
-                      if (attach.id == cr.idAttachmentCover)
-                      { console.log("GET CARD ATTACHMENT!!!!-----------------------"); card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                              name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                              friendlyname: attach.name, id: attach.id }; }
-                      if (card.attachments.length == n) { cb(); }
+                        //get card cover using cr.idAttachmentCover
+                        if (attach.id == cr.idAttachmentCover)
+                        { console.log("GET CARD ATTACHMENT!!!!-----------------------"); card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                                name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                                friendlyname: caption, id: attach.id }; }
+                        if (card.attachments.length == n) { cb(); }
+                      });
                     }
                     else { n--; if (card.attachments.length == n) { cb(); } }
                   });
@@ -258,8 +267,18 @@ function compilepass(pass, passes, tmp, cb) {
 
 exports.startbuild = function startbuild(board, u, odata, cardlist) {
   //create user preferences array
-  //FUTURE add YAML template data
+  //add YAML template data
   u = JSON.parse(u);
+  //parse captions data
+  var lines = u.captions.split(/\r?\n/);
+  console.log(lines);
+  u.captionlist = { };
+  lines.forEach(function(line) {
+    var id = line.split(/ /i)[0];
+    var caption = line.substring(id.length + 1);
+    u.captionlist[id] = caption;
+  });
+
   console.log(u);
   //oauth data
   odata = JSON.parse(odata);
