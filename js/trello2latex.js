@@ -24,16 +24,17 @@ function buildcard(c, board, odata, u, finalcallback) {
   
   util.trello("/cards/" + c.id + "?actions=commentCard,addAttachmentToCard,deleteAttachmentFromCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
     //get card
-    var card = { };
-    card.name = cr.name;
-    card.desc = cr.desc.trim();
-    card.lastmodified = cr.dateLastActivity;
-    card.due = util.converttime(cr.due); //TODO friendly time format
-    card.pos = cr.pos;
-    card.url = cr.url;
-    console.log(cr);
     try
     {
+      var card = { };
+      card.name = cr.name;
+      card.desc = cr.desc.trim();
+      card.lastmodified = cr.dateLastActivity;
+      card.due = util.converttime(cr.due); //TODO friendly time format
+      card.pos = cr.pos;
+      card.url = cr.url;
+      console.log(cr);
+    
       cr.labels.forEach(function(label) {
         //TODO is some LaTeX-friendly parsing missing here?
       });
