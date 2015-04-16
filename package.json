@@ -19,7 +19,7 @@
     "oauth": "^0.9.12",
     "rimraf": "^2.3.1",
     "socket.io": "^1.3.5",
-    "string": "^3.0.0",
+    "string": "^3.1.1",
     "yazl": "git://github.com/smo-key/yazl.git"
   },
   "scripts": {
