@@ -2,3 +2,5 @@
 
 #Reverse card and checklist order?
 reverseorder: { display: "Card Order", type: "select", options: { "Oldest First (notebook-style)": true, "Newest First (chat-style)": false } }
+captions: { display: "Captions (space and return delimited)", type: "form", default: "53af6dc99a35b9c0fe0b0f05 First Caption\n53b6e3f836300a5354347659 Second Caption\n..." }
+parsemarkdown: { display: "Parse Markdown (URLs, usernames, etc.)", type: "check", default: true }

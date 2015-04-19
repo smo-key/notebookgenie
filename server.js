@@ -421,6 +421,7 @@ app.get('/build/templates', function(req, res){
                 for (var k in yml) {
                   if (yml.hasOwnProperty(k)) {
                     var v = { data: yml[k] };
+                    console.log(v);
                     v.istext = false;
                     v.isselect = false;
                     v.isblank = false;
