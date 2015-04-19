@@ -160,10 +160,12 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, listcallback
             cb4();
           });
         }, function(err1) {
-          console.log("DONE WITH LIST " + l.id);
-          board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-          b.lists.push(list);
-          cardcallback();
+          sortlist(i, list, function(list) {
+            board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+            console.log("DONE WITH LIST " + l.id);
+            b.lists.push(list);
+            cardcallback();
+          });
         });
       });
     },
@@ -368,18 +370,14 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
     console.log(i + " " + j + " BEGIN CARD GET!");
 
     getmembers(c, u, i, j, card, cr, function(card) {
-      getvotes(c, u, i, j, card, cr, function(card) {
-        console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-        getchecklists(c, u, i, j, card, cr, function(card) {
-          console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-          getattachments(c, u, i, j, card, cr, tmp, function(card) {
-            getcomments(c, u, i, j, card, cr, function(card) {
-              console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-            });
-          });
-        });
-      });
-    });
+    getvotes(c, u, i, j, card, cr, function(card) {
+      console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+    getchecklists(c, u, i, j, card, cr, function(card) {
+      console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+    getattachments(c, u, i, j, card, cr, tmp, function(card) {
+    getcomments(c, u, i, j, card, cr, function(card) {
+      console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+    });});});});});
   });
 }
 
@@ -567,9 +565,11 @@ function getcomments(c, u, i, j, card, cr, cb) {
   });
 }
 
-function sort(c, u, i, j, card, cr, cb) {
-  console.log(i + " " + j + " SORT!");
+/*** LIST COMPILER ***/
+
+function sortlist(i, list, cb) {
+  console.log(i + " SORT LIST!");
   if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
   if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
-  cb();
+  cb(list);
 }
