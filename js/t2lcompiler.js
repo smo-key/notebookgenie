@@ -449,23 +449,24 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
             card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
                                     name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
                                     friendlyname: caption, id: attach.id });
-            //get card cover using cr.idAttachmentCover
-            if (attach.id == cr.idAttachmentCover)
-            {
-              console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
-              card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                    name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                    friendlyname: caption, id: attach.id };
-              cbattach();
-            } else { cbattach(); }
 
             //get caption, if existing
-//                    async.each(Object.keys(u.captionlist), function(key, cb1) {
-//                      //if (u.captionlist.hasOwnProperty(key)) {
-//                        if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
-//                        else { cb1(); }
-//                      //} else { cb1(); }
-//                    }, function(done) {
+            async.each(Object.keys(u.captionlist), function(key, cb1) {
+              //if (u.captionlist.hasOwnProperty(key)) {
+                if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
+                else { cb1(); }
+              //} else { cb1(); }
+            }, function() {
+              //get card cover using cr.idAttachmentCover
+              if (attach.id == cr.idAttachmentCover)
+              {
+                console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
+                card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                      name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                      friendlyname: caption, id: attach.id };
+                cbattach();
+              } else { cbattach(); }
+            });
           }
           else { cbattach(); }
         });
@@ -476,9 +477,8 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
         card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false,
                                 friendlyname: attach.name.match(/^(.*.(?=\.)|(.*))/)[0], id: attach.id });
         cbattach();
-        console.log(i + " " + j + " EXIT 2");
       }
-    } else { cbattach(); console.log(i + " " + j + " EXIT 1"); }
+    } else { cbattach(); }
   }, function(dne) {
     console.log(i + " " + j + " ATTACHMENT: DONE GETTING! " + cr.attachments.length + " " + card.attachments.length);
     cb(card);
