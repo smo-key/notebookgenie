@@ -44,6 +44,7 @@ exports.download = download;
 
 exports.downloadfile = function downloadfile(url, filename, cb)
 {
+  console.log("FILE START WRITE - " + filename);
   var file = fs.createWriteStream(filename);
   try {
     https.get(url, function(res) {
@@ -52,11 +53,11 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
+        console.log("FILE END WRITE! - " + filename);
         cb(true);
       });
     }).on('error', function(e) {
-      file.end();
-      cb(false);
+      throw e;
     });
   } catch (e) {
     try {
@@ -66,13 +67,14 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
+        console.log("FILE END WRITE! - " + filename);
         cb(true);
       });
     }).on('error', function(e) {
-      file.end();
-      cb(false);
+      throw e;
     });
     } catch(e) {
+      console.log("FILE ERROR! - " + filename);
       cb(false);
     }
   }
@@ -321,10 +323,16 @@ exports.converttime = function converttime(time) {
  if (!isnull(time)){
     var str = s(time).replaceAll("T", " ").s.match(/.+(?=\.)/);
     str += " UTC"
-    console.log(str);
+    str += " UTC"
     return new Date(str).add({ hours: -1 }).toString("M/d/yyyy HH:mm");
  } 
  else{
     return "";
  }
 }
+
+Array.prototype.sortByProp = function(p){
+  return this.sort(function(a,b){
+    return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+  });
+};
