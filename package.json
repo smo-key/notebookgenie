@@ -12,7 +12,6 @@
     "express": "^4.12.2",
     "js-yaml": "^3.2.7",
     "marked": "^0.3.3",
-    "morgan": "^1.5.1",
     "mu2": "^0.5.20",
     "mustache": "^1.1.0",
     "mutex": "git://github.com/smo-key/MuTeX.git",
