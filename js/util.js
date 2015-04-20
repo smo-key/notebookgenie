@@ -69,8 +69,6 @@ exports.downloadfile = function downloadfile(url, filename, cb)
         console.log("FILE END WRITE! - " + filename);
         cb(true);
       });
-    }).on('error', function(e) {
-      throw e;
     });
   } catch (e) {
     try {
