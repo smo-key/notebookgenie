@@ -346,9 +346,10 @@ exports.mark = function mark(str) {
   var parsemarkdown = true;  //FIXME for now forced to true!
   if (parsemarkdown && !isnull(str)) {
     // place the @ character in front of a literal char
-    return str.replace(/\*\*(.*)\*\*/igm, '@!{@!\\bf $1@!}') //bold face
-    .replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}') //italics
-    .replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}'); //urls
+    return str.replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}') //urls
+    .replace(/\*\*(.*)\*\*/igm, '@!{@!\\bf $1@!}') //bold face
+    .replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}'); //italics
+
   }
   else { return str; }
 }
