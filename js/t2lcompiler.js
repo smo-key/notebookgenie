@@ -11,7 +11,7 @@ var multiplicand = 75; //start creating pdf at five plus this
 
 function zipdir(dir, base, zipfile, cb) {
   fs.readdir(dir, function(err, files) {
-    async.eachSeries(files, function(file, callback) {
+    async.each(files, function(file, callback) {
       fs.stat(dir + file, function(er, stats) {
         if (stats.isFile()) {
           zipfile.addFile(dir + file, base + file);
@@ -337,9 +337,9 @@ exports.publish = function(tmp, board, cb) {
     fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
       fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
         //FIXME clean
-        rmrf(tmp, function() {
+        //rmrf(tmp, function() {
           cb(board);
-        });
+        //});
       });
     });
   });
