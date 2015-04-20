@@ -350,7 +350,7 @@ exports.mark = function mark(str) {
     // place the @ character in front of a literal char
     return str.replace(/\*\*(.*)\*\*/igm, '@{@\\bf $1@}') //bold face
     .replace(/\*(.*)\*/igm, '@{@\\emph $1@}') //italics
-    .replace(/((?:https?:\/\/)?(?:[\w]+\.)(?:\.?[\w]{2,})(\/[\w\.]*)*)/igm, '@\\url@{$1@}'); //urls
+    .replace(/^(http(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;=%\$#_]*))?$/igm, '@\\url@{$1@}'); //urls
   }
   else { return str; }
 }
