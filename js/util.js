@@ -8,6 +8,19 @@ var OAuth = require('oauth').OAuth;
 var t2t = require("./trello2latex.js");
 var svr = require("../server.js");
 var date = require("./date.js");
+//
+//var marked = require("marked");
+//marked.setOptions({
+//  renderer: new marked.Renderer(),
+//  gfm: true,
+//  tables: false,
+//  breaks: false,
+//  pedantic: false,
+//  sanitize: true,
+//  smartLists: false,
+//  smartypants: false
+//});
+
 function prep_genjson(status, message, public)
 {
   var json = {
@@ -329,6 +342,17 @@ exports.converttime = function converttime(time) {
  else{
     return "";
  }
+}
+
+exports.mark = function mark(str) {
+  var parsemarkdown = true;  //FIXME for now forced to true!
+  if (parsemarkdown || !isnull(str)) {
+    // place the @ character in front of a literal char
+    return str.replace(/\*\*(.*)\*\*/igm, '@{@\\bf $1@}') //bold face
+    .replace(/\*(.*)\*/igm, '@{@\\emph $1@}') //italics
+    .replace(/((?:https?:\/\/)?(?:[\w]+\.)(?:\.?[\w]{2,})(\/[\w\.]*)*)/igm, '@\\url@{$1@}'); //urls
+  }
+  else { return str; }
 }
 
 Array.prototype.sortByProp = function(p){
