@@ -41,7 +41,7 @@ if (fs.existsSync("_private.yml"))
   configdata = fs.readFileSync("_private.yml");
   config = yaml.safeLoad(configdata);
   config.port = process.env.PORT || config.port || 8000; //server port
-  config.domainredirect = config.domain;
+  config.domainredirect = config.domain + ":" + config.port;
   config.redirectsecure = false;
   console.log(config);
 }
