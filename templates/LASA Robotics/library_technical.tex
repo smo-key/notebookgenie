@@ -39,6 +39,9 @@
 %\let\oldchapter\chapter
 %\renewcommand{\chapter}[1]{\oldchapter{#1}\renewcommand{\currentchapter}{#1}}
 
+%at symbol
+\newcommand{\at}{\makeatletter @\makeatother}
+
 % Patch the sectioning commands to provide a hook to be used later
 \newcommand{\chaptertitle}{}
 \newcommand{\sectiontitle}{}
@@ -181,22 +184,62 @@
 	\setupheaders{#1}
 }
 
+%argument is path to assets folder
+\newcommand{\createtitlesecond}[1]
+{
+	\newpage
+	\clearpage
+	\pagecolor{purple}
+	\begin{textblock*}{8.5in}[0.5,0.5](5.9in,4in)
+		\includegraphics[height=1.25in]{#1lasalogo_white}
+	\end{textblock*}
+	\begin{textblock*}{7.5in}[0,0](0.5in,5.5in)
+		\centering
+		{\color{white}
+			{\titlefont
+				\chaptertitle\\
+			}
+			\vspace{10 mm}
+			{\datefont
+				\today\\
+			}}
+		\end{textblock*}
+		
+		\begin{textblock*}{7.5in}[0,0](0.5in,10in)
+			\centering
+			{\color{white}
+				{\subfont
+					\sectiontitle
+				}}
+			\end{textblock*}
+			\pagecolor{purple}
+			\fancyfoot[]{}
+			\fancyhead{}
+			\color{black}
+			\newpage
+		
+      %second blank page
+      \blankpage
+
+      \setupheaders{#1}
+}
+
 %setup headers
 \newcommand{\setupheaders}[1]
 {
 	\fancyfoot{\color{black}}
-	\fancyfoot[LO]{
+	\fancyfoot[LE]{
 		\thepage
 		%\includegraphics[height=0.5in]{#1lasalogo}
 	}
-	\fancyfoot[RE]{
+	\fancyfoot[RO]{
 		\thepage
 	}
-	\fancyhead[RE]{
+	\fancyhead[RO]{
 		\color{black}
 		\sectiontitle
 	}
-	\fancyhead[LO]{
+	\fancyhead[LE]{
 		\color{black}
 		\sectiontitle
 	}

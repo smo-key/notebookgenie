@@ -11,7 +11,7 @@ var multiplicand = 75; //start creating pdf at five plus this
 
 function zipdir(dir, base, zipfile, cb) {
   fs.readdir(dir, function(err, files) {
-    async.eachSeries(files, function(file, callback) {
+    async.each(files, function(file, callback) {
       fs.stat(dir + file, function(er, stats) {
         if (stats.isFile()) {
           zipfile.addFile(dir + file, base + file);
@@ -214,7 +214,7 @@ exports.getotherdata = function(b, raw, board, cb) {
   //raw.labelNames -> b.labels
   b.labels = raw.labelNames;
   //raw.description -> b.description
-  b.desc = raw.desc;
+  b.desc = util.mark(raw.desc);
   //data from board
   b.title = board.title;
   b.org = { };
@@ -337,9 +337,9 @@ exports.publish = function(tmp, board, cb) {
     fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
       fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
         //FIXME clean
-        rmrf(tmp, function() {
+        //rmrf(tmp, function() {
           cb(board);
-        });
+        //});
       });
     });
   });
@@ -356,7 +356,7 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
   //get card
     var card = { };
     card.name = cr.name;
-    card.desc = cr.desc.trim();
+    card.desc = util.mark(cr.desc.trim());
     card.lastmodified = cr.dateLastActivity;
     card.due = util.converttime(cr.due); //TODO friendly time format
     card.pos = cr.pos;
@@ -417,11 +417,11 @@ function getchecklists(c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      var it = { name: item.name, pos: item.pos, checked: checked };
+      var it = { name: util.mark(item.name), pos: item.pos, checked: checked };
       items.push(it);
       cb2();
     }, function() {
-      card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+      card.checklists.push({ name: util.mark(c.name), pos: c.pos, items: items.sortByProp('pos') });
       cb1();
     });
   }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(card); });
@@ -446,32 +446,29 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
           {
             var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
             console.log(i + " " + j + " ATTACHMENT: GET ATTACHMENT - " + attach.id);
-              card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                      name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                      friendlyname: caption, id: attach.id });
-              console.log(card.attachments);
-              cbattach();
+            card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                    name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                    friendlyname: caption, id: attach.id });
 
             //get caption, if existing
-//                    async.each(Object.keys(u.captionlist), function(key, cb1) {
-//                      //if (u.captionlist.hasOwnProperty(key)) {
-//                        if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
-//                        else { cb1(); }
-//                      //} else { cb1(); }
-//                    }, function(done) {
-
+            async.each(Object.keys(u.captionlist), function(key, cb1) {
+              //if (u.captionlist.hasOwnProperty(key)) {
+                if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
+                else { cb1(); }
+              //} else { cb1(); }
+            }, function() {
               //get card cover using cr.idAttachmentCover
-//                      if (attach.id == cr.idAttachmentCover)
-//                      {
-//                        console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
-//                        card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-//                                              name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-//                                              friendlyname: caption, id: attach.id };
-//                        cbattach(); console.log(i + " " + j + " EXIT 5");
-//                      } else { cbattach(); console.log(i + " " + j + " EXIT 4"); }
-            //});
+              if (attach.id == cr.idAttachmentCover)
+              {
+                console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
+                card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                      name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                      friendlyname: caption, id: attach.id };
+                cbattach();
+              } else { cbattach(); }
+            });
           }
-          else { cbattach(); console.log(i + " " + j + " EXIT 3"); }
+          else { cbattach(); }
         });
       }
       else
@@ -480,9 +477,8 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
         card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false,
                                 friendlyname: attach.name.match(/^(.*.(?=\.)|(.*))/)[0], id: attach.id });
         cbattach();
-        console.log(i + " " + j + " EXIT 2");
       }
-    } else { cbattach(); console.log(i + " " + j + " EXIT 1"); }
+    } else { cbattach(); }
   }, function(dne) {
     console.log(i + " " + j + " ATTACHMENT: DONE GETTING! " + cr.attachments.length + " " + card.attachments.length);
     cb(card);
@@ -531,7 +527,6 @@ function getcomments(c, u, i, j, card, cr, cb) {
           else { cb2(); }
         }, function(done) {
           //get remaining information, applies to both attachments and comments
-          action.text = act.data.text;
           action.date = util.converttime(act.date);
           action.author = { };
           action.author.id = act.memberCreator.id;
@@ -546,7 +541,7 @@ function getcomments(c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        action.text = act.data.text;
+        action.text = util.mark(act.data.text);
         action.date = util.converttime(act.date);
         action.author = { };
         action.author.id = act.memberCreator.id;

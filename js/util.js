@@ -8,6 +8,19 @@ var OAuth = require('oauth').OAuth;
 var t2t = require("./trello2latex.js");
 var svr = require("../server.js");
 var date = require("./date.js");
+//
+//var marked = require("marked");
+//marked.setOptions({
+//  renderer: new marked.Renderer(),
+//  gfm: true,
+//  tables: false,
+//  breaks: false,
+//  pedantic: false,
+//  sanitize: true,
+//  smartLists: false,
+//  smartypants: false
+//});
+
 function prep_genjson(status, message, public)
 {
   var json = {
@@ -56,8 +69,6 @@ exports.downloadfile = function downloadfile(url, filename, cb)
         console.log("FILE END WRITE! - " + filename);
         cb(true);
       });
-    }).on('error', function(e) {
-      throw e;
     });
   } catch (e) {
     try {
@@ -329,6 +340,18 @@ exports.converttime = function converttime(time) {
  else{
     return "";
  }
+}
+
+exports.mark = function mark(str) {
+  var parsemarkdown = true;  //FIXME for now forced to true!
+  if (parsemarkdown && !isnull(str)) {
+    // place the @ character in front of a literal char
+    return str.replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}') //urls
+    .replace(/\*\*(.*)\*\*/igm, '@!{@!\\bf $1@!}') //bold face
+    .replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}') //italics
+    .replace(/(@!{@!\\emph @!})|(@!{@!\\bf @!})/igm, '') //remove nulls
+  }
+  else { return str; }
 }
 
 Array.prototype.sortByProp = function(p){
