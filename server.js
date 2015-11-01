@@ -41,7 +41,6 @@ if (fs.existsSync("_private.yml"))
   configdata = fs.readFileSync("_private.yml");
   config = yaml.safeLoad(configdata);
   config.port = process.env.PORT || config.port || 8000; //server port
-  config.domainredirect = config.domain + ":" + config.port;
   config.redirectsecure = false;
   console.log(config);
 }
@@ -52,10 +51,10 @@ else
   config.appname = process.env.appname || "Trello2LaTeX";
   config.port = process.env.PORT || 8000; //server port
   config.domain = process.env.domain;
+  config.domainredirect = process.env.domain;
   config.key = process.env.key;
   config.secret = process.env.secret;
   config.redirectsecure = true;
-  config.domainredirect = config.domain;
   console.log(config);
 }
 
@@ -75,6 +74,7 @@ app.use(logger('dev'));
 app.param(function(name, fn){
   if (fn instanceof RegExp) {
     return function(req, res, next, val){
+      var captures;
       var captures;
       if (captures = fn.exec(String(val))) {
         req.params[name] = captures;
