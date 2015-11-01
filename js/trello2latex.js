@@ -11,14 +11,14 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
   //add YAML template data
   u = JSON.parse(u);
   //parse captions data
-  var lines = u.captions.split(/\r?\n/);
+  /*var lines = u.captions.split(/\r?\n/);
   console.log(lines);
   u.captionlist = { };
   lines.forEach(function(line) {
     var id = line.split(/ /i)[0];
     var caption = line.substring(id.length + 1);
     u.captionlist[id] = caption;
-  });
+  });*/
 
   console.log(u);
   //oauth data

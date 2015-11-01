@@ -450,23 +450,14 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
                                     name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
                                     friendlyname: caption, id: attach.id });
 
-            //get caption, if existing
-            async.each(Object.keys(u.captionlist), function(key, cb1) {
-              //if (u.captionlist.hasOwnProperty(key)) {
-                if (key == attach.id) { caption = u.captionlist[key]; cb1(); }
-                else { cb1(); }
-              //} else { cb1(); }
-            }, function() {
-              //get card cover using cr.idAttachmentCover
-              if (attach.id == cr.idAttachmentCover)
-              {
-                console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
-                card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                      name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                      friendlyname: caption, id: attach.id };
-                cbattach();
-              } else { cbattach(); }
-            });
+            if (attach.id == cr.idAttachmentCover)
+            {
+              console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
+              card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
+                                       name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
+                                       friendlyname: caption, id: attach.id };
+              cbattach();
+            } else { cbattach(); }
           }
           else { cbattach(); }
         });
