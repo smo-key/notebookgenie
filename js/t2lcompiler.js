@@ -5,6 +5,8 @@ var rmrf = require("rimraf");
 var mu = require('mutex'); //NOTE change name to mu_tex
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
+var s = require("string");
+var pandoc = require('pdc');
 
 /*** FUNCTIONS ***/
 var multiplicand = 75; //start creating pdf at five plus this
@@ -31,7 +33,6 @@ function zipdir(dir, base, zipfile, cb) {
   });
 }
 
-
 function compilepass(pass, passes, tmp, cb) {
   console.log("COMPILE LATEX PASS " + pass + "! ---------");
   var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
@@ -52,6 +53,19 @@ function compilepass(pass, passes, tmp, cb) {
       if (pass > passes) { cb(code, false); return; } //return ok
       else { compilepass(pass, passes, tmp, cb); return; } //recursivize
     }
+  });
+}
+
+
+function parsemarkdown(markdown, callback)
+{
+  //FIXME replace # with ##, ## with ###, etc.
+
+  pandoc(markdown, 'markdown', 'latex', function(err, result) {
+    if (err)
+      throw err;
+
+    callback(result);
   });
 }
 
@@ -135,6 +149,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
   var iint = 0;
   var cur = 0;
   var max = raw.lists.length;
+  var frontmatterlatex = "";
   if (!isselect)
   {
     console.log("NOT BEING SELECTIVE!");
@@ -144,6 +159,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         //get list
         var i = iint;
         ++iint;
+
         var list = { };
         list.cards = [ ];
         list.name = li.name;
@@ -161,15 +177,50 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
           });
         }, function(err1) {
           sortlist(i, list, function(list) {
-            board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-            console.log("DONE WITH LIST " + l.id);
-            b.lists.push(list);
-            cardcallback();
+
+            if (list.name.trim() == "Trello2LaTeX Front Matter")
+            {
+              //This is our front matter!
+              console.warn("WE HAVE FRONT MATTER!");
+
+              //Add each card in the front matter to a LaTeX string
+              //(This must be done in the order the cards are placed, so we do it after sorting).
+
+              async.each(li.cards, function(c, cb5) {
+                buildcard(c, board, odata, u, i, j++, function(card, k) {
+                  console.log(card);
+                  var name = card.name;
+                  var desc = card.desc;
+
+                  parsemarkdown("#" + name + "\n\n" + desc, function(latex)
+                  {
+                    frontmatterlatex += latex + "\n";
+                    cb5();
+                  });
+                });
+              }, function(err2)
+              {
+                board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+                console.log("DONE WITH SPECIAL LIST " + l.id);
+                cardcallback();
+              });
+            }
+            else
+            {
+              //Regular card
+              board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+              console.log("DONE WITH LIST " + l.id);
+              b.lists.push(list);
+              cardcallback();
+            }
           });
         });
+
+
       });
     },
     function(err2) {
+      b.frontmatter = frontmatterlatex;
       console.log("DONE WITH BOARD!");
       listcallback(b, board);
     });
@@ -196,6 +247,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         });
       }, function(done) {
         b.lists.push(list);
+        b.frontmatter = frontmatterlatex;
         console.log("DONE WITH BOARD!");
         listcallback(b, board);
       });

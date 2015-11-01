@@ -216,6 +216,13 @@ item | A checklist item
 item.name | `My Checklist Item`
 item.checked | `true` or `false`
 
+#### Getting front matter
+
+If a list called `Trello2LaTeX Front Matter` exists in the board, the list will not be rendered, but the LaTeX form of the list
+will be available as `b.frontmatter`. Cards placed in the list will render as sections and the description to each card will also render as LaTeX.
+
+Try creating this list on your board to try it out! All features of standard markdown are supported. This feature is only available when the entire board is built.
+
 #User API
 User-defined variables allows the user to set the values for use in the TeX file.  These variables are read in JSON format from `template.yml`, given to the user, and the result is then passed to the TeX file.
 
