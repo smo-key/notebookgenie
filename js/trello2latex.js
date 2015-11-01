@@ -48,7 +48,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
     compiler.preparefs3(tmp, board, b, function(b, board) {
     compiler.getmembers(tmp, board, b, raw, function(b, board) {
       console.log("START GET ALL LISTS!");
-    compiler.getlists(tmp, board, b, odata, u, raw, isselect, function(b, board) {
+    compiler.getlists(tmp, board, b, odata, u, raw, isselect, cardlist, function(b, board) {
       console.log("GOT ALL LISTS!!!");
     compiler.sortlists(b, function(b) {
     compiler.getotherdata(b, raw, board, function(b) {

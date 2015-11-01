@@ -129,7 +129,7 @@ exports.getmembers = function(tmp, board, b, raw, cb) {
   }, function(e) { console.log(e); cb(b, board); });
 }
 
-exports.getlists = function(tmp, board, b, odata, u, raw, isselect, listcallback) {
+exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, listcallback) {
   console.log("GET LISTS");
   b.lists = [ ];
   var iint = 0;
@@ -174,30 +174,32 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, listcallback
       listcallback(b, board);
     });
   }
-//        else {
-//          console.log("BEING SELECTIVE!");
-//          //selecting cards now by cardlist
-//          var list = { };
-//          list.cards = [ ];
-//          list.name = "Cards";
-//          list.autoselect = true;
-//          list.pos = 1;
-//          var max = cardlist.length;
-//          var cur = 0;
-//          async.eachSeries(cardlist, function(cid, cb) {
-//            //FUTURE test if type is by URL or UID
-//            util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-//              buildcard(c, board, odata, u, function(card) {
-//                list.cards.push(card);
-//                board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-//                cb();
-//              });
-//            });
-//          }, function(done) {
-//            b.lists.push(list);
-//            listcallback();
-//          });
-//        }
+    else {
+      console.log("BEING SELECTIVE!");
+      //selecting cards now by cardlist
+      var list = { };
+      list.cards = [ ];
+      list.name = "Cards";
+      list.autoselect = true;
+      list.pos = 1;
+      var max = cardlist.length;
+      var cur = 0;
+      async.eachSeries(cardlist, function(cid, cb) {
+        //FUTURE test if type is by URL or UID
+        util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
+          buildcard(c, board, odata, u, 0, iint++, function(card, k) {
+            list.cards.push(card);
+            console.log(c.id + " PUSH!");
+            board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+            cb();
+          });
+        });
+      }, function(done) {
+        b.lists.push(list);
+        console.log("DONE WITH BOARD!");
+        listcallback(b, board);
+      });
+    }
 }
 
 exports.sortlists = function(b, cb) {
