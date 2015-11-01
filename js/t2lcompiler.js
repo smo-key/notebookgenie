@@ -192,9 +192,9 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                   var name = card.name;
                   var desc = card.desc;
 
-                  parsemarkdown("#" + name + "\n\n" + desc, function(latex)
+                  parsemarkdown("#" + name + "\n" + desc, function(latex)
                   {
-                    frontmatterlatex += latex + "\n";
+                    frontmatterlatex += latex + "\\\\";
                     cb5();
                   });
                 });
