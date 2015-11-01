@@ -17,9 +17,11 @@ var http = require("http"),
     async = require('async'),
     EventEmitter = require('events').EventEmitter,
     mu = require('mu2'),
+    date = require("./js/date.js"),
     cookieparser = require('cookie-parser');
 
 //initialize renderer
+var startDate = util.converttime(new Date().toISOString());
 var app = express();
 var router = express.Router();
 var server = require('http').Server(app);
@@ -137,6 +139,7 @@ io.on('connection', function (socket) {
       appurl: config.domain,
       isupdatable: true,
       id: null,
+      startdate: startDate,
       redirectsecure: config.redirectsecure,
       building: exports.stache.building,
       built: exports.stache.built
@@ -152,6 +155,7 @@ io.on('connection', function (socket) {
         appurl: config.domain,
         isupdatable: true,
         id: null,
+        startdate: startDate,
         redirectsecure: config.redirectsecure,
         building: exports.stache.building,
         built: exports.stache.built
@@ -169,6 +173,7 @@ io.on('connection', function (socket) {
             isupdatable: true,
             redirectsecure: config.redirectsecure,
             id: board.id,
+            startdate: startDate,
             board: board,
             errortext: "The board failed to build due to an error." +
               (util.isnull(board.errormessage) ? "<hr>" + board.errormessage : "")
@@ -210,6 +215,7 @@ app.get('/login', function (req, res) {
     appurl: config.domain,
     isupdatable: false,
     id: null,
+    startdate: startDate,
     redirectsecure: config.redirectsecure,
     year: new Date().getFullYear().toString(),
     partials: {
@@ -285,6 +291,7 @@ app.get('/build/start', function(req, res){
       appurl: config.domain,
       isupdatable: false,
       user: data.user,
+      startdate: startDate,
       redirectsecure: config.redirectsecure,
       year: new Date().getFullYear().toString(),
       partials: {
@@ -369,6 +376,7 @@ app.get('/build/', function(req, res){
     isupdatable: false,
     boards: user.boards,
     user: user.user,
+    startdate: startDate,
     redirectsecure: config.redirectsecure,
     wide: true,
     year: new Date().getFullYear().toString(),
@@ -568,6 +576,7 @@ app.get('/build/custom', function(req, res) {
             isupdatable: false,
             cards: data.allcards,
             wide: true,
+            startdate: startDate,
             redirectsecure: config.redirectsecure,
             year: new Date().getFullYear().toString(),
             partials: {
@@ -637,6 +646,7 @@ app.get('/build/:id', function(req, res){
         status: "info",
         year: new Date().getFullYear().toString(),
         redirectsecure: config.redirectsecure,
+        startdate: startDate,
         partials: {
           main: "build",
           helpbutton: 'helpbutton',
@@ -664,6 +674,7 @@ app.get('/build/:id', function(req, res){
         isupdatable: true,
         board: board,
         id: board.id,
+        startdate: startDate,
         alertstatus: stat,
         alerttext: message,
         errortext: etext,
@@ -703,6 +714,7 @@ app.get('/', function (req, res) {
     appurl: config.domain,
     isupdatable: true,
     id: null,
+    startdate: startDate,
     building: exports.stache.building,
     built: exports.stache.built,
     queuecount: queuecount,
@@ -734,6 +746,7 @@ app.use(function(req, res) {
     appurl: config.domain + ":" + config.port,
     isupdatable: false,
     id: null,
+    startdate: startDate,
     errorcode: "404",
     errortext: "NOT FOUND",
     date: new Date().toJSON(),
@@ -754,6 +767,7 @@ app.use(function(err, req, res, next) {
     applicationkey: config.key,
     isupdatable: false,
     id: null,
+    startdate: startDate,
     errorcode: "500",
     errortext: "INTERNAL SERVER ERROR",
     stack: err.stack,
