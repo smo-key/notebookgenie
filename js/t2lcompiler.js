@@ -59,8 +59,6 @@ function compilepass(pass, passes, tmp, cb) {
 
 function parsemarkdown(markdown, callback)
 {
-  //FIXME replace # with ##, ## with ###, etc.
-
   pandoc(markdown, 'markdown', 'latex', function(err, result) {
     if (err)
       throw err;
@@ -169,7 +167,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         //get all cards in list
         var j = 0;
         async.each(li.cards, function(c, cb4) {
-          buildcard(c, board, odata, u, i, j++, function(card, k) {
+          buildcard(c, board, odata, u, i, j++, true, function(card, k) {
             console.log(card);
             console.log(i + " " + k + " " + c.id + " PUSH!");
             list.cards.push(card);
@@ -187,14 +185,15 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
               //(This must be done in the order the cards are placed, so we do it after sorting).
 
               async.each(li.cards, function(c, cb5) {
-                buildcard(c, board, odata, u, i, j++, function(card, k) {
+                //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
+                buildcard(c, board, odata, u, i, j++, false, function(card, k) {
                   console.log(card);
                   var name = card.name;
                   var desc = card.desc;
 
                   parsemarkdown("#" + name + "\n" + desc, function(latex)
                   {
-                    frontmatterlatex += latex + "\\\\";
+                    frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
                     cb5();
                   });
                 });
@@ -238,7 +237,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       async.eachSeries(cardlist, function(cid, cb) {
         //FUTURE test if type is by URL or UID
         util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-          buildcard(c, board, odata, u, 0, iint++, function(card, k) {
+          buildcard(c, board, odata, u, 0, iint++, true, function(card, k) {
             list.cards.push(card);
             console.log(c.id + " PUSH!");
             board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
@@ -268,7 +267,7 @@ exports.getotherdata = function(b, raw, board, cb) {
   //raw.labelNames -> b.labels
   b.labels = raw.labelNames;
   //raw.description -> b.description
-  b.desc = util.mark(raw.desc);
+  b.desc = util.mark(raw.desc, true);
   //data from board
   b.title = board.title;
   b.org = { };
@@ -402,7 +401,7 @@ exports.publish = function(tmp, board, cb) {
 
 /*** CARD COMPILER ***/
 
-function buildcard(c, board, odata, u, i, j, finalcallback) {
+function buildcard(c, board, odata, u, i, j, mark, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
 
@@ -410,7 +409,7 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
   //get card
     var card = { };
     card.name = cr.name;
-    card.desc = util.mark(cr.desc.trim());
+    card.desc = util.mark(cr.desc.trim(), mark);
     card.lastmodified = cr.dateLastActivity;
     card.due = util.converttime(cr.due); //TODO friendly time format
     card.pos = cr.pos;
@@ -471,11 +470,11 @@ function getchecklists(c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      var it = { name: util.mark(item.name), pos: item.pos, checked: checked };
+      var it = { name: util.mark(item.name, true), pos: item.pos, checked: checked };
       items.push(it);
       cb2();
     }, function() {
-      card.checklists.push({ name: util.mark(c.name), pos: c.pos, items: items.sortByProp('pos') });
+      card.checklists.push({ name: util.mark(c.name, true), pos: c.pos, items: items.sortByProp('pos') });
       cb1();
     });
   }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(card); });
@@ -586,7 +585,7 @@ function getcomments(c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        action.text = util.mark(act.data.text);
+        action.text = util.mark(act.data.text, true);
         action.date = util.converttime(act.date);
         action.author = { };
         action.author.id = act.memberCreator.id;
