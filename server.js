@@ -64,6 +64,7 @@ else
 //WIPE TEMP DIRECTORY
 if (fs.existsSync("tmp/"))
 {
+  console.log("WIPING TEMP DIRECTORY");
   rmrf.sync("tmp/");
   console.log("WIPED TEMP DIRECTORY");
 }
