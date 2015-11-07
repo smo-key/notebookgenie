@@ -18,7 +18,8 @@ var http = require("http"),
     EventEmitter = require('events').EventEmitter,
     mu = require('mu2'),
     date = require("./js/date.js"),
-    cookieparser = require('cookie-parser');
+    cookieparser = require('cookie-parser'),
+    rmrf = require("rimraf");
 
 //initialize renderer
 var startDate = util.converttime(new Date().toISOString());
@@ -59,6 +60,16 @@ else
   config.redirectsecure = true;
   console.log(config);
 }
+
+//WIPE TEMP DIRECTORY
+fs.exists("tmp/", function(exists) {
+  if (exists)
+  {
+    rmrf("tmp/", function() {
+
+    });
+  }
+});
 
 exports.stache = {
   building: null,
