@@ -62,14 +62,11 @@ else
 }
 
 //WIPE TEMP DIRECTORY
-fs.exists("tmp/", function(exists) {
-  if (exists)
-  {
-    rmrf("tmp/", function() {
-
-    });
-  }
-});
+if (fs.existsSync("tmp/"))
+{
+  rmrf.sync("tmp/");
+  console.log("WIPED TEMP DIRECTORY");
+}
 
 exports.stache = {
   building: null,
