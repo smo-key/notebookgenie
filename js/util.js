@@ -358,7 +358,6 @@ exports.mark = function mark(str, parsemarkdown, cb)
     }
   });
 }
-
 /*exports.mark = function mark(str) {
   var parsemarkdown = true;  //FIXME for now forced to true!
   if (parsemarkdown && !isnull(str)) {
