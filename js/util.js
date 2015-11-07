@@ -347,7 +347,7 @@ exports.converttime = function converttime(time) {
 
 exports.mark = function mark(str, parsemarkdown, cb)
 {
-  pandoc(str, 'markdown', 'latex', function(err, result) {
+  pandoc(str, 'markdown_github', 'latex', function(err, result) {
     if (err)
     {
       cb(str);
