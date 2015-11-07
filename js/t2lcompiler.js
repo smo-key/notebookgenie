@@ -615,3 +615,4 @@ function sortlist(i, list, cb) {
   if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
   cb(list);
 }
+
