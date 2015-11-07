@@ -8,6 +8,9 @@ var OAuth = require('oauth').OAuth;
 var t2t = require("./trello2latex.js");
 var svr = require("../server.js");
 var date = require("./date.js");
+var pandoc = require('pdc');
+var Sync = require("sync");
+
 //
 //var marked = require("marked");
 //marked.setOptions({
@@ -342,15 +345,18 @@ exports.converttime = function converttime(time) {
  }
 }
 
-exports.mark = function mark(str, parsemarkdown) {
-  if (parsemarkdown && !isnull(str)) {
-    // place the @ character in front of a literal char
-    return str.replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}') //urls
-    .replace(/\*\*(.*)\*\*/igm, '@!{@!\\bf $1@!}') //bold face
-    .replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}') //italics
-    .replace(/(@!{@!\\emph @!})|(@!{@!\\bf @!})/igm, '') //remove nulls
-  }
-  else { return str; }
+exports.mark = function mark(str, parsemarkdown, cb)
+{
+  pandoc(str, 'markdown', 'latex', function(err, result) {
+    if (err)
+    {
+      cb(str);
+    }
+    else
+    {
+      cb(result);
+    }
+  });
 }
 
 Array.prototype.sortByProp = function(p){

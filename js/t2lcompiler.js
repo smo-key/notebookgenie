@@ -6,7 +6,6 @@ var mu = require('mutex'); //NOTE change name to mu_tex
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
 var s = require("string");
-var pandoc = require('pdc');
 
 /*** FUNCTIONS ***/
 var multiplicand = 75; //start creating pdf at five plus this
@@ -53,17 +52,6 @@ function compilepass(pass, passes, tmp, cb) {
       if (pass > passes) { cb(code, false); return; } //return ok
       else { compilepass(pass, passes, tmp, cb); return; } //recursivize
     }
-  });
-}
-
-
-function parsemarkdown(markdown, callback)
-{
-  pandoc(markdown, 'markdown', 'latex', function(err, result) {
-    if (err)
-      throw err;
-
-    callback(result);
   });
 }
 
@@ -191,7 +179,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                   var name = card.name;
                   var desc = card.desc;
 
-                  parsemarkdown("#" + name + "\n" + desc, function(latex)
+                  util.mark("#" + name + "\n" + desc, true, function(latex)
                   {
                     frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
                     cb5();
@@ -262,24 +250,27 @@ exports.sortlists = function(b, cb) {
 
 exports.getotherdata = function(b, raw, board, cb) {
   console.log("GET OTHER!");
-  //raw.url -> b.url
-  b.url = raw.shortUrl;
-  //raw.labelNames -> b.labels
-  b.labels = raw.labelNames;
-  //raw.description -> b.description
-  b.desc = util.mark(raw.desc, true);
-  //data from board
-  b.title = board.title;
-  b.org = { };
-  b.org.url = board.orgurl;
-  b.org.name = board.org;
-  if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
-  else { b.org.isorg = true; }
-  b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
+  util.mark(raw.desc, true, function(mk1)
+  {
+    //raw.url -> b.url
+    b.url = raw.shortUrl;
+    //raw.labelNames -> b.labels
+    b.labels = raw.labelNames;
+    //raw.description -> b.description
+    //data from board
+    b.desc = mk1;
+    b.title = board.title;
+    b.org = { };
+    b.org.url = board.orgurl;
+    b.org.name = board.org;
+    if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
+    else { b.org.isorg = true; }
+    b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
 
-  //TODO get additional data from org (image, etc.)
+    //TODO get additional data from org (image, etc.)
 
-  cb(b);
+    cb(b);
+  });
 }
 
 exports.flushprogress = function(b, board, cb) {
@@ -406,31 +397,34 @@ function buildcard(c, board, odata, u, i, j, mark, finalcallback) {
   var tmp = "tmp/" + board.id + "/";
 
   util.trello("/cards/" + c.id + "?actions=commentCard,addAttachmentToCard,deleteAttachmentFromCard&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url&attachments=true&membersVoted=true&membersVoted_fields=fullName,initials,username,url&checklists=all&members=true&member_fields=fullName,initials,username,url", board.auth, odata, function(e, cr) {
-  //get card
+    //get card
     var card = { };
     card.name = cr.name;
-    card.desc = util.mark(cr.desc.trim(), mark);
-    card.lastmodified = cr.dateLastActivity;
-    card.due = util.converttime(cr.due); //TODO friendly time format
-    card.pos = cr.pos;
-    card.url = cr.url;
+    util.mark(cr.desc.trim(), mark, function(mk1)
+    {
+      card.desc = mk1;
+      card.lastmodified = cr.dateLastActivity;
+      card.due = util.converttime(cr.due); //TODO friendly time format
+      card.pos = cr.pos;
+      card.url = cr.url;
 
-    //cr.labels.forEach(function(label) {
-      //TODO is some LaTeX-friendly parsing missing here?
-    //});
-    card.attachments = [ ];
-    card.attachmentcover = null;
-    console.log(i + " " + j + " BEGIN CARD GET!");
+      //cr.labels.forEach(function(label) {
+        //TODO is some LaTeX-friendly parsing missing here?
+      //});
+      card.attachments = [ ];
+      card.attachmentcover = null;
+      console.log(i + " " + j + " BEGIN CARD GET!");
 
-    getmembers(c, u, i, j, card, cr, function(card) {
-    getvotes(c, u, i, j, card, cr, function(card) {
-      console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-    getchecklists(c, u, i, j, card, cr, function(card) {
-      console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-    getattachments(c, u, i, j, card, cr, tmp, function(card) {
-    getcomments(c, u, i, j, card, cr, function(card) {
-      console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-    });});});});});
+      getmembers(c, u, i, j, card, cr, function(card) {
+      getvotes(c, u, i, j, card, cr, function(card) {
+        console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+      getchecklists(c, u, i, j, card, cr, function(card) {
+        console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+      getattachments(c, u, i, j, card, cr, tmp, function(card) {
+      getcomments(c, u, i, j, card, cr, function(card) {
+        console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+      });});});});});
+    });
   });
 }
 
@@ -470,12 +464,18 @@ function getchecklists(c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      var it = { name: util.mark(item.name, true), pos: item.pos, checked: checked };
-      items.push(it);
-      cb2();
+      util.mark(item.name, true, function(mk2)
+      {
+        var it = { name: mk2, pos: item.pos, checked: checked };
+        items.push(it);
+        cb2();
+      });
     }, function() {
-      card.checklists.push({ name: util.mark(c.name, true), pos: c.pos, items: items.sortByProp('pos') });
-      cb1();
+      util.mark(c.name, true, function(mk1)
+      {
+        card.checklists.push({ name: mk1, pos: c.pos, items: items.sortByProp('pos') });
+        cb1();
+      });
     });
   }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(card); });
 }
@@ -585,17 +585,20 @@ function getcomments(c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        action.text = util.mark(act.data.text, true);
-        action.date = util.converttime(act.date);
-        action.author = { };
-        action.author.id = act.memberCreator.id;
-        action.author.avatar = "img/" + act.memberCreator.id + ".png";
-        action.author.name = act.memberCreator.fullName;
-        action.author.initials = act.memberCreator.initials;
-        action.author.username = act.memberCreator.username;
-        action.author.url = act.memberCreator.url;
-        card.comments.push(action);
-        cb1();
+        util.mark(act.data.text, true, function(mk1)
+        {
+          action.text = mk1.trim() + "\\\\";
+          action.date = util.converttime(act.date);
+          action.author = { };
+          action.author.id = act.memberCreator.id;
+          action.author.avatar = "img/" + act.memberCreator.id + ".png";
+          action.author.name = act.memberCreator.fullName;
+          action.author.initials = act.memberCreator.initials;
+          action.author.username = act.memberCreator.username;
+          action.author.url = act.memberCreator.url;
+          card.comments.push(action);
+          cb1();
+        });
       }
     }
   }, function(done) {
