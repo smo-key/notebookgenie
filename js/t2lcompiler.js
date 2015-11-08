@@ -155,7 +155,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         //get all cards in list
         var j = 0;
         async.each(li.cards, function(c, cb4) {
-          buildcard(c, board, odata, u, i, j++, true, function(card, k) {
+          buildcard(c, board, odata, u, i, j++, function(card, k) {
             console.log(card);
             console.log(i + " " + k + " " + c.id + " PUSH!");
             list.cards.push(card);
@@ -174,12 +174,12 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
 
               async.each(li.cards, function(c, cb5) {
                 //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
-                buildcard(c, board, odata, u, i, j++, false, function(card, k) {
+                buildcard(c, board, odata, u, i, j++, function(card, k) {
                   console.log(card);
                   var name = card.name;
                   var desc = card.desc;
 
-                  util.mark("#" + name + "\n" + desc, true, function(latex)
+                  util.mark("#" + name + "\n" + desc, tmp, function(latex)
                   {
                     frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
                     cb5();
@@ -225,7 +225,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       async.eachSeries(cardlist, function(cid, cb) {
         //FUTURE test if type is by URL or UID
         util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-          buildcard(c, board, odata, u, 0, iint++, true, function(card, k) {
+          buildcard(c, board, odata, u, 0, iint++, function(card, k) {
             list.cards.push(card);
             console.log(c.id + " PUSH!");
             board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
@@ -248,9 +248,9 @@ exports.sortlists = function(b, cb) {
   cb(b);
 }
 
-exports.getotherdata = function(b, raw, board, cb) {
+exports.getotherdata = function(tmp, b, raw, board, cb) {
   console.log("GET OTHER!");
-  util.mark(raw.desc, true, function(mk1)
+  util.mark(raw.desc, tmp, function(mk1)
   {
     //raw.url -> b.url
     b.url = raw.shortUrl;
@@ -392,7 +392,7 @@ exports.publish = function(tmp, board, cb) {
 
 /*** CARD COMPILER ***/
 
-function buildcard(c, board, odata, u, i, j, mark, finalcallback) {
+function buildcard(c, board, odata, u, i, j, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
 
@@ -400,7 +400,7 @@ function buildcard(c, board, odata, u, i, j, mark, finalcallback) {
     //get card
     var card = { };
     card.name = cr.name;
-    util.mark(cr.desc.trim(), mark, function(mk1)
+    util.mark(cr.desc.trim(), tmp, function(mk1)
     {
       card.desc = mk1;
       card.lastmodified = cr.dateLastActivity;
@@ -418,10 +418,10 @@ function buildcard(c, board, odata, u, i, j, mark, finalcallback) {
       getmembers(c, u, i, j, card, cr, function(card) {
       getvotes(c, u, i, j, card, cr, function(card) {
         console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-      getchecklists(c, u, i, j, card, cr, function(card) {
+      getchecklists(tmp, c, u, i, j, card, cr, function(card) {
         console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
       getattachments(c, u, i, j, card, cr, tmp, function(card) {
-      getcomments(c, u, i, j, card, cr, function(card) {
+      getcomments(tmp, c, u, i, j, card, cr, function(card) {
         console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
       });});});});});
     });
@@ -455,7 +455,7 @@ function getvotes(c, u, i, j, card, cr, cb) {
   } else { cb(card); }
 }
 
-function getchecklists(c, u, i, j, card, cr, cb) {
+function getchecklists(tmp, c, u, i, j, card, cr, cb) {
   //get checklists
   card.checklists = [ ];
   console.log(i + " " + j + " GET CHECKLISTS");
@@ -464,14 +464,14 @@ function getchecklists(c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      util.mark(item.name, true, function(mk2)
+      util.mark(item.name, tmp, function(mk2)
       {
         var it = { name: mk2, pos: item.pos, checked: checked };
         items.push(it);
         cb2();
       });
     }, function() {
-      util.mark(c.name, true, function(mk1)
+      util.mark(c.name, tmp, function(mk1)
       {
         card.checklists.push({ name: mk1, pos: c.pos, items: items.sortByProp('pos') });
         cb1();
@@ -533,7 +533,7 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
   });
 }
 
-function getcomments(c, u, i, j, card, cr, cb) {
+function getcomments(tmp, c, u, i, j, card, cr, cb) {
   //get actions
   card.comments = [ ];
   console.log(i + " " + j + " GET COMMENTS");
@@ -585,7 +585,7 @@ function getcomments(c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        util.mark(act.data.text, true, function(mk1)
+        util.mark(act.data.text, tmp, function(mk1)
         {
           action.text = mk1.trim() + "\\\\";
           action.date = util.converttime(act.date);

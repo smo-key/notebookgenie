@@ -9,7 +9,8 @@ var t2t = require("./trello2latex.js");
 var svr = require("../server.js");
 var date = require("./date.js");
 var pandoc = require('pdc');
-var Sync = require("sync");
+var async = require('async');
+var uuid = require('node-uuid');
 
 //
 //var marked = require("marked");
@@ -69,7 +70,6 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
-        console.log("FILE END WRITE! - " + filename);
         cb(true);
       });
     });
@@ -85,9 +85,11 @@ exports.downloadfile = function downloadfile(url, filename, cb)
         cb(true);
       });
     }).on('error', function(e) {
+      console.log(e);
       throw e;
     });
     } catch(e) {
+      console.log(e);
       console.log("FILE ERROR! - " + filename);
       cb(false);
     }
@@ -345,7 +347,7 @@ exports.converttime = function converttime(time) {
  }
 }
 
-exports.mark = function mark(str, parsemarkdown, cb)
+exports.mark = function mark(str, tmpdir, cb)
 {
   pandoc(str, 'markdown', 'latex', function(err, result) {
     if (err)
@@ -354,7 +356,55 @@ exports.mark = function mark(str, parsemarkdown, cb)
     }
     else
     {
-      cb(result);
+      //check for \includegraphics{url} and download url, then replace download with location on disk
+      var final = result;
+      var regex = /\\includegraphics{\s*((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)\s*}/ig;
+      var match;
+
+      async.whilst(
+        function() { match = regex.exec(final); return !isnull(match); },
+        function(cbloop) {
+          // matched text: match[0]
+          // match start: match.index
+          // capturing group n: match[n]
+          if (!isnull(match))
+          {
+            var url = match[1];
+
+            console.log(">>>>>>>>>>> GOT URL MATCH!")
+            console.log(match[0]);
+            console.log(url);
+
+            if (!isnull(url))
+            {
+              var local = "fm-" + uuid.v1();
+              var ext = url.match(/\.(png|jpe?g|eps)$/ig)[0];
+              if (!isnull(local) && !isnull(ext))
+              {
+                console.log("DOWNLOAD FILE!");
+                exports.downloadfile(url, tmpdir + "dl/" + local + ext, function(exists)
+                {
+                  console.log("FILE DOWNLOADED!");
+                  if (exists)
+                  {
+                    console.log("FILE PROCESSED!");
+                    //FIXME this is not generic...
+                    final = final.replace(match[0], "\\includegraphics[height=0.4\\linewidth]{dl/" + local + "}");
+                    console.log(final);
+                    cbloop();
+                  }
+                  else { cbloop(); }
+                });
+              }
+              else { cbloop(); }
+            }
+            else { cbloop(); }
+          }
+        },
+        function(err) {
+          cb(final);
+        }
+      )
     }
   });
 }

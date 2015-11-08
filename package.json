@@ -17,6 +17,7 @@
     "mustache": "^2.2.0",
     "mutex": "git://github.com/smo-key/MuTeX.git",
     "nimble": "0.0.2",
+    "node-uuid": "^1.4.3",
     "oauth": "^0.9.12",
     "pdc": "^0.2.2",
     "rimraf": "^2.3.1",

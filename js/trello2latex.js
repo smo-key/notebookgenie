@@ -51,7 +51,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
     compiler.getlists(tmp, board, b, odata, u, raw, isselect, cardlist, function(b, board) {
       console.log("GOT ALL LISTS!!!");
     compiler.sortlists(b, function(b) {
-    compiler.getotherdata(b, raw, board, function(b) {
+    compiler.getotherdata(tmp, b, raw, board, function(b) {
     compiler.flushprogress(b, board, function(b, board) {
     compiler.gettemplate(tmp, board, b, templatedir, function(b, board) {
     compiler.muparse(b, u, templatedir, tmp, board, function(b, board) {
