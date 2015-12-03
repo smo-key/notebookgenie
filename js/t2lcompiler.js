@@ -181,7 +181,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                 //Add each card in the front matter to a LaTeX string
                 //(This must be done in the order the cards are placed, so we do it after sorting).
 
-                async.each(li.cards, function(c, cb5) {
+                async.eachSeries(li.cards, function(c, cb5) {
                   //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
                   buildcard(c, board, odata, u, i, j++, function(card, k) {
                     console.log(card);
