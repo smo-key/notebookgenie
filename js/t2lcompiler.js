@@ -153,57 +153,69 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         list.autoselect = false;
 
         //get all cards in list
-        var j = 0;
-        async.each(li.cards, function(c, cb4) {
-          buildcard(c, board, odata, u, i, j++, function(card, k) {
-            console.log(card);
-            console.log(i + " " + k + " " + c.id + " PUSH!");
-            list.cards.push(card);
-            cb4();
-          });
-        }, function(err1) {
-          sortlist(i, list, function(list) {
-
-            if (list.name.trim() == "Trello2LaTeX Front Matter")
-            {
-              //This is our front matter!
-              console.warn("WE HAVE FRONT MATTER!");
-
-              //Add each card in the front matter to a LaTeX string
-              //(This must be done in the order the cards are placed, so we do it after sorting).
-
-              async.each(li.cards, function(c, cb5) {
-                //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
-                buildcard(c, board, odata, u, i, j++, function(card, k) {
-                  console.log(card);
-                  var name = card.name;
-                  var desc = card.desc;
-
-                  util.mark("#" + name + "\n" + desc, tmp, function(latex)
-                  {
-                    frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
-                    cb5();
-                  });
-                });
-              }, function(err2)
+        if (!s(list.name).startsWith("!"))
+        {
+          var j = 0;
+          async.each(li.cards, function(c, cb4) {
+            buildcard(c, board, odata, u, i, j++, function(card, k) {
+              console.log(card);
+              console.log(i + " " + k + " " + c.id + " PUSH!");
+              if (card != null)
               {
+                list.cards.push(card);
+                cb4();
+              }
+              else
+              {
+                cb4();
+              }
+            });
+          }, function(err1) {
+            sortlist(i, list, function(list) {
+
+              if (list.name.trim() == "Trello2LaTeX Front Matter")
+              {
+                //This is our front matter!
+                console.warn("WE HAVE FRONT MATTER!");
+
+                //Add each card in the front matter to a LaTeX string
+                //(This must be done in the order the cards are placed, so we do it after sorting).
+
+                async.each(li.cards, function(c, cb5) {
+                  //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
+                  buildcard(c, board, odata, u, i, j++, function(card, k) {
+                    console.log(card);
+                    var name = card.name;
+                    var desc = card.desc;
+
+                    util.mark("#" + name + "\n" + desc, tmp, function(latex)
+                    {
+                      frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
+                      cb5();
+                    });
+                  });
+                }, function(err2)
+                {
+                  board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+                  console.log("DONE WITH SPECIAL LIST " + l.id);
+                  cardcallback();
+                });
+              }
+              else
+              {
+                //Regular card
                 board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-                console.log("DONE WITH SPECIAL LIST " + l.id);
+                console.log("DONE WITH LIST " + l.id);
+                b.lists.push(list);
                 cardcallback();
-              });
-            }
-            else
-            {
-              //Regular card
-              board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-              console.log("DONE WITH LIST " + l.id);
-              b.lists.push(list);
-              cardcallback();
-            }
+              }
+            });
           });
-        });
-
-
+        }
+        else
+        {
+          cardcallback();
+        }
       });
     },
     function(err2) {
@@ -226,10 +238,18 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         //FUTURE test if type is by URL or UID
         util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
           buildcard(c, board, odata, u, 0, iint++, function(card, k) {
-            list.cards.push(card);
-            console.log(c.id + " PUSH!");
-            board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
-            cb();
+            if (card != null)
+            {
+              list.cards.push(card);
+              console.log(c.id + " PUSH!");
+              board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+              cb();
+            }
+            else
+            {
+              board = util.updateprogress(JSON.stringify(board), ((++cur)/max*multiplicand) + 5);
+              cb();
+            }
           });
         });
       }, function(done) {
@@ -400,31 +420,38 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
     //get card
     var card = { };
     card.name = cr.name;
-    util.mark(cr.desc.trim(), tmp, function(mk1)
+    if (!s(card.name).startsWith("!"))
     {
-      card.desc = mk1;
-      card.lastmodified = cr.dateLastActivity;
-      card.due = util.converttime(cr.due); //TODO friendly time format
-      card.pos = cr.pos;
-      card.url = cr.url;
+      util.mark(cr.desc.trim(), tmp, function(mk1)
+      {
+        card.desc = mk1;
+        card.lastmodified = cr.dateLastActivity;
+        card.due = util.converttime(cr.due); //TODO friendly time format
+        card.pos = cr.pos;
+        card.url = cr.url;
 
-      //cr.labels.forEach(function(label) {
-        //TODO is some LaTeX-friendly parsing missing here?
-      //});
-      card.attachments = [ ];
-      card.attachmentcover = null;
-      console.log(i + " " + j + " BEGIN CARD GET!");
+        //cr.labels.forEach(function(label) {
+          //TODO is some LaTeX-friendly parsing missing here?
+        //});
+        card.attachments = [ ];
+        card.attachmentcover = null;
+        console.log(i + " " + j + " BEGIN CARD GET!");
 
-      getmembers(c, u, i, j, card, cr, function(card) {
-      getvotes(c, u, i, j, card, cr, function(card) {
-        console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-      getchecklists(tmp, c, u, i, j, card, cr, function(card) {
-        console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-      getattachments(c, u, i, j, card, cr, tmp, function(card) {
-      getcomments(tmp, c, u, i, j, card, cr, function(card) {
-        console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-      });});});});});
-    });
+        getmembers(c, u, i, j, card, cr, function(card) {
+        getvotes(c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+        getchecklists(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+        getattachments(c, u, i, j, card, cr, tmp, function(card) {
+        getcomments(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+        });});});});});
+      });
+    }
+    else
+    {
+       finalcallback(null, j);
+    }
   });
 }
 
