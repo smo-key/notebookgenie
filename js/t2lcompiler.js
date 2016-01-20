@@ -420,37 +420,45 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
     //get card
     var card = { };
     card.name = cr.name;
-    if (!s(card.name).startsWith("!"))
+    if (!util.isnull(card.name))
     {
-      util.mark(cr.desc.trim(), tmp, function(mk1)
+      if (!s(card.name).startsWith("!"))
       {
-        card.desc = mk1;
-        card.lastmodified = cr.dateLastActivity;
-        card.due = util.converttime(cr.due); //TODO friendly time format
-        card.pos = cr.pos;
-        card.url = cr.url;
+        util.mark(cr.desc.trim(), tmp, function(mk1)
+        {
+          card.desc = mk1;
+          card.lastmodified = cr.dateLastActivity;
+          card.due = util.converttime(cr.due); //TODO friendly time format
+          card.pos = cr.pos;
+          card.url = cr.url;
 
-        //cr.labels.forEach(function(label) {
-          //TODO is some LaTeX-friendly parsing missing here?
-        //});
-        card.attachments = [ ];
-        card.attachmentcover = null;
-        console.log(i + " " + j + " BEGIN CARD GET!");
+          //cr.labels.forEach(function(label) {
+            //TODO is some LaTeX-friendly parsing missing here?
+          //});
+          card.attachments = [ ];
+          card.attachmentcover = null;
+          console.log(i + " " + j + " BEGIN CARD GET!");
 
-        getmembers(c, u, i, j, card, cr, function(card) {
-        getvotes(c, u, i, j, card, cr, function(card) {
-          console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-        getchecklists(tmp, c, u, i, j, card, cr, function(card) {
-          console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-        getattachments(c, u, i, j, card, cr, tmp, function(card) {
-        getcomments(tmp, c, u, i, j, card, cr, function(card) {
-          console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-        });});});});});
-      });
+          getmembers(c, u, i, j, card, cr, function(card) {
+          getvotes(c, u, i, j, card, cr, function(card) {
+            console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+          getchecklists(tmp, c, u, i, j, card, cr, function(card) {
+            console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+          getattachments(c, u, i, j, card, cr, tmp, function(card) {
+          getcomments(tmp, c, u, i, j, card, cr, function(card) {
+            console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+          });});});});});
+        });
+      }
+      else
+      {
+         finalcallback(null, j);
+      }
     }
     else
     {
-       finalcallback(null, j);
+      //Trello just gave us garbage
+      finalcallback(null, j);
     }
   });
 }
