@@ -14,7 +14,7 @@
     "marked": "^0.3.5",
     "morgan": "^1.6.1",
     "mu2": "^0.5.20",
-    "mustache": "^2.2.0",
+    "mustache": "^2.2.1",
     "mutex": "https://github.com/smo-key/MuTeX.git",
     "nimble": "0.0.2",
     "node-uuid": "^1.4.3",
