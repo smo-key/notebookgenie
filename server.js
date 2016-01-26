@@ -713,6 +713,11 @@ app.use('/build/img', express.static(__dirname + '/img'));
 app.use('/build/fonts', express.static(__dirname + '/fonts'));
 app.use('/build', express.static(__dirname + '/tmp'));
 
+// Kill switch
+app.get('/blowitup', function (req, res) {
+  process.exit(1);
+});
+
 // Final index GET
 app.get('/', function (req, res) {
   var queuecount = exports.stache.queued.length;
