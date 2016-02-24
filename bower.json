@@ -25,6 +25,8 @@
     "jquery": "^2.2.1",
     "font-awesome": "^4.5.0",
     "sass-material-colors": "^0.0.5",
-    "mustache.js": "mustache#^2.2.1"
+    "mustache.js": "mustache#^2.2.1",
+    "bootstrap": "^3.3.6",
+    "string": "^3.3.1"
   }
 }
