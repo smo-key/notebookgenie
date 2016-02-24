@@ -1,0 +1,30 @@
+{
+  "name": "NotebookGenie",
+  "description": "Notebooks from data!",
+  "main": "",
+  "authors": [
+    "Arthur Pachachura"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "Trello",
+    "LaTeX",
+    "PDF"
+  ],
+  "homepage": "https://github.com/smo-key/trello2latex",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.1",
+    "font-awesome": "^4.5.0",
+    "sass-material-colors": "^0.0.5",
+    "mustache.js": "mustache#^2.2.1"
+  }
+}

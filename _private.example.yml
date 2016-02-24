@@ -1,0 +1,14 @@
+##### Trello2LaTeX EXAMPLE Server Configuration File #####
+
+#private key for the Trello API
+key: yourdeveloperkey
+#private secret for the Trello API
+secret: yourdevelopersecret
+#App name
+appname: Trello2LaTeX
+#App domain
+domain: http://localhost
+#Public redirect (include port, if applicable)
+domainredirect: http://localhost:8888
+#Internal port
+port: 8888

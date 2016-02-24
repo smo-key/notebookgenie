@@ -1,0 +1,27 @@
+{
+  "name": "NotebookGenie",
+  "version": "0.2.0",
+  "description": "Notebooks from data!",
+  "main": "",
+  "dependencies": {
+	
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smo-key/trello2latex.git"
+  },
+  "keywords": [
+    "Trello",
+    "LaTeX",
+    "PDF"
+  ],
+  "author": "Arthur Pachachura",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smo-key/trello2latex/issues"
+  },
+  "homepage": "https://github.com/smo-key/trello2latex"
+}
