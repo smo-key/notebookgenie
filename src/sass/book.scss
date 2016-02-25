@@ -59,6 +59,7 @@
 /** CONSTANTS **/
 $pica: 12pt;                                //picas per point
 $page-margin: 2 * $pica;                    //page margin
+$cover-margin-bottom: 2*$pica;              //bottom pargin for items on cover page
 $cover-logo-width: 32*$pica;                //cover logo image width
 
 $color-purple: #9b26b6;
@@ -107,13 +108,26 @@ page.cover .name1
 {
   font-size: 30pt;
 }
+page.cover .name2
+{
+  padding-bottom: 10*$pica;
+}
+page.cover .bottom
+{
+  position: fixed;
+  bottom: $cover-margin-bottom;
+  left: 0;
+  right: 0;
+}
+page.cover .bottom .time-built,
+page.cover .bottom .time-mod
+{
+  margin: 0;
+  padding: 0;
+}
 
+/** MAIN **/
 body
 {
   font-family: "helvetica-lt";
-}
-
-h1
-{
-  font-family: "std-700";
 }
