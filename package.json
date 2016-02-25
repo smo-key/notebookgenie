@@ -16,6 +16,8 @@
     "gulp-uglify": "^1.5.3",
     "gulp-usemin": "^0.3.21",
     "gulp-wrap": "^0.11.0",
+    "open": "0.0.5",
+    "prince": "^1.1.7",
     "wkhtmltopdf": "^0.1.5"
   },
   "scripts": {
