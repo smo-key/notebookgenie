@@ -3,11 +3,11 @@ var open = require('open');
 
 prince()
   .inputs("dist/index.html")
-  .output("out.pdf")
+  .output("dist/index.pdf")
   .execute()
   .then(function () {
     console.log("[Prince] Success!");
-    open('file://' + __dirname + "/out.pdf", function (err) {
+    open('file://' + __dirname + "/dist/index.pdf", function (err) {
       if (err) throw err;
       console.log("[Open] Browser window closed.");
     });
