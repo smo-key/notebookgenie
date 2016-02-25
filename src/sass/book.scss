@@ -59,6 +59,7 @@
 /** CONSTANTS **/
 $pica: 12pt;                                //picas per point
 $page-margin: 2 * $pica;                    //page margin
+$page-bleed: auto;                          //page bleed
 $cover-margin-bottom: 2*$pica;              //bottom pargin for items on cover page
 $cover-logo-width: 32*$pica;                //cover logo image width
 
@@ -83,6 +84,7 @@ $color-purple: #9b26b6;
   size: US-Letter portrait;
   padding: $page-margin;
   margin: 0;
+  bleed: $page-bleed;
 }
 
 /** COVER **/
@@ -98,6 +100,10 @@ page.cover
   display: block;
   text-align: center;
   @include vertical-center(48*$pica);
+}
+page.blank
+{
+  page: blank;
 }
 page.cover img.logo
 {
