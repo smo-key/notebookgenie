@@ -39,6 +39,7 @@ gulp.task('compress', function() {
 });
 gulp.task('copy', function () {
   gulp.src('src/img/**/*').pipe(gulp.dest('dist/img'));
+  gulp.src('src/fonts/**/*').pipe(gulp.dest('dist/fonts'));
   gulp.src('lib/**/*').pipe(gulp.dest('dist/lib'));
 });
 
@@ -50,6 +51,7 @@ gulp.task('watch', function () {
     gulp.watch('./src/*.html', ['mustache']);
     gulp.watch('./src/js/**/*.js', ['compress']);
     gulp.watch('./src/img/**/*', ['copy']);
+    gulp.watch('./src/fonts/**/*', ['copy']);
     gulp.watch('./lib/**/*', ['copy']);
     gulp.watch('./libc/**/*', ['copy']);
 });

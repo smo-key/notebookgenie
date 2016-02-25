@@ -1,7 +1,119 @@
 @import "lib/sass-material-colors/sass/sass-material-colors";
 @import "lib/sass-material-colors/sass/sass-material-colors-classes";
 
+/** FONTS **/
+
+@font-face {
+  font-family: "helvetica";
+  src: url(../fonts/HelveticaNeue-Medium.otf);
+}
+@font-face {
+  font-family: "helvetica-lt";
+  src: url(../fonts/HelveticaNeue-Light.otf);
+}
+@font-face {
+  font-family: "std-900";
+  src: url(../fonts/HelveticaNeueLTStd-Blk.otf);
+}
+@font-face {
+  font-family: "std-700";
+  src: url(../fonts/HelveticaNeueLTStd-Md.otf);
+}
+@font-face {
+  font-family: "std-500";
+  src: url(../fonts/HelveticaNeueLTStd-Roman.otf);
+}
+@font-face {
+  font-family: "std-300";
+  src: url(../fonts/HelveticaNeueLTStd-Lt.otf);
+}
+@font-face {
+  font-family: "std-100";
+  src: url(../fonts/HelveticaNeueLTStd-Th.otf);
+}
+.font-900
+{
+  font-family: "std-900";
+}
+.font-700
+{
+  font-family: "std-700";
+}
+.font-500
+{
+  font-family: "std-500";
+}
+.font-300
+{
+  font-family: "std-300";
+}
+.font-100
+{
+  font-family: "std-100";
+}
+.italic
+{
+  font-style: italic;
+}
+
+/** CONSTANTS **/
+$pica: 12pt;                                //picas per point
+$page-margin: 2 * $pica;                    //page margin
+$cover-logo-width: 32*$pica;                //cover logo image width
+
+$color-purple: #9b26b6;
+
+/** HELPER FUNCTIONS **/
+@mixin vertical-center($height) {
+  position: absolute;
+  margin: auto;
+  text-align: center;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  vertical-align: middle;
+  height: $height;
+}
+
+/**** PAGED MEDIA ****/
+@page
+{
+  size: US-Letter portrait;
+  padding: $page-margin;
+  margin: 0;
+}
+
+/** COVER **/
+@page cover
+{
+  background-color: $color-purple;
+}
+page.cover
+{
+  page: cover;
+  color: white;
+  width: 100%;
+  display: block;
+  text-align: center;
+  @include vertical-center(48*$pica);
+}
+page.cover img.logo
+{
+  width: $cover-logo-width;
+  padding-bottom: 8*$pica;
+}
+page.cover .name1
+{
+  font-size: 30pt;
+}
+
 body
 {
+  font-family: "helvetica-lt";
+}
 
+h1
+{
+  font-family: "std-700";
 }

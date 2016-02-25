@@ -4,6 +4,7 @@ var open = require('open');
 prince()
   .inputs("dist/index.html")
   .output("dist/index.pdf")
+  .option("verbose", true)
   .execute()
   .then(function () {
     console.log("[Prince] Success!");
