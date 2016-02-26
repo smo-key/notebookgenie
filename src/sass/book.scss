@@ -66,7 +66,7 @@ $header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;      //header margi
 $footer-margin-bottom: 1.5*$pica;                                 //page number extra space
 $footer-width: 2.5*$pica;                                         //page number width
 $title-margin: 0*$pica -$page-padding-x 0*$pica -$page-padding-x; //title margin
-$title-padding: 2*$pica $page-padding-x 0 $page-padding-x;        //page padding
+$title-padding: 2*$pica $page-padding-x 0.25*$pica $page-padding-x;        //page padding
 $cover-margin-bottom: 2*$pica;                                    //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                      //cover logo image width
 $color-purple: #9b26b6;                                           //base purple color
@@ -94,6 +94,7 @@ $color-purple: #9b26b6;                                           //base purple 
 }
 page
 {
+  page-break-before: always;
   height: 100%;
   width: 100%;
   display: block;
@@ -131,6 +132,10 @@ page.reset
 {
   counter-reset: page 0;
 }
+page.full
+{
+  page: full;
+}
 page.cover img.logo
 {
   width: $cover-logo-width;
@@ -162,14 +167,14 @@ page.cover .bottom .time-mod
 page.frontmatter .title
 {
   background-color: $color-purple;
-  position: fixed;
+  position: relative;
   color: white;
   font-family: "std-700";
   top: 0;
   height: 4*$pica;
   left: 0;
   right: 0;
-  margin: $title-margin;
+  margin: -2*$pica -2*$pica 0 -2*$pica;
   padding: $title-padding;
   font-size: 36pt;
 }
@@ -179,6 +184,13 @@ page.frontmatter .title
   display: block;
   page-break-before: always; // force a page break
 }
+
+/** TABLE OF CONTENTS **/
+/** TO INSERT LATER
+ul.toc a::after {
+  content: leader('.') target-counter(attr(href), page);
+}
+**/
 
 /** HEADERS / FOOTERS **/
 @mixin footer-page-number() {
@@ -222,6 +234,12 @@ page.frontmatter .title
     @include footer-page-number();
   }
 }
+@page full
+{
+  height: 100%;
+  display: block;
+  page-break-before: always; // force a page break
+}
 @page blank {
   @top-left {
     content: normal;
@@ -254,5 +272,5 @@ page.frontmatter .title
 /** MAIN **/
 body
 {
-  font-family: "helvetica-lt";
+  font-family: "helvetica";
 }
