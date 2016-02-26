@@ -57,16 +57,19 @@
 }
 
 /** CONSTANTS **/
-$pica: 12pt;                                            //picas per point
-$page-margin: 4*$pica 0*$pica;                          //page margin
-$page-padding: 0*$pica 2*$pica;                         //page padding
-$page-bleed: auto;                                      //page bleed
-$header-margin: 3pt 2*$pica 0*$pica 2*$pica;            //header margin
-$footer-margin-bottom: 1.5*$pica;                       //page number extra bottom space
-$footer-width: 2.5*$pica;                               //page number width
-$cover-margin-bottom: 2*$pica;                          //bottom pargin for items on cover page
-$cover-logo-width: 32*$pica;                            //cover logo image width
-$color-purple: #9b26b6;                                 //base purple color
+$pica: 12pt;                                                      //picas per point
+$page-margin: 4*$pica 0*$pica;                                    //page margin
+$page-padding-x: 2*$pica;                                         //page padding (x)
+$page-padding: 0*$pica $page-padding-x;                           //page padding
+$page-bleed: auto;                                                //page bleed
+$header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;      //header margin
+$footer-margin-bottom: 1.5*$pica;                                 //page number extra space
+$footer-width: 2.5*$pica;                                         //page number width
+$title-margin: 0*$pica -$page-padding-x 0*$pica -$page-padding-x; //title margin
+$title-padding: 2*$pica $page-padding-x 0 $page-padding-x;        //page padding
+$cover-margin-bottom: 2*$pica;                                    //bottom margin for items on cover page
+$cover-logo-width: 32*$pica;                                      //cover logo image width
+$color-purple: #9b26b6;                                           //base purple color
 
 /** HELPER FUNCTIONS **/
 @mixin vertical-center($height) {
@@ -153,6 +156,22 @@ page.cover .bottom .time-mod
 {
   margin: 0;
   padding: 0;
+}
+
+/** FRONT MATTER **/
+page.frontmatter .title
+{
+  background-color: $color-purple;
+  position: fixed;
+  color: white;
+  font-family: "std-700";
+  top: 0;
+  height: 4*$pica;
+  left: 0;
+  right: 0;
+  margin: $title-margin;
+  padding: $title-padding;
+  font-size: 36pt;
 }
 
 /** PAGE BREAKS **/
