@@ -12,6 +12,9 @@
  * Date: 2016-02-22T19:07Z
  */
 
+//THIS VERSION SHIMMED FOR PRINCEXML - one line modified
+//Search for "SHIM"
+
 (function( global, factory ) {
 
 	if ( typeof module === "object" && typeof module.exports === "object" ) {
