@@ -186,11 +186,32 @@ page.frontmatter .title
 }
 
 /** TABLE OF CONTENTS **/
-/** TO INSERT LATER
-ul.toc a::after {
-  content: leader('.') target-counter(attr(href), page);
+.toc-inner
+{
+  margin: 0 0 0 -3*$pica;
 }
-**/
+.toc-inner li
+{
+  list-style: none;
+}
+.toc-inner li a
+{
+  color: black;
+  text-decoration: none;
+  font-size: 14pt;
+}
+.toc-inner li.l2
+{
+  margin-top: 3pt;
+}
+.toc-inner li.l2 a
+{
+  padding-left: 2*$pica;
+  font-family: "std-300";
+}
+.toc-inner li a::after {
+  content: leader(' ') target-counter(attr(href), page);
+}
 
 /** HEADERS / FOOTERS **/
 @mixin footer-page-number() {
