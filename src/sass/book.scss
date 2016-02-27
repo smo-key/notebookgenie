@@ -142,9 +142,9 @@ page.reset
 {
   counter-reset: page 0;
 }
-page.full
+page.doublebreak
 {
-  page: full;
+  page-break-before: right;
 }
 page.cover img.logo
 {
@@ -294,12 +294,6 @@ span.url {
   @bottom-right {
     @include footer-page-number();
   }
-}
-@page full
-{
-  height: 100%;
-  display: block;
-  page-break-before: always; // force a page break
 }
 @page blank {
   @top-left {
