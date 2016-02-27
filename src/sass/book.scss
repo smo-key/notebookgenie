@@ -65,13 +65,15 @@
 $pica: 12pt;                                                        //picas per point
 $page-margin: 4*$pica 0*$pica;                                      //page margin
 $page-padding-x: 2*$pica;                                           //page padding (x)
-$page-padding: 0*$pica $page-padding-x;                             //page padding
+$page-padding-y: 2*$pica;                                           //page padding (y)
+$page-padding: $page-padding-y $page-padding-x;                     //page padding
 $page-bleed: auto;                                                  //page bleed
 $header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;        //header margin
 $footer-margin-bottom: 1.5*$pica;                                   //page number extra space
 $footer-width: 2.5*$pica;                                           //page number width
-$title-margin: -2*$pica -2*$pica 1*$pica -2*$pica;                  //title margin
-$title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x; //page padding
+$title-margin-top: -$page-padding-y - (2*$pica);                    //title margin (top)
+$title-margin: $title-margin-top -2*$pica 1*$pica -2*$pica;         //title margin
+$title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x;    //page padding
 $toc-leader-string: ' ';                                            //table of contents leader
 $cover-margin-bottom: 0*$pica;                                      //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                        //cover logo image width
@@ -268,6 +270,7 @@ span.url {
   font-size: 12pt;
   width: 100%;
   padding: $header-margin;
+  height: 4*$pica;
 }
 @page:left {
   @top-left {
