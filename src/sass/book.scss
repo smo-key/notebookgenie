@@ -196,15 +196,23 @@ page .title
   margin: $title-margin;
   padding: $title-padding;
 }
+
+page.list .title h1
+{
+  prince-bookmark-level: 1;
+  string-set: list-name content();
+}
 page.toc .title h1,
-page.list .title h1,
 page.frontmatter .title h1
 {
   prince-bookmark-level: 1;
+  string-set: list-name '';
+  string-set: card-name '';
 }
 page.card .title h1
 {
   prince-bookmark-level: 2;
+  string-set: card-name content();
 }
 page .title h1
 {
@@ -303,7 +311,7 @@ span.url {
 }
 @page:left {
   @top-left {
-    content: "Name of Card, if applicable";
+    content: string(card-name);
     @include header-top();
     width: 60%;
     font-family: "std-700";
@@ -319,7 +327,7 @@ span.url {
 }
 @page:right {
   @top-left {
-    content: "Name of List / Front Matter";
+    content: string(list-name);
     @include header-top();
     width: 60%;
     font-family: "std-700";
