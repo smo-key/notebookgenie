@@ -1,38 +1,43 @@
 /** Table of Contents **/
 
-var ToC =
-  "<nav role='navigation' class='toc-inner'>" +
-    "<ul>";
+function populateToC()
+{
+  var ToC =
+    "<nav role='navigation' class='toc-inner'>" +
+      "<ul>";
 
-var newLine, el, title, link;
+  var newLine, el, title, link;
 
-$("page .title h1").each(function() {
+  $("page .title h1").each(function() {
 
-  el = $(this);
-  title = el.text();
-  link = "#" + el.attr("id");
-  parent = el.parent();
-  classString = "";
+    el = $(this);
+    title = el.text();
+    link = "#" + el.attr("id");
+    parent = el.parent().parent();
+    classString = "";
 
-  if (parent.hasClass("ignore"))
-    return;
-  else if (parent.hasClass("l1"))
-    classString = "l1";
-  else if (parent.hasClass("l2"))
-    classString = "l2";
+    if (parent.hasClass("toc"))
+      return;
+    else if (parent.hasClass("list") || parent.hasClass("frontmatter"))
+      classString = "l1";
+    else if (parent.hasClass("card"))
+      classString = "l2";
 
-  newLine =
-    "<li class='" + classString + "'>" +
-      "<a href='" + link + "'>" +
-        title +
-      "</a>" +
-    "</li>";
+    newLine =
+      "<li class='" + classString + "'>" +
+        "<a href='" + link + "'>" +
+          title +
+        "</a>" +
+      "</li>";
 
-  ToC += newLine;
-});
+    ToC += newLine;
+  });
 
-ToC +=
-   "</ul>" +
-  "</nav>";
+  ToC +=
+     "</ul>" +
+    "</nav>";
 
-$(".toc").append(ToC);
+  $(".toc").append(ToC);
+}
+
+populateToC();

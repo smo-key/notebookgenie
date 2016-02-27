@@ -134,6 +134,13 @@ page.empty
   display: block;
   height: 100%;
 }
+page.list
+{
+  display: block;
+  height: 100%;
+  page: list;
+  color: white;
+}
 page.clear
 {
   color: white;
@@ -174,7 +181,7 @@ page.cover .bottom .time-mod
 }
 
 /** TITLES **/
-page.frontmatter .title
+page .title
 {
   background-color: $color-purple;
   position: relative;
@@ -187,19 +194,19 @@ page.frontmatter .title
   margin: $title-margin;
   padding: $title-padding;
 }
-page.frontmatter .title.ignore h1
+page .title.ignore h1
 {
   prince-bookmark-level: 1;
 }
-page.frontmatter .title.l1 h1
+page .title.l1 h1
 {
   prince-bookmark-level: 1;
 }
-page.frontmatter .title.l2 h1
+page .title.l2 h1
 {
   prince-bookmark-level: 2;
 }
-page.frontmatter .title h1
+page .title h1
 {
   font-size: $title-font-size;
 }
@@ -210,13 +217,13 @@ page.frontmatter .title h1
   page-break-before: always; // force a page break
 }
 
-/** TABLE OF CONTENTS **/
+/** TABLE OF CONTENTS AND LISTS **/
 
-.toc-inner
+.toc-inner, .list-cards-inner
 {
   margin: 0;
 }
-.toc-inner li
+.toc-inner li, .list-cards-inner li
 {
   list-style: none;
 }
@@ -225,6 +232,12 @@ page.frontmatter .title h1
   color: black;
   text-decoration: none;
   font-size: 14pt;
+}
+.list-cards-inner li a
+{
+  color: white;
+  text-decoration: none;
+  font-size: 16pt;
 }
 .toc-inner li.l2
 {
@@ -239,7 +252,7 @@ page.frontmatter .title h1
   padding-left: 2*$pica;
   font-family: "std-300";
 }
-.toc-inner li a::after {
+.toc-inner li a::after, .list-cards-inner li a::after {
   content: leader($toc-leader-string) target-counter(attr(href), page);
 }
 
@@ -322,6 +335,9 @@ span.url {
   @bottom-right {
     content: normal;
   }
+}
+@page list {
+  background-color: $color-purple;
 }
 
 /** MAIN **/
