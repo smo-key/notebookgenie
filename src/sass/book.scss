@@ -24,6 +24,11 @@
   src: url(../fonts/HelveticaNeueLTStd-Roman.otf);
 }
 @font-face {
+  font-family: "std-500";
+  font-weight: bold;
+  src: url(../fonts/HelveticaNeueLTStd-Md.otf);
+}
+@font-face {
   font-family: "std-300";
   src: url(../fonts/HelveticaNeueLTStd-Lt.otf);
 }
@@ -65,7 +70,7 @@ $page-bleed: auto;                                                //page bleed
 $header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;      //header margin
 $footer-margin-bottom: 1.5*$pica;                                 //page number extra space
 $footer-width: 2.5*$pica;                                         //page number width
-$title-margin: 0*$pica -$page-padding-x 0*$pica -$page-padding-x; //title margin
+$title-margin: -2*$pica -2*$pica 1*$pica -2*$pica; //title margin
 $title-padding: 2*$pica $page-padding-x 0.25*$pica $page-padding-x;        //page padding
 $cover-margin-bottom: 2*$pica;                                    //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                      //cover logo image width
@@ -174,7 +179,7 @@ page.frontmatter .title
   height: 4*$pica;
   left: 0;
   right: 0;
-  margin: -2*$pica -2*$pica 0 -2*$pica;
+  margin: $title-margin;
   padding: $title-padding;
   font-size: 36pt;
 }
@@ -202,7 +207,11 @@ page.frontmatter .title
 }
 .toc-inner li.l2
 {
-  margin-top: 3pt;
+  margin-top: 0pt;
+}
+.toc-inner li.l1 a
+{
+  font-family: "std-700";
 }
 .toc-inner li.l2 a
 {
@@ -293,5 +302,6 @@ page.frontmatter .title
 /** MAIN **/
 body
 {
-  font-family: "helvetica";
+  font-family: "std-500";
+  font-size: 14pt;
 }
