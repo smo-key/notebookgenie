@@ -2,6 +2,8 @@ var prince = require("prince");
 var open = require('open');
 var fs = require('fs');
 
+var SHOULD_OPEN = true;
+
 fs.exists('dist/prince.log', function(exists) {
   if(exists) {
     console.log('[Prince] Deleting old log...');
@@ -29,10 +31,13 @@ function render()
         if (err) throw err;
         console.log(data);
         console.log("[Prince] Success!");
-        open('file://' + __dirname + "/dist/index.pdf", function (err) {
-          if (err) throw err;
-          console.log("[Open] Browser window closed.");
-        });
+        if (SHOULD_OPEN)
+        {
+          open('file://' + __dirname + "/dist/index.pdf", function (err) {
+            if (err) throw err;
+            console.log("[Open] Browser window closed.");
+          });
+        }
       });
     }, function (error) {
       console.log("[Prince] ERROR: ", util.inspect(error));

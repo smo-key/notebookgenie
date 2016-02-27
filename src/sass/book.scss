@@ -62,19 +62,20 @@
 }
 
 /** CONSTANTS **/
-$pica: 12pt;                                                      //picas per point
-$page-margin: 4*$pica 0*$pica;                                    //page margin
-$page-padding-x: 2*$pica;                                         //page padding (x)
-$page-padding: 0*$pica $page-padding-x;                           //page padding
-$page-bleed: auto;                                                //page bleed
-$header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;      //header margin
-$footer-margin-bottom: 1.5*$pica;                                 //page number extra space
-$footer-width: 2.5*$pica;                                         //page number width
-$title-margin: -2*$pica -2*$pica 1*$pica -2*$pica; //title margin
-$title-padding: 2*$pica $page-padding-x 0.25*$pica $page-padding-x;        //page padding
-$cover-margin-bottom: 2*$pica;                                    //bottom margin for items on cover page
-$cover-logo-width: 32*$pica;                                      //cover logo image width
-$color-purple: #9b26b6;                                           //base purple color
+$pica: 12pt;                                                        //picas per point
+$page-margin: 4*$pica 0*$pica;                                      //page margin
+$page-padding-x: 2*$pica;                                           //page padding (x)
+$page-padding: 0*$pica $page-padding-x;                             //page padding
+$page-bleed: auto;                                                  //page bleed
+$header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;        //header margin
+$footer-margin-bottom: 1.5*$pica;                                   //page number extra space
+$footer-width: 2.5*$pica;                                           //page number width
+$title-margin: -2*$pica -2*$pica 1*$pica -2*$pica;                  //title margin
+$title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x; //page padding
+$toc-leader-string: ' ';                                            //table of contents leader
+$cover-margin-bottom: 0*$pica;                                      //bottom margin for items on cover page
+$cover-logo-width: 32*$pica;                                        //cover logo image width
+$color-purple: #9b26b6;                                             //base purple color
 
 /** HELPER FUNCTIONS **/
 @mixin vertical-center($height) {
@@ -168,7 +169,7 @@ page.cover .bottom .time-mod
   padding: 0;
 }
 
-/** FRONT MATTER **/
+/** TITLES **/
 page.frontmatter .title
 {
   background-color: $color-purple;
@@ -176,12 +177,24 @@ page.frontmatter .title
   color: white;
   font-family: "std-700";
   top: 0;
-  height: 4*$pica;
+  height: 3*$pica;
   left: 0;
   right: 0;
   margin: $title-margin;
   padding: $title-padding;
   font-size: 36pt;
+}
+page.frontmatter .title.ignore h1
+{
+  prince-bookmark-level: 1;
+}
+page.frontmatter .title.l1 h1
+{
+  prince-bookmark-level: 1;
+}
+page.frontmatter .title.l2 h1
+{
+  prince-bookmark-level: 2;
 }
 
 /** PAGE BREAKS **/
@@ -191,6 +204,7 @@ page.frontmatter .title
 }
 
 /** TABLE OF CONTENTS **/
+
 .toc-inner
 {
   margin: 0 0 0 -3*$pica;
@@ -219,8 +233,11 @@ page.frontmatter .title
   font-family: "std-300";
 }
 .toc-inner li a::after {
-  content: leader(' ') target-counter(attr(href), page);
+  content: leader($toc-leader-string) target-counter(attr(href), page);
 }
+
+/** BIOS **/
+@import 'bios';
 
 /** HEADERS / FOOTERS **/
 @mixin footer-page-number() {
@@ -305,3 +322,13 @@ body
   font-family: "std-500";
   font-size: 14pt;
 }
+*
+{
+  margin: 0;
+}
+h1 { prince-bookmark-level: none }
+h2 { prince-bookmark-level: none }
+h3 { prince-bookmark-level: none }
+h4 { prince-bookmark-level: none }
+h5 { prince-bookmark-level: none }
+h6 { prince-bookmark-level: none }

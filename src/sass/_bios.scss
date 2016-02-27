@@ -1,0 +1,30 @@
+$bio-pic-width: 22%;
+$bio-section-width: 100% - $bio-pic-width - 3%;
+
+.frontmatter .bio
+{
+  width: 100%;
+}
+.frontmatter .bio .bio-pic
+{
+  float: right;
+  width: $bio-pic-width;
+  padding-top: 1*$pica;
+}
+.frontmatter .bio .bio-section
+{
+  float: left;
+  width: $bio-section-width;
+}
+.frontmatter .bio .bio-section .bio-name
+{
+
+}
+.frontmatter .bio .bio-section .bio-title
+{
+
+}
+.frontmatter .bio .bio-section .bio-desc
+{
+
+}
