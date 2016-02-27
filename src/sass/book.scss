@@ -330,13 +330,22 @@ body
   font-family: "std-500";
   font-size: 14pt;
 }
-*
+*,
+.nomarg,
+page .title h1
 {
   margin: 0;
 }
-h1 { prince-bookmark-level: none }
-h2 { prince-bookmark-level: none }
-h3 { prince-bookmark-level: none }
-h4 { prince-bookmark-level: none }
-h5 { prince-bookmark-level: none }
-h6 { prince-bookmark-level: none }
+h1, h2, h3, h4, h5, h6 { prince-bookmark-level: none }
+h1
+{
+  margin: 12pt 0;
+}
+h2
+{
+  margin: 12pt 0;
+}
+h3
+{
+  margin: 12pt 0;
+}
