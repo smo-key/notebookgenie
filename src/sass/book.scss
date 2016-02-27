@@ -75,10 +75,12 @@ $title-margin-top: -$page-padding-y - (2*$pica);                    //title marg
 $title-margin: $title-margin-top -2*$pica 2*$pica -2*$pica;         //title margin
 $title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x;    //title padding
 $title-font-size: 28pt;                                             //title font size
-$title-height: 3.5*$pica;                                             //title height
+$title-height: 3.5*$pica;                                           //title height
 $toc-leader-string: ' ';                                            //table of contents leader
 $cover-margin-bottom: 0*$pica;                                      //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                        //cover logo image width
+$card-cover-margin: -$page-padding-y 0*$pica 2*$pica -2*$pica;    //card cover image margin
+$card-cover-padding: 0 4*$pica 0*$pica 0*$pica;    //card cover image margin
 $color-purple: #9b26b6;                                             //base purple color
 
 /** HELPER FUNCTIONS **/
@@ -262,6 +264,17 @@ span.url {
     prince-text-replace: '.' '.\200B'
 }
 /**
+
+/** CARDS **/
+.card .card-cover
+{
+  width: 100%;
+  height: 24*$pica;
+  background-position: center;
+  background-size: cover;
+  margin: $card-cover-margin;
+  padding: $card-cover-padding;
+}
 
 /** BIOS **/
 @import 'bios';
