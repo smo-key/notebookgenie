@@ -303,17 +303,31 @@ span.url {
 }
 @page:left {
   @top-left {
-    content: "4290 High PHidelity";
+    content: "Name of Card, if applicable";
     @include header-top();
+    width: 60%;
+    font-family: "std-700";
+  }
+  @top-right {
+    content: "Engineering Notebook 2015-2016";
+    @include header-top();
+    width: 40%;
   }
   @bottom-left {
     @include footer-page-number();
   }
 }
 @page:right {
-  @top-right {
-    content: "Engineering Notebook 2015-2016";
+  @top-left {
+    content: "Name of List / Front Matter";
     @include header-top();
+    width: 60%;
+    font-family: "std-700";
+  }
+  @top-right {
+    content: "4290 High PHidelity";
+    @include header-top();
+    width: 40%;
   }
   @bottom-right {
     @include footer-page-number();
