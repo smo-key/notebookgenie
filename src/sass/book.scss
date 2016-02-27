@@ -236,6 +236,13 @@ page.frontmatter .title.l2 h1
   content: leader($toc-leader-string) target-counter(attr(href), page);
 }
 
+/** URLS **/
+/** INSERT LATER - fix to add an invisible character after a '.' - breaks long urls
+span.url {
+    prince-text-replace: '.' '.\200B'
+}
+/**
+
 /** BIOS **/
 @import 'bios';
 
@@ -262,7 +269,6 @@ page.frontmatter .title.l2 h1
   width: 100%;
   padding: $header-margin;
 }
-
 @page:left {
   @top-left {
     content: "4290 High PHidelity";

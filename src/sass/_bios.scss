@@ -1,20 +1,27 @@
 $bio-pic-width: 22%;
 $bio-section-width: 100% - $bio-pic-width - 3%;
+$bio-section-spacing: 1 * $pica;
 
 .frontmatter .bio
 {
   width: 100%;
+  display: block;
+  clear: both; //clear float
 }
 .frontmatter .bio .bio-pic
 {
-  float: right;
+  float: left;
+  display: block;
   width: $bio-pic-width;
-  padding-top: 1*$pica;
+  padding-top: 0*$pica;
+  padding-bottom: $bio-section-spacing;
 }
 .frontmatter .bio .bio-section
 {
-  float: left;
+  float: right;
+  display: block;
   width: $bio-section-width;
+  padding-bottom: $bio-section-spacing;
 }
 .frontmatter .bio .bio-section .bio-name
 {
@@ -22,7 +29,8 @@ $bio-section-width: 100% - $bio-pic-width - 3%;
 }
 .frontmatter .bio .bio-section .bio-title
 {
-
+  font-family: "std-300";
+  margin-bottom: 1*$pica;
 }
 .frontmatter .bio .bio-section .bio-desc
 {
