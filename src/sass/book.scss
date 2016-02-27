@@ -79,8 +79,8 @@ $title-height: 3.5*$pica;                                           //title heig
 $toc-leader-string: ' ';                                            //table of contents leader
 $cover-margin-bottom: 0*$pica;                                      //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                        //cover logo image width
-$card-cover-margin: -$page-padding-y 0*$pica 2*$pica -2*$pica;    //card cover image margin
-$card-cover-padding: 0 4*$pica 0*$pica 0*$pica;    //card cover image margin
+$card-cover-margin: -$page-padding-y 0*$pica 2*$pica -2*$pica;      //card cover image margin
+$card-cover-padding: 0 4*$pica 0*$pica 0*$pica;                     //card cover image margin
 $color-purple: #9b26b6;                                             //base purple color
 
 /** HELPER FUNCTIONS **/
@@ -196,15 +196,13 @@ page .title
   margin: $title-margin;
   padding: $title-padding;
 }
-page .title.ignore h1
+page.toc .title h1,
+page.list .title h1,
+page.frontmatter .title h1
 {
   prince-bookmark-level: 1;
 }
-page .title.l1 h1
-{
-  prince-bookmark-level: 1;
-}
-page .title.l2 h1
+page.card .title h1
 {
   prince-bookmark-level: 2;
 }
