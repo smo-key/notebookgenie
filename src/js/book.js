@@ -72,4 +72,9 @@ function populateList(name)
 }
 
 populateToC();
-populateList("software");
+
+$("page.list .title h1").each(function() {
+  var el = $(this);
+  var id = el.attr("id").substring(5);
+  populateList(id);
+});
