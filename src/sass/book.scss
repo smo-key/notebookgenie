@@ -72,8 +72,10 @@ $header-margin: 3pt $page-padding-x 0*$pica $page-padding-x;        //header mar
 $footer-margin-bottom: 1.5*$pica;                                   //page number extra space
 $footer-width: 2.5*$pica;                                           //page number width
 $title-margin-top: -$page-padding-y - (2*$pica);                    //title margin (top)
-$title-margin: $title-margin-top -2*$pica 1*$pica -2*$pica;         //title margin
-$title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x;    //page padding
+$title-margin: $title-margin-top -2*$pica 2*$pica -2*$pica;         //title margin
+$title-padding: 3*$pica $page-padding-x 0*$pica $page-padding-x;    //title padding
+$title-font-size: 28pt;                                             //title font size
+$title-height: 3.5*$pica;                                             //title height
 $toc-leader-string: ' ';                                            //table of contents leader
 $cover-margin-bottom: 0*$pica;                                      //bottom margin for items on cover page
 $cover-logo-width: 32*$pica;                                        //cover logo image width
@@ -179,12 +181,11 @@ page.frontmatter .title
   color: white;
   font-family: "std-700";
   top: 0;
-  height: 3*$pica;
+  height: $title-height;
   left: 0;
   right: 0;
   margin: $title-margin;
   padding: $title-padding;
-  font-size: 36pt;
 }
 page.frontmatter .title.ignore h1
 {
@@ -197,6 +198,10 @@ page.frontmatter .title.l1 h1
 page.frontmatter .title.l2 h1
 {
   prince-bookmark-level: 2;
+}
+page.frontmatter .title h1
+{
+  font-size: $title-font-size;
 }
 
 /** PAGE BREAKS **/
