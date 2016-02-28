@@ -432,18 +432,23 @@ a
 {
   color: $color-purple;
 }
-ol
+page:not(.toc) ol
 {
   margin-left: 20pt;
 }
-ul
+page:not(.toc) ul
 {
   margin-left: 16pt;
+}
+page.list ol,
+page.list ul
+{
+  margin-left: 0;
 }
 ul li,
 ol li
 {
-  padding: 4pt 0;
+  padding: 3pt 0;
 }
 img
 {
