@@ -1,6 +1,7 @@
-var prince = require("prince");
-var open = require('open');
-var fs = require('fs');
+const prince = require("prince");
+const open = require('open');
+const fs = require('fs');
+const exec = require('child_process').exec;
 
 var SHOULD_OPEN = true;
 
@@ -32,15 +33,31 @@ function render()
         if (err) throw err;
         console.log(data);
         console.log("[Prince] Success!");
-        if (SHOULD_OPEN)
+        rmPages(function()
         {
-          open('file://' + __dirname + "/dist/index.pdf", function (err) {
-            if (err) throw err;
-            console.log("[Open] Browser window closed.");
-          });
-        }
+          if (SHOULD_OPEN)
+          {
+            open('file://' + __dirname + "/dist/output.pdf", function (err) {
+              if (err) throw err;
+              console.log("[Open] Browser window closed.");
+            });
+          }
+        });
       });
     }, function (error) {
       console.log("[Prince] ERROR: ", util.inspect(error));
     });
+}
+
+function rmPages(cb)
+{
+  console.log("[PDFToolkit] Modifying PDF...");
+  const child = exec('pdftk dist/index.pdf cat 3-end output dist/output.pdf dont_ask allow AllFeatures drop_xfa',
+    (error, stdout, stderr) => {
+    console.log(`[PDFToolkit] ${stdout}\r\n${stderr}`);
+    if (error !== null) {
+      throw error;
+    }
+    cb();
+  });
 }
