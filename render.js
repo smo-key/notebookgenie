@@ -3,7 +3,7 @@ const open = require('open');
 const fs = require('fs');
 const exec = require('child_process').exec;
 
-var SHOULD_OPEN = true;
+const SHOULD_OPEN = true;
 
 fs.exists('dist/prince.log', function(exists) {
   if(exists) {
