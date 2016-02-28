@@ -159,21 +159,16 @@
       <li>Open your robot controller app in Android Studio. Make sure you have the <code>Project</code> mode selected in the project browser window (so you can see all of the files in your project).</li>
       <li>Find your <code>settings.gradle</code> file and append the following two lines:</li>
       </ul>
-      <pre><code><span class="hljs-keyword">include</span> <span class="hljs-string">':opencv-java'</span>
-      <span class="hljs-keyword">include</span> <span class="hljs-string">':ftc-visionlib'</span>
-      </code></pre>
+      <pre><code><span class="hljs-keyword">include</span> <span class="hljs-string">':opencv-java'</span><span class="hljs-keyword">include</span> <span class="hljs-string">':ftc-visionlib'</span></code></pre>
       <ul>
       <li>Find the <code>AndroidManifest.xml</code> under your <code>ftc-robotcontroller</code> folder, sometimes named <code>sample</code> or similar.</li>
       <li>Insert the following <code>uses-permission</code> tag in the appropriate location (look at the rest of the file for context).</li>
       </ul>
-      <pre><code>&lt;uses-permission <span class="hljs-string">android:</span>name=<span class="hljs-string">"android.permission.CAMERA"</span> <span class="hljs-string">android:</span>required=<span class="hljs-string">"true"</span> /&gt;
-      </code></pre>
+      <pre><code>&lt;uses-permission <span class="hljs-string">android:</span>name=<span class="hljs-string">"android.permission.CAMERA"</span> <span class="hljs-string">android:</span>required=<span class="hljs-string">"true"</span> /&gt;</code></pre>
       <ul>
       <li>Find your <code>build.gradle</code> in the parent folder of <code>AndroidManifest.xml</code> and insert the following line under <code>dependencies</code>:</li>
       </ul>
-      <pre><code class="multiline">compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':ftc-visionlib'</span>)</span></span>
-      compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':opencv-java'</span>)</span></span>
-      </code></pre>
+      <pre><code>compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':ftc-visionlib'</span>)</span></span>compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':opencv-java'</span>)</span></span></code></pre>
       <ul>
       <li>Update Gradle configuration by pressing the green “Sync Project with Gradle Files” button in the header (this may take a minute)</li>
       <li>Copy in Vision opmodes (those that end in <code>VisionSample.java</code>, located in <code>[vision-root]/ftc-robotcontroller/src/main/java/com/qualcomm/ftcrobotcontroller/opmodes</code>) from the FTCVision directory into your opmode directory.</li>

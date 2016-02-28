@@ -411,13 +411,22 @@ code
 }
 pre code
 {
-  width: 100%;
+  left: 0;
+  right: $pica;
   display: block;
-  margin: 1*$pica 0;
-  padding: 14pt 4pt 0 4pt;
+  position: relative;
+  margin: 1*$pica 0*$pica 1*$pica 0*$pica;
+  left: 0;
+  padding: 12pt 4pt 12pt 4pt;
   color: white;
   background-color: $color-gray-dark;
   border-radius: 0;
+
+  //Word wrapping stuff
+  overflow-wrap: break-word;
+  prince-text-replace: "'" "'\200B" '"' '"\200B';
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 a
 {
