@@ -85,7 +85,7 @@ table td
   padding: 3pt;
   border: none;
 }
-table *:not(thead) tr:nth-child(odd)
+table *:not(thead) tr:nth-child(even)
 {
   background-color: $color-gray-xlight;
 }
