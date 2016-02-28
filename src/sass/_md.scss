@@ -1,0 +1,97 @@
+body
+{
+  font-family: "std-500";
+  font-size: 14pt;
+}
+*,
+.nomarg,
+page .title h1
+{
+  margin: 0;
+  padding: 0;
+}
+h1, h2, h3, h4, h5, h6 { prince-bookmark-level: none }
+h1, h2, h3, h4, h5, h6, p
+{
+  padding: 6pt 0;
+}
+code
+{
+  font-family: "Source Code Pro";
+  background-color: $color-gray-light;
+  border-radius: 2pt;
+  color: $color-gray-text;
+  padding: 2pt 4pt;
+  font-size: 90%;
+}
+pre code
+{
+  left: 0;
+  right: $pica;
+  display: block;
+  position: relative;
+  margin: 1*$pica 0*$pica 1*$pica 0*$pica;
+  left: 0;
+  padding: 12pt 4pt 12pt 4pt;
+  color: white;
+  background-color: $color-gray-dark;
+  border-radius: 0;
+
+  //Word wrapping stuff
+  overflow-wrap: break-word;
+  prince-text-replace: "'" "'\200B" '"' '"\200B';
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+a
+{
+  color: $color-purple;
+}
+page:not(.toc) ol
+{
+  margin-left: 20pt;
+}
+page:not(.toc) ul
+{
+  margin-left: 16pt;
+}
+page.list ol,
+page.list ul
+{
+  margin-left: 0;
+}
+ul li,
+ol li
+{
+  padding: 3pt 0;
+}
+img
+{
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 16*$pica;
+  margin: 0 auto;
+  display: block;
+}
+table
+{
+  margin: 12pt 0;
+  width: 100%;
+}
+table th,
+table td
+{
+  padding: 3pt;
+  border: none;
+}
+table *:not(thead) tr:nth-child(odd)
+{
+  background-color: $color-gray-xlight;
+}
+table thead tr
+{
+  padding-top: 6pt;
+  background-color: $color-gray-dark;
+  color: white;
+}
