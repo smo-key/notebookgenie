@@ -211,7 +211,498 @@
       <h1 id="notebook-genie">Notebook Genie</h1>
     </div>
 
-    <p>The 2015-2016 had a budget of $63,450. To help raise funds, we rely on grants, solicitation of funds from our family, friends and local businesses (ASK) and other fundraisers including paid Robotics Camps (SMART Camps). To help with grants, we have a documented grant process where we seek and identify sponsors to help support the team. In the past 6 years, we have not had any issues with recruiting parents to join the LASA Robotics Association.</p>
+<h1><a id="Overview_0"></a>Overview</h1>
+<p>Notebook Genie is the system that generates printable notebooks from Trello boards. The following is the templating structure created in Trello2LaTeX as outlined in the readme.</p>
+<h2><a id="Templates_5"></a>Templates</h2>
+<p>Templates give create the basic outline or format for the LaTeX document.  These tempaltes can be used standalone - simply by selecting the template when building your board, the result is a PDF - or can be used to create a basic outline that can be later edited to suit your needs.</p>
+<h3><a id="How_does_it_work_9"></a>How does it work?</h3>
+<ol>
+<li>A user goes to the Trello2LaTeX webpage and selects the template they wish to use</li>
+<li>Trello2LaTeX parses the template using Mustache and its own TeX parsing library</li>
+<li>Trello2LaTeX generates both raw LaTeX document and a PDF which a user can then download</li>
+</ol>
+<h2><a id="Templating_101_14"></a>Templating 101</h2>
+<ul>
+<li>Each template is placed into a unique folder in the /templates directory - the server will use each folder to generate a list</li>
+<li>Each template folder must contain the following elements:
+<ul>
+<li><strong>index.tex</strong>: The main LaTeX template</li>
+<li><strong>snapshot.png</strong>: Small (size to be determined) snapshot of the template</li>
+<li><strong>template.yml</strong>: Contains keys and values as settable options - these exact options will be give to the user - they will represent values in template parsing below</li>
+<li>All of its assets accessed by index.tex (e.g. include files, images, etc.) must be placed in this folder as well</li>
+</ul>
+</li>
+</ul>
+<p>For now, this process is manual and requires direct server access.  After a few successful builds, we’ll streamline this system so users can upload their own LaTeX templates.</p>
+<h3><a id="Basic_template_24"></a>Basic template</h3>
+<p>template.yml</p>
+<pre><code class="language-yaml"><span class="hljs-attribute">title</span>: <span class="hljs-string">My Awesome Title</span>
+<span class="hljs-attribute">author</span>: <span class="hljs-string">Me</span>
+</code></pre>
+<p>index.tex</p>
+<pre><code class="language-tex"><span class="hljs-command">\documentclass</span><span class="hljs-special">[</span>12pt<span class="hljs-special">]</span><span class="hljs-special">{</span>book<span class="hljs-special">}</span> <span class="hljs-comment">%set the document class - this can be whatever you want</span>
+<span class="hljs-comment">% ... any LaTeX formatting here</span>
+
+<span class="hljs-command">\begin</span><span class="hljs-special">{</span>document<span class="hljs-special">}</span>
+
+<span class="hljs-comment">% make a title page</span>
+<span class="hljs-command">\title</span><span class="hljs-special">{</span>&lt;! title !&gt;<span class="hljs-special">}</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>&lt;! author !&gt;<span class="hljs-special">}</span>
+<span class="hljs-command">\maketitle</span>
+
+<span class="hljs-command">\end</span><span class="hljs-special">{</span>document<span class="hljs-special">}</span>
+</code></pre>
+<p>The document will turn into and compile as</p>
+<pre><code class="language-tex"><span class="hljs-comment">% ...</span>
+<span class="hljs-command">\title</span><span class="hljs-special">{</span>My Awesome Title<span class="hljs-special">}</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>Me<span class="hljs-special">}</span>
+<span class="hljs-command">\maketitle</span>
+<span class="hljs-comment">% ...</span>
+</code></pre>
+<h3><a id="Using_the_boards_data_53"></a>Using the board’s data</h3>
+<p>A hard-set author and title is great and all, but let’s use the Trello board to get the title and author.</p>
+<p>index.tex</p>
+<pre><code class="language-tex"><span class="hljs-comment">% ...</span>
+<span class="hljs-command">\title</span><span class="hljs-special">{</span>&lt;! b.title !&gt;<span class="hljs-special">}</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>&lt;! b.org.name !&gt;<span class="hljs-special">}</span>
+<span class="hljs-comment">% ...</span>
+</code></pre>
+<p>If the user selected to build the Trello development board at <a href="https://trello.com/b/nC8QJJoZ/trello-development">https://trello.com/b/nC8QJJoZ/trello-development</a>, the result will be</p>
+<pre><code class="language-tex"><span class="hljs-command">\title</span><span class="hljs-special">{</span>Trello Development<span class="hljs-special">}</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>Trello Inc<span class="hljs-special">}</span>
+</code></pre>
+<h3><a id="Conditional_statements_69"></a>Conditional statements</h3>
+<p>Sometimes an if or if not statement is handy.</p>
+<pre><code class="language-tex">&lt;!* b.org.isorg !&gt; <span class="hljs-comment">% '*' implies IF statement</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>&lt;! b.org.name &gt;<span class="hljs-special">}</span>
+&lt;!/ b.org.isorg !&gt; <span class="hljs-comment">% '/' is an END of an if statement</span>
+&lt;!<span class="hljs-special">~</span> b.org.isorg !&gt; <span class="hljs-comment">% '~' implies IF NOT</span>
+<span class="hljs-command">\author</span><span class="hljs-special">{</span>Some random user<span class="hljs-special">}</span>
+&lt;!/ b.org.isorg !&gt; <span class="hljs-comment">% again closes statement</span>
+</code></pre>
+<p>For board <a href="https://trello.com/b/nC8QJJoZ/trello-development:">https://trello.com/b/nC8QJJoZ/trello-development:</a></p>
+<pre><code class="language-tex"><span class="hljs-command">\author</span><span class="hljs-special">{</span>Trello Inc<span class="hljs-special">}</span>
+</code></pre>
+<p>For board <a href="https://trello.com/b/xUxQcZQA/test-board:">https://trello.com/b/xUxQcZQA/test-board:</a></p>
+<pre><code class="language-tex"><span class="hljs-command">\author</span><span class="hljs-special">{</span>Some random user<span class="hljs-special">}</span>
+</code></pre>
+<h3><a id="Iterating_through_an_object_88"></a>Iterating through an object</h3>
+<p>Say you want to get the name of every list in the board…</p>
+<pre><code class="language-tex">&lt;!* b.lists !&gt; <span class="hljs-comment">% the '*' directive is used to loop through an object as well... if will only not enter the loop if b.lists is null, undefined, of length zero, or is a boolean set to false</span>
+&lt;! name !&gt;<span class="hljs-command">\\</span> <span class="hljs-comment">% this states... for every b.lists, get b.lists.name (we added a newline as well)</span>
+
+&lt;!/ b.lists !&gt;
+</code></pre>
+<p>Result for board <a href="https://trello.com/b/nC8QJJoZ/trello-development:">https://trello.com/b/nC8QJJoZ/trello-development:</a></p>
+<pre><code class="language-tex">Info<span class="hljs-command">\\</span>
+Ideas<span class="hljs-command">\\</span>
+Known Issues<span class="hljs-command">\\</span>
+In Progress<span class="hljs-command">\\</span>
+<span class="hljs-comment">% ...</span>
+</code></pre>
+<h3><a id="Including_other_TeX_files_104"></a>Including other TeX files</h3>
+<p>If you really want to, you can include any TeX file using the TeX native syntax: <code>\input{nameoftemplate}</code>.  Mustache will parse these the same way as it does any partial: <code>{{&gt; nameoftemplate }}</code></p>
+<h3><a id="Userdefined_variables_107"></a>User-defined variables</h3>
+<p>Sometimes it’s nice to allow the user to choose the text to display.  For example, if you want the user to choose a custom title while selecting the template, you need to add a field to <code>template.yml</code>…</p>
+<pre><code class="language-yaml"><span class="hljs-tag">mytitle</span>: { <span class="hljs-attribute">display</span>: <span class="hljs-string">"Title"</span>, <span class="hljs-attribute">type</span>: blank }
+</code></pre>
+<p>… and use it directly in the TeX file!</p>
+<pre><code class="language-tex"><span class="hljs-command">\title</span><span class="hljs-special">{</span>&lt;! mytitle !&gt;<span class="hljs-special">}</span>
+</code></pre>
+<p>You can lso use long forms, checkboxes, and selects!  For those, see the user API below.</p>
+<h3><a id="Differences_from_Mustache_118"></a>Differences from Mustache</h3>
+<ul>
+<li>Delimiters changed from <code>{{ }}</code> to <code>&lt;! !&gt;</code> to avoid awkwardness</li>
+<li>Triple Mu tags (<code>{{{ }}}</code>) disabled as there is no need to convert to HTML</li>
+<li>Normal Mu tags <code>&lt;! !&gt;</code> escape text for LaTeX compatibility rather than HTML</li>
+<li>An <code>\input{nameoftemplate}</code> acts the same way that a partial (<code>{{&gt; nameoftemplate }}</code>) does</li>
+<li>The <code>#</code> (if / iterate) command replaced with <code>*</code> to avoid problems</li>
+<li>The <code>^</code> (not) command replaced with <code>~</code> to avoid problems</li>
+</ul>
+<h1><a id="Template_API_126"></a>Template API</h1>
+<h3><a id="Board_data_128"></a>Board data</h3>
+<p>The <code>b</code> (board) object contains a collection of data retrieved from the board selected by the user.</p>
+<table>
+<thead>
+<tr>
+<th>b</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b.title</td>
+<td><code>My Board</code></td>
+</tr>
+<tr>
+<td>b.desc</td>
+<td><code>Board description goes here</code></td>
+</tr>
+<tr>
+<td>b.url</td>
+<td><code>https://trello.com/b/nC8QJJoZ/trello-development</code></td>
+</tr>
+<tr>
+<td>b.lastmodified</td>
+<td><code>2015-01-01T16:38:29.816Z</code></td>
+</tr>
+</tbody>
+</table>
+<p>A <code>b.org</code> (owner of the board) is identical if a user created the board, or if the board is owned jointly by an organization.  Use <code>b.org.isorg</code> to tell whether a user or org owns the board.</p>
+<table>
+<thead>
+<tr>
+<th><a href="http://b.org">b.org</a></th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://b.org.name">b.org.name</a></td>
+<td><code>Trello Inc</code> or <code>Arthur Pachachura</code></td>
+</tr>
+<tr>
+<td>b.org.url</td>
+<td><code>https://trello.com/trelloinc</code> or <code>https://trello.com/arthurpachachura1</code></td>
+</tr>
+<tr>
+<td>b.org.isorg</td>
+<td><code>true</code> or <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p>While Trello2LaTeX is gathering data about the board, it temporarily downloads all user avatars into the <code>img/</code> folder relative to the template.  If an avatar is not found, <code>b.members.avatar</code> will be <code>null</code>.  In these cases, use <code>b.members.initials</code> to create one.</p>
+<table>
+<thead>
+<tr>
+<th>b.members</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://b.members.name">b.members.name</a></td>
+<td><code>Some guy</code></td>
+</tr>
+<tr>
+<td>b.members.initials</td>
+<td><code>SG</code></td>
+</tr>
+<tr>
+<td>b.members.avatar</td>
+<td><code>img/538f9c01c2a21f2bbf81a610.png</code> (filename where the avatar is downloaded) or <code>null</code></td>
+</tr>
+<tr>
+<td>b.members.username</td>
+<td><code>someguy</code></td>
+</tr>
+<tr>
+<td>b.members.url</td>
+<td><code>https://trello.com/someguy</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>b.labels</code> stores details about the labels of a board.  An example query of <code>b.labels</code> is <code>{ green: 'low', yellow: 'important', red: 'critical' }</code>.</p>
+<table>
+<thead>
+<tr>
+<th>b.labels</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b.labels.[label]</td>
+<td>value of label</td>
+</tr>
+<tr>
+<td>b.labels.red (example)</td>
+<td><code>critical</code></td>
+</tr>
+<tr>
+<td>b.labels.purple (example)</td>
+<td><code>undefined</code> (will not render)</td>
+</tr>
+</tbody>
+</table>
+<h4><a id="Getting_lists_cards_checklists_etc_164"></a>Getting lists, cards, checklists, etc.</h4>
+<p>The <code>b.lists</code> namespace stores all list data.  The hierarchy goes like this:</p>
+<table>
+<thead>
+<tr>
+<th>b.lists</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cards</td>
+</tr>
+<tr>
+<td>members, actions, voters, checklists, attachments</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>b.lists</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b.lists.cards</td>
+<td>[ {Card objects - see below } ]</td>
+</tr>
+<tr>
+<td><a href="http://b.lists.name">b.lists.name</a></td>
+<td><code>To Do</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>b.lists.cards</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>card</td>
+<td>A card from a list in b.lists</td>
+</tr>
+<tr>
+<td><a href="http://card.name">card.name</a></td>
+<td><code>Get Trello2LaTeX done</code></td>
+</tr>
+<tr>
+<td>card.desc</td>
+<td><code>Description: do stuff...</code></td>
+</tr>
+<tr>
+<td>card.lastmodified</td>
+<td><code>2015-01-01T16:38:29.816Z</code></td>
+</tr>
+<tr>
+<td>card.due</td>
+<td><code>2015-01-01T00:00:00.000Z</code> or <code>null</code> (if no due date set)</td>
+</tr>
+<tr>
+<td>card.url</td>
+<td><code>https://trello.com/c/xbiE4Eyf/1-test-card</code></td>
+</tr>
+<tr>
+<td>card.labels</td>
+<td>[ { Identical in usage to b.labels object } ]</td>
+</tr>
+<tr>
+<td>card.attachments</td>
+<td>[ { Attachments object - see below } ]</td>
+</tr>
+<tr>
+<td>card.attachmentcover</td>
+<td>{ Attachments object - see below }</td>
+</tr>
+<tr>
+<td>card.members</td>
+<td>[ { Members object - identical in usage to b.members } ]</td>
+</tr>
+<tr>
+<td>card.votecount</td>
+<td><code>1</code> (length of voters object)</td>
+</tr>
+<tr>
+<td>card.voters</td>
+<td>[ { Voters object - identical to members object } ]</td>
+</tr>
+<tr>
+<td>card.checklists</td>
+<td>[ { Checklists object - see below } ]</td>
+</tr>
+<tr>
+<td>card.actions</td>
+<td>[ { Actions object - see below } ]</td>
+</tr>
+</tbody>
+</table>
+<p>Trello2LaTeX also downloads all attachment images to the <code>dl/</code> folder.  It will not download non-image files (eps, png, jpg, or jpeg), but WILL create an attachment object for it with <code>attach.isimage</code> set to <code>false</code>.</p>
+<table>
+<thead>
+<tr>
+<th>b.lists.cards.attachments</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>attach</td>
+<td>A file attachment</td>
+</tr>
+<tr>
+<td>attach.filename</td>
+<td><code>dl/deadbeefdeadbeef1234134.png</code> (A location on disk)</td>
+</tr>
+<tr>
+<td><a href="http://attach.name">attach.name</a></td>
+<td><code>deadbeefdeadbeef1234134</code> (Just the name)</td>
+</tr>
+<tr>
+<td>attach.ext</td>
+<td><code>.png</code> (file extension)</td>
+</tr>
+<tr>
+<td>attach.date</td>
+<td><code>2015-01-01T16:38:29.816Z</code> (date image was taken)</td>
+</tr>
+<tr>
+<td>attach.isimage</td>
+<td><code>true</code> (if png, jpg, jpeg, or eps), else <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>b.lists.cards.comments</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>text</td>
+<td><code>Hi there, this is a comment.</code></td>
+</tr>
+<tr>
+<td>date</td>
+<td><code>2015-01-01T16:38:29.816Z</code></td>
+</tr>
+<tr>
+<td>author</td>
+<td>An instance of <code>b.members</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>b.lists.cards.checklists</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>check</td>
+<td>A checklist</td>
+</tr>
+<tr>
+<td><a href="http://check.name">check.name</a></td>
+<td><code>My Checklist</code></td>
+</tr>
+<tr>
+<td>check.items</td>
+<td>{ [ Checklist item array - see below } ]</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>b.lists.cards.checklists.items</th>
+<th>Example Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>item</td>
+<td>A checklist item</td>
+</tr>
+<tr>
+<td><a href="http://item.name">item.name</a></td>
+<td><code>My Checklist Item</code></td>
+</tr>
+<tr>
+<td>item.checked</td>
+<td><code>true</code> or <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<h4><a id="Getting_front_matter_223"></a>Getting front matter</h4>
+<p>If a list called <code>Trello2LaTeX Front Matter</code> exists in the board, the list will not be rendered, but the LaTeX form of the list
+will be available as <code>b.frontmatter</code>. Cards placed in the list will render as sections and the description to each card will also render as LaTeX.</p>
+<p>Try creating this list on your board to try it out! All features of standard markdown are supported. This feature is only available when the entire board is built.</p>
+<h1><a id="User_API_230"></a>User API</h1>
+<p>User-defined variables allows the user to set the values for use in the TeX file.  These variables are read in JSON format from <code>template.yml</code>, given to the user, and the result is then passed to the TeX file.</p>
+<h3><a id="Basic_input_233"></a>Basic input</h3>
+<p>To create a basic user text box, set the YML as such, with certain accepted overloads.</p>
+<pre><code class="language-yaml"><span class="hljs-tag">variable</span>: { <span class="hljs-attribute">display</span>: <span class="hljs-string">"My Variable Name"</span>, <span class="hljs-attribute">type</span>: <span class="hljs-string">"blank"</span> }
+</code></pre>
+<p>Then in the TeX file</p>
+<pre><code class="language-tex"><span class="hljs-command">\title</span><span class="hljs-special">{</span>&lt;! variable !&gt;)
+</code></pre>
+<p>If the user types <code>SOMETHING</code> into the text box, the result will be</p>
+<pre><code class="language-tex"><span class="hljs-command">\title</span><span class="hljs-special">{</span>SOMETHING<span class="hljs-special">}</span>
+</code></pre>
+<h1><a id="Null_input_248"></a>Null input</h1>
+<p>What happens if the input is null?  In the example above, <code>&lt;! variable !&gt;</code> will not be rendered because the user entered a string with length of zero, resulting in</p>
+<pre><code class="language-tex"><span class="hljs-command">\title</span><span class="hljs-special">{</span><span class="hljs-special">}</span>
+</code></pre>
+<p>Which doesn’t go over very well with LaTeX.</p>
+<p>So we can set a special field in the YAML:</p>
+<pre><code class="language-yaml"><span class="hljs-string">variable:</span> { <span class="hljs-string">display:</span> <span class="hljs-string">"My Variable Name"</span>. <span class="hljs-string">type:</span> <span class="hljs-string">"blank"</span>, <span class="hljs-string">noblank:</span> <span class="hljs-literal">true</span> }
+</code></pre>
+<p>Denying a blank field, not allowing the user to build the template if the text box is null.</p>
+<h1><a id="Setting_a_default_value_262"></a>Setting a default value</h1>
+<p>If you want to give the user a default value if nothing is entered, set <code>default</code> in the YAML:</p>
+<pre><code class="language-yaml"><span class="hljs-tag">variable</span>: { <span class="hljs-attribute">display</span>: <span class="hljs-string">"My Variable Name"</span>, <span class="hljs-attribute">type</span>: <span class="hljs-string">"blank"</span>, <span class="hljs-attribute">default</span>: <span class="hljs-string">"NOTHING ENTERED"</span> }
+</code></pre>
+<p>If the user enters nothing, the default value would be placed instead of <code>&lt;! variable &gt;</code>.</p>
+<h1><a id="Making_a_checkbox_269"></a>Making a checkbox</h1>
+<p>To make a user-friendly checkbox, try this:</p>
+<pre><code class="language-yaml"><span class="hljs-string">mycheckbox:</span> { <span class="hljs-string">display:</span> <span class="hljs-string">"My Checkbox"</span>, <span class="hljs-string">type:</span> <span class="hljs-string">"check"</span>, <span class="hljs-string">default:</span> <span class="hljs-literal">true</span> }
+</code></pre>
+<p>The checkbox will render and the result will either be “true” or “false”.  If you want to change the results, set <code>options</code>:</p>
+<pre><code class="language-yaml"><span class="hljs-string">mycheckbox:</span> { <span class="hljs-string">display:</span> <span class="hljs-string">"My Checkbox"</span>, <span class="hljs-string">type:</span> <span class="hljs-string">"check"</span>, <span class="hljs-string">default:</span> <span class="hljs-literal">true</span>, <span class="hljs-string">options:</span> { <span class="hljs-string">true:</span> <span class="hljs-string">"That's right!"</span>. <span class="hljs-string">false:</span> <span class="hljs-string">"Nope!  It's false!"</span> } }
+</code></pre>
+<p>If the result is true, the TeX fil will be rendered as <code>That's right!</code>, otherwise <code>Nope! It's false!</code>.</p>
+<h1><a id="Making_a_dropbown_select_280"></a>Making a dropbown (select)</h1>
+<p>A selection box can be set as such:</p>
+<pre><code class="language-yaml"><span class="hljs-string">mydropdown:</span> { <span class="hljs-string">display:</span> <span class="hljs-string">"My Dropdown"</span>, <span class="hljs-string">type:</span> <span class="hljs-string">"select"</span>, <span class="hljs-string">default:</span> <span class="hljs-string">"one"</span>, <span class="hljs-string">options:</span> { <span class="hljs-string">"one"</span>: <span class="hljs-string">"First"</span>, <span class="hljs-string">"two"</span>: <span class="hljs-string">"Second"</span>, <span class="hljs-string">"three"</span>: <span class="hljs-string">"Third"</span> } }
+</code></pre>
+<p>The options displayed to the user are <code>one</code>, <code>two</code>, and <code>three</code>, and the result is typeset as <code>First</code>, <code>Second</code>, <code>Third</code>.</p>
+<h1><a id="Making_a_paragraph_form_287"></a>Making a paragraph form</h1>
+<p>Instead of a single-line text box, a paragraph input box may be created by setting <code>type</code> to <code>&quot;form&quot;</code>.</p>
+<h2><a id="User_API_Overview_290"></a>User API Overview</h2>
+<table>
+<thead>
+<tr>
+<th>YAML Field</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[variable]:</code></td>
+<td>The variable name, as typeset in the TeX file</td>
+</tr>
+<tr>
+<td><code>display: &quot;[displayname]&quot;</code></td>
+<td>String, the text displayed to the user explaining the field</td>
+</tr>
+<tr>
+<td><code>type: &quot;[type]&quot;</code></td>
+<td>String, one of <code>&quot;blank&quot;</code>, <code>&quot;select&quot;</code>, <code>check</code>. or <code>form</code></td>
+</tr>
+<tr>
+<td><code>default: [defaultkey]</code></td>
+<td>The default key, for example <code>true</code> in a checkbox</td>
+</tr>
+<tr>
+<td><code>options: { [key]:[value], ...}</code></td>
+<td>Only for checkboxes and selects, assings something displayed to a LaTeX output</td>
+</tr>
+</tbody>
+</table>
 
   </page>
 
