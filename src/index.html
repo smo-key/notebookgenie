@@ -135,79 +135,6 @@
 
   <page class="card doublebreak list-software">
     <div class="title">
-      <h1 id="ftc-vision">FTC Vision</h1>
-    </div>
-    <div class="card-cover" style="background-image: url('img/test1.jpg')">
-    </div>
-
-    <div class="card-desc">
-      <h1><a id="FTC_Vision_Library_0"></a>FTC Vision Library</h1>
-      <p>Computer Vision library for FTC based on OpenCV, featuring <strong>beacon color and position detection</strong>, as well as an easy-to-use <code>VisionOpMode</code> format and many additional detection features planned in the future.</p>
-      <h2><a id="Installing_from_Scratch_3"></a>Installing from Scratch</h2>
-      <ol>
-      <li>Clone FTCVision into a clean directory (outside your robot controller app) using the following command: <code>git clone --depth=1 https://github.com/lasarobotics/ftcvision</code>.</li>
-      <li>Open the FTCVision project using Android Studio</li>
-      <li>Copy your OpModes from your robot controller directory into the appropriate directory within <code>ftc-robotcontroller</code>. Then, modify the <code>FtcOpModeRegister</code> appropriately to add your custom OpModes.</li>
-      <li>Before running the app for the first time, install the “OpenCV Manager” from the Google Play Store to enable Vision processing.</li>
-      <li>Run and test the code! Let us know if you encounter any difficulties.</li>
-      <li>You can now write your own <code>VisionOpMode</code>!</li>
-      </ol>
-      <h2><a id="Installing_into_Existing_Project_12"></a>Installing into Existing Project</h2>
-      <ul>
-      <li>Clone FTCVision into a clean directory (outside your robot controller app) using the following command: <code>git clone --depth=1 https://github.com/lasarobotics/ftcvision</code>.</li>
-      <li>Navigate to the FTCVision directory that you just cloned and copy the <code>ftc-visionlib</code> and <code>opencv-java</code> folders into your existing robot controller app.</li>
-      <li>Open your robot controller app in Android Studio. Make sure you have the <code>Project</code> mode selected in the project browser window (so you can see all of the files in your project).</li>
-      <li>Find your <code>settings.gradle</code> file and append the following two lines:</li>
-      </ul>
-      <pre><code><span class="hljs-keyword">include</span> <span class="hljs-string">':opencv-java'</span><span class="hljs-keyword">include</span> <span class="hljs-string">':ftc-visionlib'</span></code></pre>
-      <ul>
-      <li>Find the <code>AndroidManifest.xml</code> under your <code>ftc-robotcontroller</code> folder, sometimes named <code>sample</code> or similar.</li>
-      <li>Insert the following <code>uses-permission</code> tag in the appropriate location (look at the rest of the file for context).</li>
-      </ul>
-      <pre><code>&lt;uses-permission <span class="hljs-string">android:</span>name=<span class="hljs-string">"android.permission.CAMERA"</span> <span class="hljs-string">android:</span>required=<span class="hljs-string">"true"</span> /&gt;</code></pre>
-      <ul>
-      <li>Find your <code>build.gradle</code> in the parent folder of <code>AndroidManifest.xml</code> and insert the following line under <code>dependencies</code>:</li>
-      </ul>
-      <pre><code>compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':ftc-visionlib'</span>)</span></span>compile <span class="hljs-function"><span class="hljs-title">project</span><span class="hljs-params">(<span class="hljs-string">':opencv-java'</span>)</span></span></code></pre>
-      <ul>
-      <li>Update Gradle configuration by pressing the green “Sync Project with Gradle Files” button in the header (this may take a minute)</li>
-      <li>Copy in Vision opmodes (those that end in <code>VisionSample.java</code>, located in <code>[vision-root]/ftc-robotcontroller/src/main/java/com/qualcomm/ftcrobotcontroller/opmodes</code>) from the FTCVision directory into your opmode directory.</li>
-      <li>Before running the app for the first time, install the “OpenCV Manager” from the Google Play Store to enable Vision processing.</li>
-      <li>Run and test the code! Let us know if you encounter any difficulties.</li>
-      <li>You can now write your custom <code>VisionOpMode</code>!</li>
-      </ul>
-      <h2><a id="Status_38"></a>Status</h2>
-      <p>This library is currently under insanely active development. We’re in the <strong>Beta</strong> phase right now. If you have any questions or would like to help, send a note to <code>smo-key</code> (contact info on profile). Thank you!</p>
-      <h2><a id="Documentation_41"></a>Documentation</h2>
-      <p>Documentation for the stable library is available at <a href="http://ftcvision.lasarobotics.org">http://ftcvision.lasarobotics.org</a>.</p>
-      <h2><a id="Does_it_work_45"></a>Does it work?</h2>
-      <p><strong>Yes!</strong> FTCVision can detect a beacon 0.5-4 feet away with 65% accuracy in 0.3 seconds. Here are some pictures. :smiley:</p>
-      <h3><a id="Accuracy_Test_49"></a>Accuracy Test</h3>
-      <p><img src="https://raw.githubusercontent.com/lasarobotics/ftcvision/img/test2.png" alt="Can it detect the beacon?"></p>
-      <h3><a id="Distance_Test_52"></a>Distance Test</h3>
-      <p><img src="https://raw.githubusercontent.com/lasarobotics/ftcvision/img/test1.png" alt="A test from 8 feet away"></p>
-      <h3><a id="Analysis_Methods_55"></a>Analysis Methods</h3>
-      <p><img src="https://raw.githubusercontent.com/lasarobotics/ftcvision/img/methods.png" alt="FAST vs. COMPLEX"></p>
-      <h2><a id="Goals_58"></a>Goals</h2>
-      <ul>
-      <li>Locate the lit target (the thing with two buttons) within the camera viewfield</li>
-      <li>Move the robot to the lit target, while identifying the color status of the target</li>
-      <li>Locate the button of the target color and activate it</li>
-      </ul>
-      <h2><a id="Progress_63"></a>Progress</h2>
-      <ul>
-      <li>Beacon located successfully with automated environmental and orientation tuning.</li>
-      <li>A competition-proof <code>OpMode</code> scheme created so that the robot controller does not need to be modified to use the app.</li>
-      <li>Now supports nearly every phone since Android 4.2, including both the ZTE Speed and Moto G.</li>
-      <li>All initial goals complete - now tweaking beacon detection and preparing for something more…</li>
-      </ul>
-    </div>
-
-
-  </page>
-
-  <page class="card doublebreak list-software">
-    <div class="title">
       <h1 id="notebook-genie">Notebook Genie</h1>
     </div>
 
@@ -703,6 +630,36 @@ will be available as <code>b.frontmatter</code>. Cards placed in the list will r
 </tr>
 </tbody>
 </table>
+
+  </page>
+
+  <page class="card doublebreak list-software">
+    <div class="title">
+      <h1 id="ftc-vision">FTC Vision</h1>
+    </div>
+    <div class="card-cover" style="background-image: url('img/test1.jpg')">
+    </div>
+
+    <div class="card-desc">
+      <p>Card description. Can contain cool markdown formatting. :D</p>
+    </div>
+
+    <hr class="card-hr-after-desc">
+
+    <div class="card-checklist checklist">
+      <h2>Checklist</h2>
+      <div class="checked"><i class='mdi mdi-checkbox-marked-outline'></i>Checked item</div>
+      <div class="unchecked"><i class='mdi mdi-checkbox-blank-outline'></i>Unchecked item</div>
+      <div class="unchecked"><i class='mdi mdi-checkbox-blank-outline'></i>Unchecked item</div>
+    </div>
+    <div class="card-checklist checklist">
+      <h2>Another Checklist</h2>
+      <div class="checked"><i class='mdi mdi-checkbox-marked-outline'></i>Checked item</div>
+      <div class="unchecked"><i class='mdi mdi-checkbox-blank-outline'></i>Unchecked item</div>
+      <div class="unchecked"><i class='mdi mdi-checkbox-blank-outline'></i>Unchecked item</div>
+    </div>
+
+    <hr class="card-hr-after-checklists">
 
   </page>
 
