@@ -197,11 +197,12 @@ page .title
   padding: $title-padding;
 }
 
-page.list .title h1
+.list-meta
 {
-  prince-bookmark-level: 1;
+  display: none;
   string-set: list-name content();
 }
+page.list .title h1,
 page.toc .title h1,
 page.frontmatter .title h1
 {
@@ -209,6 +210,8 @@ page.frontmatter .title h1
   string-set: list-name '';
   string-set: card-name '';
 }
+
+page.frontmatter .title h1,
 page.card .title h1
 {
   prince-bookmark-level: 2;
