@@ -2,7 +2,10 @@
 @import "lib/sass-material-colors/sass/sass-material-colors-classes";
 
 /** FONTS **/
-
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url(../fonts/SourceCodePro-Regular.ttf);
+}
 @font-face {
   font-family: "helvetica";
   src: url(../fonts/HelveticaNeue-Medium.otf);
@@ -82,6 +85,9 @@ $cover-logo-width: 32*$pica;                                        //cover logo
 $card-cover-margin: -$page-padding-y 0*$pica 2*$pica -2*$pica;      //card cover image margin
 $card-cover-padding: 0 4*$pica 0*$pica 0*$pica;                     //card cover image margin
 $color-purple: #9b26b6;                                             //base purple color
+$color-gray-dark: material-color("grey", "700");                    //dark gray color
+$color-gray-light: material-color("grey", "300");                   //light gray color
+$color-gray-text: material-color("grey", "700");                    //gray text color
 
 /** HELPER FUNCTIONS **/
 @mixin vertical-center($height) {
@@ -376,7 +382,7 @@ span.url {
   background-color: $color-purple;
 }
 
-/** MAIN **/
+/** MAIN FORMATTING **/
 body
 {
   font-family: "std-500";
@@ -387,17 +393,55 @@ body
 page .title h1
 {
   margin: 0;
+  padding: 0;
 }
 h1, h2, h3, h4, h5, h6 { prince-bookmark-level: none }
-h1
+h1, h2, h3, h4, h5, h6
 {
-  margin: 12pt 0;
+  padding: 12pt 0;
 }
-h2
+code
 {
-  margin: 12pt 0;
+  font-family: "Source Code Pro";
+  background-color: $color-gray-light;
+  border-radius: 2pt;
+  color: $color-gray-text;
+  padding: 2pt 4pt;
+  font-size: 90%;
 }
-h3
+pre code
 {
-  margin: 12pt 0;
+  width: 100%;
+  display: block;
+  margin: 1*$pica 0;
+  padding: 14pt 4pt 0 4pt;
+  color: white;
+  background-color: $color-gray-dark;
+  border-radius: 0;
+}
+a
+{
+  color: $color-purple;
+}
+ol
+{
+  margin-left: 20pt;
+}
+ul
+{
+  margin-left: 16pt;
+}
+ul li,
+ol li
+{
+  padding: 4pt 0;
+}
+img
+{
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 16*$pica;
+  margin: 0 auto;
+  display: block;
 }

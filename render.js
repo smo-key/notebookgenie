@@ -20,6 +20,7 @@ fs.exists('dist/prince.log', function(exists) {
 
 function render()
 {
+  console.log("[Prince] Generating PDF...")
   prince()
     .inputs("dist/index.html")
     .output("dist/index.pdf")
