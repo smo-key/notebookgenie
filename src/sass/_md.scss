@@ -126,3 +126,64 @@ hr
   border: 1pt solid $color-gray-light;
   margin: $pica 0;
 }
+
+/** COMMENTS **/
+$comment-img-size: 3*$pica;
+$comment-padding-bottom: 3pt;
+page.card .comment
+{
+  clear: both;
+}
+page.card .comment img
+{
+  height: $comment-img-size;
+  width: $comment-img-size;
+  float: left;
+  display: block;
+  border-radius: 50%;
+  padding-bottom: $comment-padding-bottom;
+}
+page.card .comment .comment-right
+{
+  position: relative;
+  float: right;
+  text-align: left;
+  display: block;
+  margin-top: -$comment-img-size;
+  padding-left: $comment-img-size + 8pt;
+  width: 92%;
+}
+page.card .comment .name
+{
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+}
+page.card .comment .username,
+page.card .comment  .timestamp
+{
+  display: inline;
+  font-size: 12pt;
+  color: $color-gray-text;
+  position: relative;
+  top: 3pt;
+  vertical-align: top;
+}
+page.card .comment .username
+{
+  margin-left: 1*$pica;
+}
+page.card .comment .timestamp
+{
+  float: right;
+}
+page.card .comment .body
+{
+  width: 100%;
+  padding-bottom: $comment-padding-bottom;
+}
+page.card .comment .body p
+{
+  padding-top: 0;
+  margin-top: 0;
+}
