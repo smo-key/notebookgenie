@@ -2,11 +2,12 @@ var util = require("./util.js");
 var async = require('async');
 var fs = require("fs");
 var rmrf = require("rimraf");
-var mu = require('mutex'); //NOTE change name to mu_tex
+var mu = require('mu2');
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
 var s = require("string");
-
+var prince = require("prince");
+var mustache = require("mustache");
 /*** FUNCTIONS ***/
 var multiplicand = 75; //start creating pdf at five plus this
 
@@ -32,29 +33,6 @@ function zipdir(dir, base, zipfile, cb) {
   });
 }
 
-function compilepass(pass, passes, tmp, cb) {
-  console.log("COMPILE LATEX PASS " + pass + "! ---------");
-  var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
-
-  pdflatex.stdout.on('data', function (data) {
-    //console.log(data.toString());
-  });
-
-  pdflatex.on('close', function (code) {
-    console.log('LATEX COMPILE PASS ' + pass + ' COMPLETE - exited with code ' + code);
-    if (code > 1) {
-      cb(code, true); //return as an error
-      return;
-    }
-    else
-    {
-      pass++;
-      if (pass > passes) { cb(code, false); return; } //return ok
-      else { compilepass(pass, passes, tmp, cb); return; } //recursivize
-    }
-  });
-}
-
 /*** BOARD COMPILER ***/
 
 exports.preparefs1 = function(tmp, cb) {
@@ -66,7 +44,7 @@ exports.preparefs1 = function(tmp, cb) {
     }
     else { cb(); }
   });
-}
+};
 
 exports.preparefs2 = function(tmp, cb) {
   fs.exists(tmp, function(exists) {
@@ -185,14 +163,18 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                   //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
                   buildcard(c, board, odata, u, i, j++, function(card, k) {
                     console.log(card);
-                    var name = card.name;
-                    var desc = card.desc;
+                    try {
+                      var name = card.name;
+                      var desc = card.desc;
 
-                    util.mark("#" + name + "\n" + desc, tmp, function(latex)
-                    {
-                      frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
+                      util.mark("#" + name + "\n" + desc, tmp, function(latex)
+                      {
+                        frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
+                        cb5();
+                      });
+                    } catch (e) {
                       cb5();
-                    });
+                    }
                   });
                 }, function(err2)
                 {
@@ -308,7 +290,7 @@ exports.gettemplate = function(tmp, board, b, templatedir, cb) {
     var i = 0;
     var max = files.length;
     async.each(files, function(file, cbfile) {
-      if (!file.match(/(.yml|template.tex|.pdf|.aux|.synctex.gz|.out|.log|dl|img)$/)) {
+      if (!file.match(/(.yml|template.html|.pdf|.aux|.synctex.gz|.out|.log|dl|img)$/)) {
         //file is not the YML file or some annoying LaTeX junk -> copy
         console.log("----- COPY: " + file);
         fs.readFile(templatedir + file, function(e, data) {
@@ -345,42 +327,40 @@ exports.muparse = function(b, u, templatedir, tmp, board, cb) {
       }
     }
   });
-
-  mu.clearCache();
-  mu.root = templatedir;
-  fs.exists(templatedir + "template.tex", function (exist) {
+  console.log(view);
+  fs.exists(templatedir + "template.html", function (exist) {
     if (exist) {
-      var file = fs.createWriteStream(__dirname + "/../" + tmp + "template.tex", { flags: 'a+', end: false });
-      try
-      {
-        var stream = mu.compileAndRender("template.tex", view);
-        stream.pipe(file, { end: false });
-        file.on('error', function(err) {
-          throw err;
+        fs.readFile(templatedir + "template.html", 'utf8', function (err,data) {
+          if (err) {
+            return console.log(err);
+          }
+          var string = mustache.render(data,view);
+          console.log(string);
+          var file = fs.write(__dirname + "/../" + tmp + "template.html", string, { flags: 'a+', end: false },cb);
         });
 
-        stream.on('end', function() {
-          board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
-          cb(b, board);
-        });
-      } catch (e) {
-        //FIXME error handling to user
-        console.error(e.stack);
-        return;
-      }
-    } else { console.log("NO EXIST!"); }
+
+    } else { console.log("NO EXIST!"); mu.root = oldroot; }
     //TODO give an error somewhere
   });
 
 }
 
-exports.compilelatex = function(tmp, board, cb) {
+exports.compilehtml = function(tmp, board, cb) {
   //compile LaTeX
-  compilepass(1, 3, tmp, function(code, err) {
-    board = util.updateprogress(JSON.stringify(board), 90);
-    cb(board);
-  });
-}
+  console.log("[Prince] Generating PDF...");
+  prince()
+    .inputs(tmp + "/template.html")
+    .output(tmp + "/index.pdf")
+    .option("javascript")
+    .option("log", tmp + "/prince.log")
+    .execute()
+    .then(function () {
+      console.log("Done")
+    }, function (error) {
+      console.log("[Prince] ERROR: ", util.inspect(error));
+    });
+};
 
 exports.archive = function(tmp, board, cb) {
   console.log("ZIPPING!");
@@ -398,7 +378,7 @@ exports.archive = function(tmp, board, cb) {
 exports.publish = function(tmp, board, cb) {
   //copy PDF, LaTeX, and log
   fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
-    fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
+    fs.rename(tmp + "template.html", "tmp/" + board.id + ".html", function() {
       fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
         //FIXME clean
         //rmrf(tmp, function() {
@@ -620,9 +600,9 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        util.mark(act.data.text, tmp, function(mk1)
+        util.mark(act.data.htmlt, tmp, function(mk1)
         {
-          action.text = mk1.trim() + "\\\\";
+          action.htmlt = mk1.trim() + "\\\\";
           action.date = util.converttime(act.date);
           action.author = { };
           action.author.id = act.memberCreator.id;
@@ -650,4 +630,3 @@ function sortlist(i, list, cb) {
   if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
   cb(list);
 }
-

@@ -34,7 +34,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
     var b = {};
     //create temp folder
     var tmp = "tmp/" + board.id + "/";
-    var templatedir = "templates/" + board.template + "/";
+    var templatedir = "templates/" + board.template + "/dist/";
 
     cardlist = JSON.parse(cardlist);
 
@@ -55,7 +55,7 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
                   compiler.flushprogress(b, board, function(b, board) {
                     compiler.gettemplate(tmp, board, b, templatedir, function(b, board) {
                       compiler.muparse(b, u, templatedir, tmp, board, function(b, board) {
-                        compiler.compilelatex(tmp, board, function(board) {
+                        compiler.compilehtml(tmp, board, function(board) {
                           compiler.archive(tmp, board, function(board) {
                             compiler.publish(tmp, board, function(board) {
                               console.log("ALL DONE!!!");
