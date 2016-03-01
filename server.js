@@ -408,9 +408,9 @@ app.get('/build/templates', function(req, res){
     async.each(dirs, function(dir, cb) {
       if (fs.statSync('templates/' + dir).isDirectory()) {
         var hasyml = fs.existsSync('templates/' + dir + "/template.yml");
-        var hastex = fs.existsSync('templates/' + dir + "/template.tex");
+        var hashtml = fs.existsSync('templates/' + dir + "/dist/template.html");
         var hasimg = false;  //TODO look for template image
-        if (hasyml && hastex)
+        if (hasyml && hashtml)
         {
           //read YAML and parse
           fs.readFile('templates/' + dir + '/template.yml', function(er, ymldata) {
@@ -422,7 +422,7 @@ app.get('/build/templates', function(req, res){
               ymlall = ymluserdata.toString().concat(ymldata.toString());
               yml = yaml.safeLoad(ymlall);
               console.log(yml);
-              if (yml === undefined || yml == null || yml.length == 0)
+              if (yml === undefined || yml === null || yml.length === 0)
               {
 
                 template.nooptions = true;
