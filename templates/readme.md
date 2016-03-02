@@ -10,8 +10,8 @@ Templates give create the basic outline or format for the LaTeX document.  These
 ## Templating 101
 - Each template is placed into a unique folder in the /templates directory - the server will use each folder to generate a list
 - Each template folder must contain the following elements:
-  - **install.sh**: An install and build script. Built contents should go into the `dist/` folder once processed.
-  - ***dist/***: The entire built template. Templates are built on server startup and their complete builds are placed into this folder.
+  - ***dist/***: The entire built template. Templates are built on server startup *(if build.js exists)* and their complete builds are placed into this folder.
+  - **build.js**: A build script run by NodeJS. Built contents should go into the `dist/` folder once processed. *(If the script is not present, the dist/ folder must already exist.)*
   - **src/template.html** -> ***dist/template.html***: HTML template, processed using this API when built in Notebook Genie.
   - **template.yml**: Contains keys and values as settable options - these exact options will be give to the user - they will represent values in template parsing below
 
