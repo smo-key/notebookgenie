@@ -39,6 +39,7 @@ function zipdir(dir, base, zipfile, cb) {
 
 exports.preparefs1 = function(tmp, cb) {
   //TODO use rimraf for rmrf!
+  console.log("[FS] Preparing 1...");
   fs.exists("tmp/", function(exists) {
     if (!exists)
     {
@@ -49,6 +50,7 @@ exports.preparefs1 = function(tmp, cb) {
 };
 
 exports.preparefs2 = function(tmp, cb) {
+  console.log("[FS] Preparing 2...");
   fs.exists(tmp, function(exists) {
     if (exists)
     {
@@ -63,6 +65,7 @@ exports.preparefs2 = function(tmp, cb) {
 }
 
 exports.preparefs3 = function(tmp, board, b, cb) {
+  console.log("[FS] Preparing 3...");
   fs.mkdir(tmp + "img", function() {
     fs.mkdir(tmp + "dl", function() {
       board = util.updateprogress(JSON.stringify(board), 5);
@@ -349,6 +352,7 @@ function rmPages(tmp, cb)
 exports.compilehtml = function(tmp, board, cb) {
   //compile LaTeXs
   console.log("[Prince] Generating PDF...");
+  board = util.updateprogress(JSON.stringify(board), 90);
   prince()
     .inputs(tmp + "/template.html")
     .output(tmp + "/raw.pdf")
