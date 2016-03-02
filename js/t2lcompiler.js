@@ -2,12 +2,13 @@ var util = require("./util.js");
 var async = require('async');
 var fs = require("fs");
 var rmrf = require("rimraf");
-var mu = require('mu2');
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
 var s = require("string");
 var prince = require("prince");
 var mustache = require("mustache");
+var ncp = require('ncp').ncp;
+
 /*** FUNCTIONS ***/
 var multiplicand = 75; //start creating pdf at five plus this
 
@@ -150,7 +151,6 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
             });
           }, function(err1) {
             sortlist(i, list, function(list) {
-
               if (list.name.trim() == "Trello2LaTeX Front Matter")
               {
                 //This is our front matter!
@@ -286,26 +286,14 @@ exports.gettemplate = function(tmp, board, b, templatedir, cb) {
   console.log("--------- GET TEMPLATES");
   //FIXME copy template files -> temp
 
-  fs.readdir(templatedir, function (e, files) {
-    var i = 0;
-    var max = files.length;
-    async.each(files, function(file, cbfile) {
-      if (!file.match(/(.yml|template.html|.pdf|.aux|.synctex.gz|.out|.log|dl|img)$/)) {
-        //file is not the YML file or some annoying LaTeX junk -> copy
-        console.log("----- COPY: " + file);
-        fs.readFile(templatedir + file, function(e, data) {
-          fs.writeFile(tmp + file, data, function() {
-            board = util.updateprogress(JSON.stringify(board), (i/max)*5+multiplicand);
-            cbfile();
-          });
-        });
-      } else {
-        max--; board = util.updateprogress(JSON.stringify(board), (i/max)*5+multiplicand);
-        cbfile();
-      }
-    }, function() {
-      cb(b, board);
-    });
+  ncp.limit = 16;
+  ncp(templatedir, tmp, function (err) {
+    if (err) {
+      console.log("[ncp] COPY ERROR!");
+      return console.error(err);
+    }
+    console.log("[ncp] Done copying!");
+    cb(b, board);
   });
 }
 
