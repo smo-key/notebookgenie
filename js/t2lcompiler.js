@@ -257,28 +257,25 @@ exports.sortlists = function(b, cb) {
 
 exports.getotherdata = function(tmp, b, raw, board, cb) {
   console.log("GET OTHER!");
-  util.mark(raw.desc, tmp, function(mk1)
-  {
-    //raw.url -> b.url
-    b.url = raw.shortUrl;
-    //raw.labelNames -> b.labels
-    b.labels = raw.labelNames;
-    //raw.description -> b.description
-    //data from board
-    b.desc = mk1;
-    b.title = board.title;
-    b.org = { };
-    b.org.url = board.orgurl;
-    b.org.name = board.org;
-    if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
-    else { b.org.isorg = true; }
-    b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
-    b.timebuilt = util.getcurrenttime();
+  //raw.url -> b.url
+  b.url = raw.shortUrl;
+  //raw.labelNames -> b.labels
+  b.labels = raw.labelNames;
+  //raw.description -> b.description
+  //data from board
+  b.desc = raw.desc;
+  b.title = board.title;
+  b.org = { };
+  b.org.url = board.orgurl;
+  b.org.name = board.org;
+  if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
+  else { b.org.isorg = true; }
+  b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
+  b.timebuilt = util.getcurrenttime();
 
-    //TODO get additional data from org (image, etc.)
+  //TODO get additional data from org (image, etc.)
 
-    cb(b);
-  });
+  cb(b);
 }
 
 exports.flushprogress = function(b, board, cb) {
