@@ -336,7 +336,7 @@ exports.compilehtml = function(tmp, board, cb) {
   console.log("[Prince] Generating PDF...");
   prince()
     .inputs(tmp + "/template.html")
-    .output(tmp + "/index.pdf")
+    .output(tmp + "/template.pdf")
     .option("javascript")
     .option("log", tmp + "/prince.log")
     .execute()
