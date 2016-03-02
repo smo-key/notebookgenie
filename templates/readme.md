@@ -136,6 +136,7 @@ b.frontmatter *[Array]* **(New)** | Example Result
 ----------|----------
 name | Name of the page (name of the card)
 content | HTML content of the card
+id | `b67b9c07d08d087dda0099` (a unique identifier)
 
 ### Ignoring cards or lists
 

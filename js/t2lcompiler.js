@@ -168,7 +168,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                   buildcard(c, board, odata, u, i, j++, function(card, k) {
                     console.log(card);
                     try {
-                      b.frontmatter.push({ name: card.name, content: util.mark(card.desc) });
+                      b.frontmatter.push({ name: card.name, id: card.id, content: util.mark(card.desc) });
                       cb5();
                     } catch (e) {
                       cb5();
