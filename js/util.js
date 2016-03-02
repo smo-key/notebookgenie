@@ -14,19 +14,18 @@ var uuid = require('node-uuid');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var yaml = require("js-yaml");
+var marked = require("marked");
 
-//
-//var marked = require("marked");
-//marked.setOptions({
-//  renderer: new marked.Renderer(),
-//  gfm: true,
-//  tables: false,
-//  breaks: false,
-//  pedantic: false,
-//  sanitize: true,
-//  smartLists: false,
-//  smartypants: false
-//});
+marked.setOptions({
+  renderer: new marked.Renderer(),
+  gfm: true,
+  tables: true,
+  breaks: false,
+  pedantic: false,
+  sanitize: false,
+  smartLists: true,
+  smartypants: true
+});
 
 function prep_genjson(status, message, public)
 {
@@ -350,66 +349,9 @@ exports.converttime = function converttime(time) {
  }
 }
 
-exports.mark = function mark(str, tmpdir, cb)
+exports.mark = function mark(str, tmpdir)
 {
-  pandoc(str, 'markdown', 'html', function(err, result) {
-    if (err)
-    {
-      cb(str);
-    }
-    else
-    {
-      //check for \includegraphics{url} and download url, then replace download with location on disk
-      var final = result;
-      var regex = /\\includegraphics{\s*((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)\s*}/ig;
-      var match;
-
-      async.whilst(
-        function() { match = regex.exec(final); return !isnull(match); },
-        function(cbloop) {
-          // matched text: match[0]
-          // match start: match.index
-          // capturing group n: match[n]
-          if (!isnull(match))
-          {
-            var url = match[1];
-
-            console.log(">>>>>>>>>>> GOT URL MATCH!")
-            console.log(match[0]);
-            console.log(url);
-
-            if (!isnull(url))
-            {
-              var local = "fm-" + uuid.v1();
-              var ext = url.match(/\.(png|jpe?g|eps)$/ig)[0];
-              if (!isnull(local) && !isnull(ext))
-              {
-                console.log("DOWNLOAD FILE!");
-                exports.downloadfile(url, tmpdir + "dl/" + local + ext, function(exists)
-                {
-                  console.log("FILE DOWNLOADED!");
-                  if (exists)
-                  {
-                    console.log("FILE PROCESSED!");
-                    //FIXME this is not generic...
-                    final = final.replace(match[0], "\\includegraphics[height=0.4\\linewidth]{dl/" + local + "}");
-                    console.log(final);
-                    cbloop();
-                  }
-                  else { cbloop(); }
-                });
-              }
-              else { cbloop(); }
-            }
-            else { cbloop(); }
-          }
-        },
-        function(err) {
-          cb(final);
-        }
-      )
-    }
-  });
+  return marked(str);
 }
 
 exports.templates = [ ];
@@ -557,18 +499,6 @@ exports.getcurrenttime = function()
 {
   return new Date().toString("M/d/yyyy HH:mm");
 }
-
-/*exports.mark = function mark(str) {
-  var parsemarkdown = true;  //FIXME for now forced to true!
-  if (parsemarkdown && !isnull(str)) {
-    // place the @ character in front of a literal char
-    return str.replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}') //urls
-    //.replace(/\*\*(.*)\*\*///igm, '@!{@!\\bf $1@!}') //bold face
-    //.replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}') //italics
-    //.replace(/(@!{@!\\emph @!})|(@!{@!\\bf @!})/igm, '') //remove nulls
-  //}
-  //else { return str; }
-//}
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){

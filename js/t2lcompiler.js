@@ -115,10 +115,10 @@ exports.getmembers = function(tmp, board, b, raw, cb) {
 exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, listcallback) {
   console.log("GET LISTS");
   b.lists = [ ];
+  b.frontmatter = [ ];
   var iint = 0;
   var cur = 0;
   var max = raw.lists.length;
-  var frontmatterlatex = "";
   if (!isselect)
   {
     console.log("NOT BEING SELECTIVE!");
@@ -156,27 +156,20 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
             });
           }, function(err1) {
             sortlist(i, list, function(list) {
-              if (list.name.trim() == "Trello2LaTeX Front Matter")
+              if (list.name.trim() == "NotebookGenie Front Matter" || list.name.trim() == "Notebook Genie Front Matter")
               {
                 //This is our front matter!
                 console.warn("WE HAVE FRONT MATTER!");
 
-                //Add each card in the front matter to a LaTeX string
+                //Add each card to the front matter
                 //(This must be done in the order the cards are placed, so we do it after sorting).
 
                 async.eachSeries(li.cards, function(c, cb5) {
-                  //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
                   buildcard(c, board, odata, u, i, j++, function(card, k) {
                     console.log(card);
                     try {
-                      var name = card.name;
-                      var desc = card.desc;
-
-                      util.mark("#" + name + "\n" + desc, tmp, function(latex)
-                      {
-                        frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
-                        cb5();
-                      });
+                      b.frontmatter.push({ name: card.name, content: util.mark(card.desc) });
+                      cb5();
                     } catch (e) {
                       cb5();
                     }
@@ -206,7 +199,6 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       });
     },
     function(err2) {
-      b.frontmatter = frontmatterlatex;
       console.log("DONE WITH BOARD!");
       listcallback(b, board);
     });
@@ -241,7 +233,6 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         });
       }, function(done) {
         b.lists.push(list);
-        b.frontmatter = frontmatterlatex;
         console.log("DONE WITH BOARD!");
         listcallback(b, board);
       });
@@ -411,32 +402,29 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
     {
       if (!s(card.name).startsWith("!"))
       {
-        util.mark(cr.desc.trim(), tmp, function(mk1)
-        {
-          card.desc = mk1;
-          card.lastmodified = cr.dateLastActivity;
-          card.due = util.converttime(cr.due); //TODO friendly time format
-          card.pos = cr.pos;
-          card.url = cr.url;
-          card.id = cr.id;
+        card.desc = util.mark(cr.desc.trim());
+        card.lastmodified = cr.dateLastActivity;
+        card.due = util.converttime(cr.due); //TODO friendly time format
+        card.pos = cr.pos;
+        card.url = cr.url;
+        card.id = cr.id;
 
-          //cr.labels.forEach(function(label) {
-            //TODO is some LaTeX-friendly parsing missing here?
-          //});
-          card.attachments = [ ];
-          card.attachmentcover = null;
-          console.log(i + " " + j + " BEGIN CARD GET!");
+        //cr.labels.forEach(function(label) {
+          //TODO is some LaTeX-friendly parsing missing here?
+        //});
+        card.attachments = [ ];
+        card.attachmentcover = null;
+        console.log(i + " " + j + " BEGIN CARD GET!");
 
-          getmembers(c, u, i, j, card, cr, function(card) {
-          getvotes(c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-          getchecklists(tmp, c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-          getattachments(c, u, i, j, card, cr, tmp, function(card) {
-          getcomments(tmp, c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-          });});});});});
-        });
+        getmembers(c, u, i, j, card, cr, function(card) {
+        getvotes(c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+        getchecklists(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+        getattachments(c, u, i, j, card, cr, tmp, function(card) {
+        getcomments(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+        });});});});});
       }
       else
       {
@@ -487,18 +475,12 @@ function getchecklists(tmp, c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      util.mark(item.name, tmp, function(mk2)
-      {
-        var it = { name: mk2, pos: item.pos, checked: checked };
-        items.push(it);
-        cb2();
-      });
+      var it = { name: item.name, pos: item.pos, checked: checked };
+      items.push(it);
+      cb2();
     }, function() {
-      util.mark(c.name, tmp, function(mk1)
-      {
-        card.checklists.push({ name: mk1, pos: c.pos, items: items.sortByProp('pos') });
-        cb1();
-      });
+      card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+      cb1();
     });
   }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(card); });
 }
@@ -512,7 +494,7 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
     if (attach.url.match(/\.[0-9a-zA-Z]+$/))
     {
       //check if includable image
-      if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+      if (attach.url.match(/\.(png|jpe?g|svg|tiff|gif)+/i))
       {
         var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-z]+$/i)[0].toLowerCase();
         console.log(i + " " + j + " ATTACHMENT: START DOWNLOAD - " + attach.id);
@@ -608,20 +590,17 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        util.mark(act.data.htmlt, tmp, function(mk1)
-        {
-          action.htmlt = mk1.trim() + "\\\\";
-          action.date = util.converttime(act.date);
-          action.author = { };
-          action.author.id = act.memberCreator.id;
-          action.author.avatar = "img/" + act.memberCreator.id + ".png";
-          action.author.name = act.memberCreator.fullName;
-          action.author.initials = act.memberCreator.initials;
-          action.author.username = act.memberCreator.username;
-          action.author.url = act.memberCreator.url;
-          card.comments.push(action);
-          cb1();
-        });
+        action.htmlt = act.data.htmlt;
+        action.date = util.converttime(act.date);
+        action.author = { };
+        action.author.id = act.memberCreator.id;
+        action.author.avatar = "img/" + act.memberCreator.id + ".png";
+        action.author.name = act.memberCreator.fullName;
+        action.author.initials = act.memberCreator.initials;
+        action.author.username = act.memberCreator.username;
+        action.author.url = act.memberCreator.url;
+        card.comments.push(action);
+        cb1();
       }
     }
   }, function(done) {
