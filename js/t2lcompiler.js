@@ -4,6 +4,7 @@ var fs = require("fs");
 var rmrf = require("rimraf");
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var s = require("string");
 var prince = require("prince");
 var mustache = require("mustache");
@@ -331,18 +332,34 @@ exports.muparse = function(b, u, templatedir, tmp, board, cb) {
 
 }
 
+function rmPages(tmp, cb)
+{
+  console.log("[PDFToolkit] Modifying PDF...");
+  exec('pdftk ' + tmp + '/raw.pdf cat 3-end output ' + tmp + '/template.pdf dont_ask allow AllFeatures drop_xfa', { timeout: 15000 }, function(error, stdout, stderr)
+  {
+    console.log(`[PDFToolkit] ${stdout}\r\n${stderr}`);
+    if (error !== null) {
+      throw error;
+    }
+    cb();
+  });
+}
+
 exports.compilehtml = function(tmp, board, cb) {
-  //compile LaTeX
+  //compile LaTeXs
   console.log("[Prince] Generating PDF...");
   prince()
     .inputs(tmp + "/template.html")
-    .output(tmp + "/template.pdf")
+    .output(tmp + "/raw.pdf")
     .option("javascript")
     .option("log", tmp + "/prince.log")
     .execute()
     .then(function () {
-      console.log("Done");
-      cb(board);
+      console.log("[Prince] Done rendering!");
+      rmPages(tmp, function()
+      {
+        cb(board);
+      });
     }, function (error) {
       console.log("[Prince] ERROR: ", util.inspect(error));
       cb(board);
@@ -365,14 +382,14 @@ exports.archive = function(tmp, board, cb) {
 exports.publish = function(tmp, board, cb) {
   //copy PDF, LaTeX, and log
   fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
-    fs.rename(tmp + "template.html", "tmp/" + board.id + ".html", function() {
-      fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+    //fs.rename(tmp + "template.html", "tmp/" + board.id + ".html", function() {
+      //fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
         //FIXME clean
         //rmrf(tmp, function() {
           cb(board);
         //});
-      });
-    });
+      //});
+    //});
   });
 }
 
