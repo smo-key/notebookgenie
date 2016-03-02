@@ -330,17 +330,14 @@ exports.muparse = function(b, u, templatedir, tmp, board, cb) {
   console.log(view);
   fs.exists(templatedir + "template.html", function (exist) {
     if (exist) {
-        fs.readFile(templatedir + "template.html", 'utf8', function (err,data) {
-          if (err) {
-            return console.log(err);
-          }
-          var string = mustache.render(data,view);
-          console.log(string);
-          var file = fs.write(__dirname + "/../" + tmp + "template.html", string, { flags: 'a+', end: false },cb);
-        });
-
-
-    } else { console.log("NO EXIST!"); mu.root = oldroot; }
+      fs.readFile(templatedir + "template.html", 'utf8', function (err,data) {
+        if (err) {
+          //FIXME is this the correct error functionality or cb() or something else?
+          return console.log(err);
+        }
+        fs.writeFile(__dirname + "/../" + tmp + "template.html", mustache.render(data,view), { flags: 'a+', end: false },function() { cb(b, board); });
+      });
+    } else { console.log("NO EXIST!"); mu.root = oldroot; cb(b, board); }
     //TODO give an error somewhere
   });
 
@@ -356,9 +353,11 @@ exports.compilehtml = function(tmp, board, cb) {
     .option("log", tmp + "/prince.log")
     .execute()
     .then(function () {
-      console.log("Done")
+      console.log("Done");
+      cb(board);
     }, function (error) {
       console.log("[Prince] ERROR: ", util.inspect(error));
+      cb(board);
     });
 };
 
