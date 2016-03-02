@@ -131,6 +131,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         list.name = li.name;
         list.pos = li.pos;
         list.autoselect = false;
+        list.id = li.id;
 
         //get all cards in list
         if (!s(list.name).startsWith("!"))
@@ -415,6 +416,7 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
           card.due = util.converttime(cr.due); //TODO friendly time format
           card.pos = cr.pos;
           card.url = cr.url;
+          card.id = cr.id;
 
           //cr.labels.forEach(function(label) {
             //TODO is some LaTeX-friendly parsing missing here?
