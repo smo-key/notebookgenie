@@ -590,7 +590,10 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
       }
       else {
         //get remaining information, applies to both attachments and comments
-        action.htmlt = act.data.htmlt;
+        if (action.iscomment)
+        {
+          action.content = act.data.text;
+        }
         action.date = util.converttime(act.date);
         action.author = { };
         action.author.id = act.memberCreator.id;
