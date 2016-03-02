@@ -553,6 +553,11 @@ function prepTemplateDir(hasyml, dir, cb)
   });
 }
 
+exports.getcurrenttime = function()
+{
+  return new Date().toString("M/d/yyyy HH:mm");
+}
+
 /*exports.mark = function mark(str) {
   var parsemarkdown = true;  //FIXME for now forced to true!
   if (parsemarkdown && !isnull(str)) {

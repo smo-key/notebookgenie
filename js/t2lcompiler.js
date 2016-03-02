@@ -273,6 +273,7 @@ exports.getotherdata = function(tmp, b, raw, board, cb) {
     if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
     else { b.org.isorg = true; }
     b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
+    b.timebuilt = util.getcurrenttime();
 
     //TODO get additional data from org (image, etc.)
 
