@@ -100,7 +100,8 @@ attach.isimage **(Updated)** | `true` (if one of the following renderable image 
 
 b.lists.cards.comments *[array]* **(Updated)** | Example Result
 ----------|----------
-content **(Updated)** | `<p>Hi there, this is a comment.</p>`, returns HTML content
+content **(Updated)** *Only shown if `iscomment == true`* | `<p>Hi there, this is a comment.</p>`, returns HTML content
+attachment **(Updated)** *Only shown if `isattachment == true`* | `<p>Hi there, this is a comment.</p>`, returns HTML content
 date | `01/01/2001 14:00` or similar date format
 author | An instance of `b.members`
 iscomment | `True` if a comment

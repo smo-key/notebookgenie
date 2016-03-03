@@ -411,6 +411,7 @@ function buildcard(c, board, odata, u, i, j, listname, finalcallback) {
         card.list = { };
         card.list.id = cr.idList;
         card.list.name = listname;
+        card.exists = { checklists: false, comments: false };
 
         //cr.labels.forEach(function(label) {
           //TODO is some LaTeX-friendly parsing missing here?
@@ -479,6 +480,7 @@ function getchecklists(tmp, c, u, i, j, card, cr, cb) {
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
       var it = { name: item.name, pos: item.pos, checked: checked };
+      card.exists.checklists = true;
       items.push(it);
       cb2();
     }, function() {
@@ -597,6 +599,7 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
         {
           action.content = act.data.text;
         }
+        card.exists.comments = true;
         action.date = util.converttime(act.date);
         action.author = { };
         action.author.id = act.memberCreator.id;
