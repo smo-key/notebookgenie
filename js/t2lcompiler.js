@@ -141,7 +141,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         {
           var j = 0;
           async.each(li.cards, function(c, cb4) {
-            buildcard(c, board, odata, u, i, j++, function(card, k) {
+            buildcard(c, board, odata, u, i, j++, list.name, function(card, k) {
               console.log(card);
               console.log(i + " " + k + " " + c.id + " PUSH!");
               if (card != null)
@@ -165,7 +165,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                 //(This must be done in the order the cards are placed, so we do it after sorting).
 
                 async.eachSeries(li.cards, function(c, cb5) {
-                  buildcard(c, board, odata, u, i, j++, function(card, k) {
+                  buildcard(c, board, odata, u, i, j++, list.name, function(card, k) {
                     console.log(card);
                     try {
                       b.frontmatter.push({ name: card.name, id: card.id, content: util.mark(card.desc) });
@@ -216,7 +216,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       async.eachSeries(cardlist, function(cid, cb) {
         //FUTURE test if type is by URL or UID
         util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-          buildcard(c, board, odata, u, 0, iint++, function(card, k) {
+          buildcard(c, board, odata, u, 0, iint++, list.name, function(card, k) {
             if (card != null)
             {
               list.cards.push(card);
@@ -341,7 +341,7 @@ function rmPages(tmp, cb)
 exports.compilehtml = function(tmp, board, cb) {
   //compile LaTeXs
   console.log("[Prince] Generating PDF...");
-  board = util.updateprogress(JSON.stringify(board), 90);
+  board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
   prince()
     .inputs(tmp + "/template.html")
     .output(tmp + "/raw.pdf")
@@ -390,7 +390,7 @@ exports.publish = function(tmp, board, cb) {
 
 /*** CARD COMPILER ***/
 
-function buildcard(c, board, odata, u, i, j, finalcallback) {
+function buildcard(c, board, odata, u, i, j, listname, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
 
@@ -408,6 +408,9 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
         card.pos = cr.pos;
         card.url = cr.url;
         card.id = cr.id;
+        card.list = { };
+        card.list.id = cr.idList;
+        card.list.name = listname;
 
         //cr.labels.forEach(function(label) {
           //TODO is some LaTeX-friendly parsing missing here?
