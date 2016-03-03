@@ -92,9 +92,10 @@ Notebook Genie also downloads all attachment images to the `dl/` folder.  It wil
 b.lists.cards.attachments *[array]* | Example Result
 ----------|----------
 attach | A file attachment
-attach.filename | `dl/deadbeefdeadbeef1234134.png` (A location on disk)
-attach.name | `deadbeefdeadbeef1234134` (Just the name)
+attach.filename | `dl/deadbeefdeadbeef1234134.png` (A location on disk - formatted with a UUID)
+attach.name **(Updated)** | `hackers` (Original file name without extension)
 attach.ext | `.png` (file extension)
+attach.id **(Updated)** | `deadbeefdeadbeef1234134`
 attach.date | `01/01/2001 14:00` or similar date format (date image was taken)
 attach.isimage **(Updated)** | `true` (if one of the following renderable image formats: `.jpg`/`.jpeg`, `.png`, `.tiff`, `.gif`, or `.svg`), else `false`
 

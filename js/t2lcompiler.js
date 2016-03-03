@@ -362,6 +362,7 @@ exports.compilehtml = function(tmp, board, cb) {
 
 exports.archive = function(tmp, board, cb) {
   console.log("ZIPPING!");
+  board = util.updateprogress(JSON.stringify(board), 90);
   zipdir(tmp, "", new yazl.ZipFile(), function(zip) {
     zip.end(function() {
       zip.outputStream.pipe(fs.createWriteStream("tmp/" + board.id + ".zip")).on("close", function(done) {
@@ -510,16 +511,14 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
             var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
             console.log(i + " " + j + " ATTACHMENT: GET ATTACHMENT - " + attach.id);
             card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                    name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                    friendlyname: caption, id: attach.id });
+                                    name: caption, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0].toLowerCase(), isimage: true, id: attach.id });
 
             if (attach.id == cr.idAttachmentCover)
             {
               console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
               card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                       name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                       friendlyname: caption, id: attach.id };
-              cbattach();
+                                       name: caption, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0].toLowerCase(), isimage: true, id: attach.id };
+              cbattach(card.attachmentcover);
             } else { cbattach(); }
           }
           else { cbattach(); }
@@ -528,18 +527,18 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
       else
       {
         //not an image, don't download but add to list
-        card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false,
-                                friendlyname: attach.name.match(/^(.*.(?=\.)|(.*))/)[0], id: attach.id });
-        cbattach();
+        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
+        console.log(attach);
+        console.log(caption);
+        card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false, id: attach.id });
+        console.log(card.attachments);
+        cbattach(card.attachments);
       }
     } else { cbattach(); }
   }, function(dne) {
     console.log(i + " " + j + " ATTACHMENT: DONE GETTING! " + cr.attachments.length + " " + card.attachments.length);
     cb(card);
-    //compiler.getcomments(c, u, i, j, card, cr, c function(card1) {
-    //  card = card1;
-    //
-    //});
   });
 }
 
@@ -580,7 +579,7 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
           }
           else { cb2(); }
         }, function(done) {
-          //get remaining information, applies to both attachments and comments
+          //get remaining attachment info
           action.date = util.converttime(act.date);
           action.author = { };
           action.author.id = act.memberCreator.id;
@@ -594,11 +593,8 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
         });
       }
       else {
-        //get remaining information, applies to both attachments and comments
-        if (action.iscomment)
-        {
-          action.content = act.data.text;
-        }
+        //get comment info
+        action.content = util.mark(act.data.text);
         card.exists.comments = true;
         action.date = util.converttime(act.date);
         action.author = { };
