@@ -168,8 +168,18 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
                   buildcard(c, board, odata, u, i, j++, list.name, function(card, k) {
                     console.log(card);
                     try {
-                      b.frontmatter.push({ name: card.name, id: card.id, content: util.mark(card.desc) });
-                      cb5();
+                      if (s(card.name).startsWith("&"))
+                      {
+                        //HTML front matter
+                        b.frontmatter.push({ name: card.name.substring(1), id: card.id, content: card.desc });
+                        cb5();
+                      }
+                      else
+                      {
+                        //Markdown front matter
+                        b.frontmatter.push({ name: card.name, id: card.id, content: util.mark(card.desc) });
+                        cb5();
+                      }
                     } catch (e) {
                       cb5();
                     }
@@ -527,7 +537,6 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
       else
       {
         //not an image, don't download but add to list
-        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
         console.log(attach);
         console.log(caption);
