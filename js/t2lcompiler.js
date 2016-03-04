@@ -580,10 +580,31 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
           else { cb2(); }
         }, function(done) {
           //get remaining attachment info
+          fs.exists(tmp + "img/" + act.memberCreator.id + ".png", function(exists)
+          {
+            action.date = util.converttime(act.date);
+            action.author = { };
+            action.author.id = act.memberCreator.id;
+            action.author.avatar = exists ? "img/" + act.memberCreator.id + ".png" : null;
+            action.author.name = act.memberCreator.fullName;
+            action.author.initials = act.memberCreator.initials;
+            action.author.username = act.memberCreator.username;
+            action.author.url = act.memberCreator.url;
+            card.comments.push(action);
+            cb1();
+          });
+        });
+      }
+      else {
+        //get comment info
+        fs.exists(tmp + "img/" + act.memberCreator.id + ".png", function(exists)
+        {
+          action.content = util.mark(act.data.text);
+          card.exists.comments = true;
           action.date = util.converttime(act.date);
           action.author = { };
           action.author.id = act.memberCreator.id;
-          action.author.avatar = "img/" + act.memberCreator.id + ".png";
+          action.author.avatar = exists ? "img/" + act.memberCreator.id + ".png" : null;
           action.author.name = act.memberCreator.fullName;
           action.author.initials = act.memberCreator.initials;
           action.author.username = act.memberCreator.username;
@@ -591,21 +612,6 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
           card.comments.push(action);
           cb1();
         });
-      }
-      else {
-        //get comment info
-        action.content = util.mark(act.data.text);
-        card.exists.comments = true;
-        action.date = util.converttime(act.date);
-        action.author = { };
-        action.author.id = act.memberCreator.id;
-        action.author.avatar = "img/" + act.memberCreator.id + ".png";
-        action.author.name = act.memberCreator.fullName;
-        action.author.initials = act.memberCreator.initials;
-        action.author.username = act.memberCreator.username;
-        action.author.url = act.memberCreator.url;
-        card.comments.push(action);
-        cb1();
       }
     }
   }, function(done) {
