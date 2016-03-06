@@ -11,19 +11,21 @@ var date = require("./date.js");
 var pandoc = require('pdc');
 var async = require('async');
 var uuid = require('node-uuid');
+var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
+var yaml = require("js-yaml");
+var marked = require("marked");
 
-//
-//var marked = require("marked");
-//marked.setOptions({
-//  renderer: new marked.Renderer(),
-//  gfm: true,
-//  tables: false,
-//  breaks: false,
-//  pedantic: false,
-//  sanitize: true,
-//  smartLists: false,
-//  smartypants: false
-//});
+marked.setOptions({
+  renderer: new marked.Renderer(),
+  gfm: true,
+  tables: true,
+  breaks: false,
+  pedantic: false,
+  sanitize: false,
+  smartLists: true,
+  smartypants: true
+});
 
 function prep_genjson(status, message, public)
 {
@@ -341,84 +343,162 @@ exports.converttime = function converttime(time) {
     str += " UTC"
     str += " UTC"
     return new Date(str).add({ hours: -1 }).toString("M/d/yyyy HH:mm");
- } 
+ }
  else{
     return "";
  }
 }
 
-exports.mark = function mark(str, tmpdir, cb)
+exports.mark = function mark(str, tmpdir)
 {
-  pandoc(str, 'markdown', 'latex', function(err, result) {
-    if (err)
-    {
-      cb(str);
-    }
-    else
-    {
-      //check for \includegraphics{url} and download url, then replace download with location on disk
-      var final = result;
-      var regex = /\\includegraphics{\s*((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)\s*}/ig;
-      var match;
+  return marked(str);
+}
 
-      async.whilst(
-        function() { match = regex.exec(final); return !isnull(match); },
-        function(cbloop) {
-          // matched text: match[0]
-          // match start: match.index
-          // capturing group n: match[n]
-          if (!isnull(match))
+exports.templates = [ ];
+exports.templateoptions = [ ];
+
+exports.initTemplates = function(done)
+{
+  fs.readdir('templates', function(e, dirs) {
+    exports.templates = [ ];
+    exports.templateoptions = [ ];
+    console.log(dirs);
+    async.each(dirs, function(dir, cb) {
+      if (fs.statSync('templates/' + dir).isDirectory()) {
+        var hasyml = fs.existsSync('templates/' + dir + "/template.yml");
+        var hasscript = fs.existsSync('templates/' + dir + "/build.js")
+        var hasimg = false;  //TODO look for template image
+        runTemplateInstallScript(hasscript, dir, function()
+        {
+          prepTemplateDir(hasyml, dir, function()
           {
-            var url = match[1];
-
-            console.log(">>>>>>>>>>> GOT URL MATCH!")
-            console.log(match[0]);
-            console.log(url);
-
-            if (!isnull(url))
-            {
-              var local = "fm-" + uuid.v1();
-              var ext = url.match(/\.(png|jpe?g|eps)$/ig)[0];
-              if (!isnull(local) && !isnull(ext))
-              {
-                console.log("DOWNLOAD FILE!");
-                exports.downloadfile(url, tmpdir + "dl/" + local + ext, function(exists)
-                {
-                  console.log("FILE DOWNLOADED!");
-                  if (exists)
-                  {
-                    console.log("FILE PROCESSED!");
-                    //FIXME this is not generic...
-                    final = final.replace(match[0], "\\includegraphics[height=0.4\\linewidth]{dl/" + local + "}");
-                    console.log(final);
-                    cbloop();
-                  }
-                  else { cbloop(); }
-                });
-              }
-              else { cbloop(); }
-            }
-            else { cbloop(); }
-          }
-        },
-        function(err) {
-          cb(final);
-        }
-      )
-    }
+            cb();
+          });
+        });
+      }
+    }, function()
+    {
+      //done with all dirs
+      done();
+    });
   });
 }
-/*exports.mark = function mark(str) {
-  var parsemarkdown = true;  //FIXME for now forced to true!
-  if (parsemarkdown && !isnull(str)) {
-    // place the @ character in front of a literal char
-    return str.replace(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/igm, '@!\\url@!{$1@!}') //urls
-    //.replace(/\*\*(.*)\*\*///igm, '@!{@!\\bf $1@!}') //bold face
-    //.replace(/\*(.*)\*/igm, '@!{@!\\emph $1@!}') //italics
-    //.replace(/(@!{@!\\emph @!})|(@!{@!\\bf @!})/igm, '') //remove nulls
-  //}
-  //else { return str; }
-//}
+
+function runTemplateInstallScript(hasscript, dir, cb)
+{
+  if (hasscript)
+  {
+    console.log("[Template Installer] Installing " + dir + "...");
+    const node = spawn("node", ["build.js"], { cwd: 'templates/' + dir });
+
+    node.stdout.on('data', (data) => {
+      console.log(data.toString());
+    });
+    node.stderr.on('data', (data) => {
+      console.log(data.toString());
+    });
+    node.on('error', (err) => {
+      console.log("[Template Installer] " + err);
+    });
+    node.on('close', (code) => {
+      console.log("[Template Installer] Done with code " + code);
+      cb();
+    });
+  }
+  else {
+    cb();
+  }
+}
+
+function prepTemplateDir(hasyml, dir, cb)
+{
+  //read YAML and parse
+  fs.readFile('templates/' + dir + '/template.yml', function(er, ymldata) {
+    fs.readFile('templates/user.yml', function(er, ymluserdata) {
+      //TODO serve template images - for now text is fine
+      var template = { name: dir };
+      var templateopt = [ ];
+      //get template options data
+      if (!exports.isnull(ymldata)) ymlall = ymluserdata.toString().concat(ymldata.toString());
+      else ymlall = ymluserdata;
+      yml = yaml.safeLoad(ymlall);
+      console.log(yml);
+      if (yml === undefined || yml === null || yml.length === 0)
+      {
+        template.nooptions = true;
+        templateopt = { nooptions: true };
+
+        exports.templates.push(template);
+        exports.templateoptions[template.name] = templateopt;
+        cb();
+      }
+      else
+      {
+        template.nooptions = false;
+        for (var k in yml) {
+          if (yml.hasOwnProperty(k)) {
+            var v = { data: yml[k] };
+            console.log(v);
+            v.istext = false;
+            v.isselect = false;
+            v.isblank = false;
+            v.ischeck = false;
+            v.isform = false;
+            v.id = k;
+
+            if (exports.isnull(yml[k].type))
+            {
+              //just text
+              v.display = yml[k];
+              v.istext = true;
+            }
+            else
+            {
+              //not just text - find out what
+              if (yml[k].type == 'select')
+              {
+                v.isselect = true;
+                v.options = [ ];
+                //parse the options
+                for (var key in yml[k].options)
+                {
+                  if (yml[k].options.hasOwnProperty(key))
+                  {
+                    v.options.push({ display: key, result: yml[k].options[key] });
+                  }
+                }
+                console.log(v.options);
+              }
+              if (yml[k].type == 'blank')
+              { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+              if (yml[k].type == 'check')
+              { v.ischeck = true; }
+              if (yml[k].type == 'form')
+              { v.isform = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
+              v.display = yml[k].display;
+            }
+
+            templateopt.push(v);
+          }
+        }
+
+        //FIXME IMPORTANT add sending template options to the render function
+        console.log("ADDING TEMPLATE OPTIONS!");
+        console.log(templateopt);
+        console.log("JUST ADDED TEMPLATE OPTIONS!");
+
+        exports.templates.push(template);
+        exports.templateoptions[template.name] = templateopt;
+        cb();
+      }
+    });
+  });
+}
+
+exports.getcurrenttime = function()
+{
+  return new Date().toString("M/d/yyyy HH:mm");
+}
 
 Array.prototype.sortByProp = function(p){
   return this.sort(function(a,b){

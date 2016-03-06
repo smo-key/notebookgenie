@@ -2,10 +2,12 @@ var util = require("./util.js");
 var async = require('async');
 var fs = require("fs");
 var rmrf = require("rimraf");
-var mu = require('mutex'); //NOTE change name to mu_tex
 var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var s = require("string");
+var mustache = require("mustache");
+var ncp = require('ncp').ncp;
 
 /*** FUNCTIONS ***/
 var multiplicand = 75; //start creating pdf at five plus this
@@ -32,33 +34,11 @@ function zipdir(dir, base, zipfile, cb) {
   });
 }
 
-function compilepass(pass, passes, tmp, cb) {
-  console.log("COMPILE LATEX PASS " + pass + "! ---------");
-  var pdflatex = spawn('pdflatex', ['-synctex=1', '-interaction=nonstopmode', '"template".tex'], { cwd: tmp });
-
-  pdflatex.stdout.on('data', function (data) {
-    //console.log(data.toString());
-  });
-
-  pdflatex.on('close', function (code) {
-    console.log('LATEX COMPILE PASS ' + pass + ' COMPLETE - exited with code ' + code);
-    if (code > 1) {
-      cb(code, true); //return as an error
-      return;
-    }
-    else
-    {
-      pass++;
-      if (pass > passes) { cb(code, false); return; } //return ok
-      else { compilepass(pass, passes, tmp, cb); return; } //recursivize
-    }
-  });
-}
-
 /*** BOARD COMPILER ***/
 
 exports.preparefs1 = function(tmp, cb) {
   //TODO use rimraf for rmrf!
+  console.log("[FS] Preparing 1...");
   fs.exists("tmp/", function(exists) {
     if (!exists)
     {
@@ -66,9 +46,10 @@ exports.preparefs1 = function(tmp, cb) {
     }
     else { cb(); }
   });
-}
+};
 
 exports.preparefs2 = function(tmp, cb) {
+  console.log("[FS] Preparing 2...");
   fs.exists(tmp, function(exists) {
     if (exists)
     {
@@ -83,6 +64,7 @@ exports.preparefs2 = function(tmp, cb) {
 }
 
 exports.preparefs3 = function(tmp, board, b, cb) {
+  console.log("[FS] Preparing 3...");
   fs.mkdir(tmp + "img", function() {
     fs.mkdir(tmp + "dl", function() {
       board = util.updateprogress(JSON.stringify(board), 5);
@@ -132,10 +114,10 @@ exports.getmembers = function(tmp, board, b, raw, cb) {
 exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, listcallback) {
   console.log("GET LISTS");
   b.lists = [ ];
+  b.frontmatter = [ ];
   var iint = 0;
   var cur = 0;
   var max = raw.lists.length;
-  var frontmatterlatex = "";
   if (!isselect)
   {
     console.log("NOT BEING SELECTIVE!");
@@ -151,13 +133,14 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         list.name = li.name;
         list.pos = li.pos;
         list.autoselect = false;
+        list.id = li.id;
 
         //get all cards in list
         if (!s(list.name).startsWith("!"))
         {
           var j = 0;
           async.each(li.cards, function(c, cb4) {
-            buildcard(c, board, odata, u, i, j++, function(card, k) {
+            buildcard(c, board, odata, u, i, j++, list.name, function(card, k) {
               console.log(card);
               console.log(i + " " + k + " " + c.id + " PUSH!");
               if (card != null)
@@ -172,27 +155,33 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
             });
           }, function(err1) {
             sortlist(i, list, function(list) {
-
-              if (list.name.trim() == "Trello2LaTeX Front Matter")
+              if (list.name.trim() == "NotebookGenie Front Matter" || list.name.trim() == "Notebook Genie Front Matter")
               {
                 //This is our front matter!
                 console.warn("WE HAVE FRONT MATTER!");
 
-                //Add each card in the front matter to a LaTeX string
+                //Add each card to the front matter
                 //(This must be done in the order the cards are placed, so we do it after sorting).
 
                 async.eachSeries(li.cards, function(c, cb5) {
-                  //Do NOT mark the description on these cards. Filtering will be done in MuTeX.
-                  buildcard(c, board, odata, u, i, j++, function(card, k) {
+                  buildcard(c, board, odata, u, i, j++, list.name, function(card, k) {
                     console.log(card);
-                    var name = card.name;
-                    var desc = card.desc;
-
-                    util.mark("#" + name + "\n" + desc, tmp, function(latex)
-                    {
-                      frontmatterlatex += (latex + "\n\n").replace(/@!/igm, "");
+                    try {
+                      if (s(card.name).startsWith("&"))
+                      {
+                        //HTML front matter
+                        b.frontmatter.push({ name: card.name.substring(1), id: card.id, content: card.desc });
+                        cb5();
+                      }
+                      else
+                      {
+                        //Markdown front matter
+                        b.frontmatter.push({ name: card.name, id: card.id, content: util.mark(card.desc) });
+                        cb5();
+                      }
+                    } catch (e) {
                       cb5();
-                    });
+                    }
                   });
                 }, function(err2)
                 {
@@ -219,7 +208,6 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       });
     },
     function(err2) {
-      b.frontmatter = frontmatterlatex;
       console.log("DONE WITH BOARD!");
       listcallback(b, board);
     });
@@ -237,7 +225,7 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
       async.eachSeries(cardlist, function(cid, cb) {
         //FUTURE test if type is by URL or UID
         util.trello("/cards/" + cid, board.auth, odata, function(e, c) {
-          buildcard(c, board, odata, u, 0, iint++, function(card, k) {
+          buildcard(c, board, odata, u, 0, iint++, list.name, function(card, k) {
             if (card != null)
             {
               list.cards.push(card);
@@ -254,7 +242,6 @@ exports.getlists = function(tmp, board, b, odata, u, raw, isselect, cardlist, li
         });
       }, function(done) {
         b.lists.push(list);
-        b.frontmatter = frontmatterlatex;
         console.log("DONE WITH BOARD!");
         listcallback(b, board);
       });
@@ -270,27 +257,25 @@ exports.sortlists = function(b, cb) {
 
 exports.getotherdata = function(tmp, b, raw, board, cb) {
   console.log("GET OTHER!");
-  util.mark(raw.desc, tmp, function(mk1)
-  {
-    //raw.url -> b.url
-    b.url = raw.shortUrl;
-    //raw.labelNames -> b.labels
-    b.labels = raw.labelNames;
-    //raw.description -> b.description
-    //data from board
-    b.desc = mk1;
-    b.title = board.title;
-    b.org = { };
-    b.org.url = board.orgurl;
-    b.org.name = board.org;
-    if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
-    else { b.org.isorg = true; }
-    b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
+  //raw.url -> b.url
+  b.url = raw.shortUrl;
+  //raw.labelNames -> b.labels
+  b.labels = raw.labelNames;
+  //raw.description -> b.description
+  //data from board
+  b.desc = raw.desc;
+  b.title = board.title;
+  b.org = { };
+  b.org.url = board.orgurl;
+  b.org.name = board.org;
+  if (util.isnull(raw.idOrganization)) { b.org.isorg = false; }
+  else { b.org.isorg = true; }
+  b.lastmodified = util.converttime(raw.dateLastActivity); //TODO make this from ISO -> human readable
+  b.timebuilt = util.getcurrenttime();
 
-    //TODO get additional data from org (image, etc.)
+  //TODO get additional data from org (image, etc.)
 
-    cb(b);
-  });
+  cb(b);
 }
 
 exports.flushprogress = function(b, board, cb) {
@@ -304,26 +289,14 @@ exports.gettemplate = function(tmp, board, b, templatedir, cb) {
   console.log("--------- GET TEMPLATES");
   //FIXME copy template files -> temp
 
-  fs.readdir(templatedir, function (e, files) {
-    var i = 0;
-    var max = files.length;
-    async.each(files, function(file, cbfile) {
-      if (!file.match(/(.yml|template.tex|.pdf|.aux|.synctex.gz|.out|.log|dl|img)$/)) {
-        //file is not the YML file or some annoying LaTeX junk -> copy
-        console.log("----- COPY: " + file);
-        fs.readFile(templatedir + file, function(e, data) {
-          fs.writeFile(tmp + file, data, function() {
-            board = util.updateprogress(JSON.stringify(board), (i/max)*5+multiplicand);
-            cbfile();
-          });
-        });
-      } else {
-        max--; board = util.updateprogress(JSON.stringify(board), (i/max)*5+multiplicand);
-        cbfile();
-      }
-    }, function() {
-      cb(b, board);
-    });
+  ncp.limit = 16;
+  ncp(templatedir, tmp, function (err) {
+    if (err) {
+      console.log("[ncp] COPY ERROR!");
+      return console.error(err);
+    }
+    console.log("[ncp] Done copying!");
+    cb(b, board);
   });
 }
 
@@ -345,45 +318,54 @@ exports.muparse = function(b, u, templatedir, tmp, board, cb) {
       }
     }
   });
-
-  mu.clearCache();
-  mu.root = templatedir;
-  fs.exists(templatedir + "template.tex", function (exist) {
+  console.log(view);
+  fs.exists(templatedir + "template.html", function (exist) {
     if (exist) {
-      var file = fs.createWriteStream(__dirname + "/../" + tmp + "template.tex", { flags: 'a+', end: false });
-      try
-      {
-        var stream = mu.compileAndRender("template.tex", view);
-        stream.pipe(file, { end: false });
-        file.on('error', function(err) {
-          throw err;
-        });
-
-        stream.on('end', function() {
-          board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
-          cb(b, board);
-        });
-      } catch (e) {
-        //FIXME error handling to user
-        console.error(e.stack);
-        return;
-      }
-    } else { console.log("NO EXIST!"); }
+      fs.readFile(templatedir + "template.html", 'utf8', function (err,data) {
+        if (err) {
+          //FIXME is this the correct error functionality or cb() or something else?
+          return console.log(err);
+        }
+        fs.writeFile(__dirname + "/../" + tmp + "template.html", mustache.render(data,view), { flags: 'a+', end: false },function() { cb(b, board); });
+      });
+    } else { console.log("NO EXIST!"); mu.root = oldroot; cb(b, board); }
     //TODO give an error somewhere
   });
 
 }
 
-exports.compilelatex = function(tmp, board, cb) {
-  //compile LaTeX
-  compilepass(1, 3, tmp, function(code, err) {
-    board = util.updateprogress(JSON.stringify(board), 90);
-    cb(board);
+exports.compilehtml = function(tmp, board, cb) {
+  //compile LaTeXs
+  console.log("[Prince] Generating PDF...");
+  board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
+
+  const prince = spawn('prince', ['--verbose', '--javascript', tmp + '/template.html', '-o', tmp + '/raw.pdf'],  { stdio: "inherit" });
+
+  prince.on('close', (code) => {
+    console.log('[Prince] Exited with code ' + code);
+    rmPages(tmp, function()
+    {
+      cb(board);
+    });
+  });
+};
+
+function rmPages(tmp, cb)
+{
+  console.log("[PDFToolkit] Modifying PDF...");
+  exec('pdftk ' + tmp + '/raw.pdf cat 3-end output ' + tmp + '/template.pdf dont_ask allow AllFeatures drop_xfa', { timeout: 60000 }, function(error, stdout, stderr)
+  {
+    console.log(`[PDFToolkit] ${stdout}\r\n${stderr}`);
+    if (error !== null) {
+      throw error;
+    }
+    cb();
   });
 }
 
 exports.archive = function(tmp, board, cb) {
   console.log("ZIPPING!");
+  board = util.updateprogress(JSON.stringify(board), 90);
   zipdir(tmp, "", new yazl.ZipFile(), function(zip) {
     zip.end(function() {
       zip.outputStream.pipe(fs.createWriteStream("tmp/" + board.id + ".zip")).on("close", function(done) {
@@ -398,21 +380,21 @@ exports.archive = function(tmp, board, cb) {
 exports.publish = function(tmp, board, cb) {
   //copy PDF, LaTeX, and log
   fs.rename(tmp + "template.pdf", "tmp/" + board.id + ".pdf", function() {
-    fs.rename(tmp + "template.tex", "tmp/" + board.id + ".tex", function() {
-      fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
+    //fs.rename(tmp + "template.html", "tmp/" + board.id + ".html", function() {
+      //fs.rename(tmp + "template.log", "tmp/" + board.id + ".log", function() {
         //FIXME clean
         //rmrf(tmp, function() {
           cb(board);
         //});
-      });
-    });
+      //});
+    //});
   });
 }
 
 
 /*** CARD COMPILER ***/
 
-function buildcard(c, board, odata, u, i, j, finalcallback) {
+function buildcard(c, board, odata, u, i, j, listname, finalcallback) {
   //TODO allow template to set the action limit
   var tmp = "tmp/" + board.id + "/";
 
@@ -424,31 +406,33 @@ function buildcard(c, board, odata, u, i, j, finalcallback) {
     {
       if (!s(card.name).startsWith("!"))
       {
-        util.mark(cr.desc.trim(), tmp, function(mk1)
-        {
-          card.desc = mk1;
-          card.lastmodified = cr.dateLastActivity;
-          card.due = util.converttime(cr.due); //TODO friendly time format
-          card.pos = cr.pos;
-          card.url = cr.url;
+        card.desc = util.mark(cr.desc.trim());
+        card.lastmodified = cr.dateLastActivity;
+        card.due = util.converttime(cr.due); //TODO friendly time format
+        card.pos = cr.pos;
+        card.url = cr.url;
+        card.id = cr.id;
+        card.list = { };
+        card.list.id = cr.idList;
+        card.list.name = listname;
+        card.exists = { checklists: false, comments: false };
 
-          //cr.labels.forEach(function(label) {
-            //TODO is some LaTeX-friendly parsing missing here?
-          //});
-          card.attachments = [ ];
-          card.attachmentcover = null;
-          console.log(i + " " + j + " BEGIN CARD GET!");
+        //cr.labels.forEach(function(label) {
+          //TODO is some LaTeX-friendly parsing missing here?
+        //});
+        card.attachments = [ ];
+        card.attachmentcover = null;
+        console.log(i + " " + j + " BEGIN CARD GET!");
 
-          getmembers(c, u, i, j, card, cr, function(card) {
-          getvotes(c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
-          getchecklists(tmp, c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
-          getattachments(c, u, i, j, card, cr, tmp, function(card) {
-          getcomments(tmp, c, u, i, j, card, cr, function(card) {
-            console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
-          });});});});});
-        });
+        getmembers(c, u, i, j, card, cr, function(card) {
+        getvotes(c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING CHECKLISTS!");
+        getchecklists(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " NOW GETTING ATTACHMENTS!");
+        getattachments(c, u, i, j, card, cr, tmp, function(card) {
+        getcomments(tmp, c, u, i, j, card, cr, function(card) {
+          console.log(i + " " + j + " CARD DONE!"); finalcallback(card, j);
+        });});});});});
       }
       else
       {
@@ -499,18 +483,13 @@ function getchecklists(tmp, c, u, i, j, card, cr, cb) {
 
     async.eachSeries(c.checkItems, function(item, cb2) {
       if (item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      util.mark(item.name, tmp, function(mk2)
-      {
-        var it = { name: mk2, pos: item.pos, checked: checked };
-        items.push(it);
-        cb2();
-      });
+      var it = { name: item.name, pos: item.pos, checked: checked };
+      card.exists.checklists = true;
+      items.push(it);
+      cb2();
     }, function() {
-      util.mark(c.name, tmp, function(mk1)
-      {
-        card.checklists.push({ name: mk1, pos: c.pos, items: items.sortByProp('pos') });
-        cb1();
-      });
+      card.checklists.push({ name: c.name, pos: c.pos, items: items.sortByProp('pos') });
+      cb1();
     });
   }, function() { if(u.reverseorder == 'true') { card.checklists = card.checklists.reverse(); } cb(card); });
 }
@@ -524,7 +503,7 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
     if (attach.url.match(/\.[0-9a-zA-Z]+$/))
     {
       //check if includable image
-      if (attach.url.match(/\.(png|jpe?g|eps)+/i))
+      if (attach.url.match(/\.(png|jpe?g|svg|tiff|gif)+/i))
       {
         var ur = tmp + "dl/" + attach.id + attach.url.match(/\.[0-9a-z]+$/i)[0].toLowerCase();
         console.log(i + " " + j + " ATTACHMENT: START DOWNLOAD - " + attach.id);
@@ -535,16 +514,14 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
             var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
             console.log(i + " " + j + " ATTACHMENT: GET ATTACHMENT - " + attach.id);
             card.attachments.push({ filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                    name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                    friendlyname: caption, id: attach.id });
+                                    name: caption, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0].toLowerCase(), isimage: true, id: attach.id });
 
             if (attach.id == cr.idAttachmentCover)
             {
               console.log(i + " " + j + " ATTACHMENT: GET COVER - " + attach.id);
               card.attachmentcover = { filename: "dl/" + attach.id + attach.url.match(/\.[0-9a-zA-Z]+$/)[0],
-                                       name: attach.id, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: true,
-                                       friendlyname: caption, id: attach.id };
-              cbattach();
+                                       name: caption, date: util.converttime(attach.date), ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0].toLowerCase(), isimage: true, id: attach.id };
+              cbattach(card.attachmentcover);
             } else { cbattach(); }
           }
           else { cbattach(); }
@@ -553,18 +530,17 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
       else
       {
         //not an image, don't download but add to list
-        card.attachments.push({ filename: null, name: attach.id, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false,
-                                friendlyname: attach.name.match(/^(.*.(?=\.)|(.*))/)[0], id: attach.id });
-        cbattach();
+        var caption = attach.name.match(/^(.*.(?=\.)|(.*))/)[0]; //get filename, just filename
+        console.log(attach);
+        console.log(caption);
+        card.attachments.push({ filename: null, name: attach.name, date: attach.date, ext: attach.url.match(/\.[0-9a-zA-Z]+$/)[0], isimage: false, id: attach.id });
+        console.log(card.attachments);
+        cbattach(card.attachments);
       }
     } else { cbattach(); }
   }, function(dne) {
     console.log(i + " " + j + " ATTACHMENT: DONE GETTING! " + cr.attachments.length + " " + card.attachments.length);
     cb(card);
-    //compiler.getcomments(c, u, i, j, card, cr, c function(card1) {
-    //  card = card1;
-    //
-    //});
   });
 }
 
@@ -605,28 +581,32 @@ function getcomments(tmp, c, u, i, j, card, cr, cb) {
           }
           else { cb2(); }
         }, function(done) {
-          //get remaining information, applies to both attachments and comments
-          action.date = util.converttime(act.date);
-          action.author = { };
-          action.author.id = act.memberCreator.id;
-          action.author.avatar = "img/" + act.memberCreator.id + ".png";
-          action.author.name = act.memberCreator.fullName;
-          action.author.initials = act.memberCreator.initials;
-          action.author.username = act.memberCreator.username;
-          action.author.url = act.memberCreator.url;
-          card.comments.push(action);
-          cb1();
+          //get remaining attachment info
+          fs.exists(tmp + "img/" + act.memberCreator.id + ".png", function(exists)
+          {
+            action.date = util.converttime(act.date);
+            action.author = { };
+            action.author.id = act.memberCreator.id;
+            action.author.avatar = exists ? "img/" + act.memberCreator.id + ".png" : null;
+            action.author.name = act.memberCreator.fullName;
+            action.author.initials = act.memberCreator.initials;
+            action.author.username = act.memberCreator.username;
+            action.author.url = act.memberCreator.url;
+            card.comments.push(action);
+            cb1();
+          });
         });
       }
       else {
-        //get remaining information, applies to both attachments and comments
-        util.mark(act.data.text, tmp, function(mk1)
+        //get comment info
+        fs.exists(tmp + "img/" + act.memberCreator.id + ".png", function(exists)
         {
-          action.text = mk1.trim() + "\\\\";
+          action.content = util.mark(act.data.text);
+          card.exists.comments = true;
           action.date = util.converttime(act.date);
           action.author = { };
           action.author.id = act.memberCreator.id;
-          action.author.avatar = "img/" + act.memberCreator.id + ".png";
+          action.author.avatar = exists ? "img/" + act.memberCreator.id + ".png" : null;
           action.author.name = act.memberCreator.fullName;
           action.author.initials = act.memberCreator.initials;
           action.author.username = act.memberCreator.username;
@@ -650,4 +630,3 @@ function sortlist(i, list, cb) {
   if (!util.isnull(list.checklists) && list.checklists.length > 0) { list.checklists = list.checklists.sortByProp('pos'); }
   cb(list);
 }
-
