@@ -6,7 +6,6 @@ var yazl = new require('yazl');
 var spawn = require('child_process').spawn;
 var exec = require('child_process').exec;
 var s = require("string");
-var prince = require("prince");
 var mustache = require("mustache");
 var ncp = require('ncp').ncp;
 
@@ -335,10 +334,26 @@ exports.muparse = function(b, u, templatedir, tmp, board, cb) {
 
 }
 
+exports.compilehtml = function(tmp, board, cb) {
+  //compile LaTeXs
+  console.log("[Prince] Generating PDF...");
+  board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
+
+  const prince = spawn('prince', ['--verbose', '--javascript', tmp + '/template.html', '-o', tmp + '/raw.pdf'],  { stdio: "inherit" });
+
+  prince.on('close', (code) => {
+    console.log('[Prince] Exited with code ' + code);
+    rmPages(tmp, function()
+    {
+      cb(board);
+    });
+  });
+};
+
 function rmPages(tmp, cb)
 {
   console.log("[PDFToolkit] Modifying PDF...");
-  exec('pdftk ' + tmp + '/raw.pdf cat 3-end output ' + tmp + '/template.pdf dont_ask allow AllFeatures drop_xfa', { timeout: 15000 }, function(error, stdout, stderr)
+  exec('pdftk ' + tmp + '/raw.pdf cat 3-end output ' + tmp + '/template.pdf dont_ask allow AllFeatures drop_xfa', { timeout: 60000 }, function(error, stdout, stderr)
   {
     console.log(`[PDFToolkit] ${stdout}\r\n${stderr}`);
     if (error !== null) {
@@ -347,28 +362,6 @@ function rmPages(tmp, cb)
     cb();
   });
 }
-
-exports.compilehtml = function(tmp, board, cb) {
-  //compile LaTeXs
-  console.log("[Prince] Generating PDF...");
-  board = util.updateprogress(JSON.stringify(board), multiplicand + 5);
-  prince()
-    .inputs(tmp + "/template.html")
-    .output(tmp + "/raw.pdf")
-    .option("javascript")
-    .option("log", tmp + "/prince.log")
-    .execute()
-    .then(function () {
-      console.log("[Prince] Done rendering!");
-      rmPages(tmp, function()
-      {
-        cb(board);
-      });
-    }, function (error) {
-      console.log("[Prince] ERROR: ", util.inspect(error));
-      cb(board);
-    });
-};
 
 exports.archive = function(tmp, board, cb) {
   console.log("ZIPPING!");
