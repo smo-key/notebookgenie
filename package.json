@@ -1,7 +1,7 @@
 {
-  "name": "trello2latex",
-  "version": "0.1.0",
-  "description": "NodeJS server that automagically converts a Trello board into a customizable LaTeX document",
+  "name": "notebookgenie",
+  "version": "0.5.0",
+  "description": "NodeJS server that automagically converts a Trello board into a printable document",
   "main": "server.js",
   "dependencies": {
     "async": "^1.5.0",
@@ -31,17 +31,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/smo-key/trello2latex.git"
+    "url": "https://github.com/smo-key/notebookgenie.git"
   },
   "keywords": [
     "Trello",
-    "LaTeX",
+    "Print",
+    "Trello Printer",
+    "Trello to PDF",
     "PDF"
   ],
   "author": "Arthur Pachachura",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/smo-key/trello2latex/issues"
+    "url": "https://github.com/smo-key/notebookgenie/issues"
   },
-  "homepage": "https://github.com/smo-key/trello2latex"
+  "homepage": "https://github.com/smo-key/notebookgenie"
 }
