@@ -20,12 +20,12 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
     u.captionlist[id] = caption;
   });*/
 
-  console.log(u);
+  //console.log(u);
   //oauth data
   odata = JSON.parse(odata);
   //complete credential verification - DONE in board
   board = JSON.parse(board);
-  console.log(board);
+  //console.log(board);
   //download JSON -> raw
   svr.emitter.emit('updatestatus', board);
   util.trello("/boards/" + board.uid + "?lists=open&cards=open&members=all&member_fields=all&organization=true&organization_fields=all&fields=all", board.auth, odata, function(e, raw) {
@@ -40,8 +40,8 @@ exports.startbuild = function startbuild(board, u, odata, cardlist) {
 
     var isselect = (cardlist.length !== 0);
 
-    console.log(board);
-    console.log(board.uid);
+    //console.log(board);
+    //console.log(board.uid);
 
     compiler.preparefs1(tmp, function() {
       compiler.preparefs2(tmp, function() {
