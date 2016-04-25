@@ -508,7 +508,7 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
   //download card attachments to /tmp/dl
   var count = cr.attachments.length;
   var done = 0;
-  /*async.each(cr.attachments, function(attach, cbattach) {
+  async.each(cr.attachments, function(attach, cbattach) {
     if (attach.url.match(/\.[0-9a-zA-Z]+$/))
     {
       //check if includable image
@@ -550,7 +550,7 @@ function getattachments(c, u, i, j, card, cr, tmp, cb) {
   }, function(dne) {
     console.log(i + " " + j + " ATTACHMENT: DONE GETTING! " + cr.attachments.length + " " + card.attachments.length);
     cb(card);
-  });*/
+  });
   cb(card);
 }
 

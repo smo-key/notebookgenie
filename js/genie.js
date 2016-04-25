@@ -113,7 +113,7 @@ getmembers = function(tmp, b, raw, board, cb)
       var future = function(tmp, _member, member, cb)
       {
         util.downloadfile("https://trello-avatars.s3.amazonaws.com/"
-        + _member.avatarHash + "/170.png", tmp + "img/" + _member.id + ".png", function(err)
+        + _member.avatarHash + "/170.png", tmp + "img/" + _member.id + ".png", null, function(err)
         {
           if (err)
           {
@@ -253,14 +253,23 @@ buildcard = fibrous(function(_card, tmp, b, u, listname, odata)
   card.attachments = [ ];
   card.attachmentcover = null;
 
-  console.log("Finished card " + card.name);
+  try {
+    card = card_getmembers.sync(_card, card);
+    card = card_getchecklists.sync(_card, card);
+    card = card_getattachments.sync(_card, card, tmp);
+    card = card_getcomments.sync(_card, card, tmp, u);
 
-  //card = card_getmembers.sync(_card, card);
+    console.log("Finished card " + card.name);
+    console.log(card);
 
-  return card;
+    return card;
+  } catch (e) {
+    console.error(e.stack);
+    return null;
+  }
 });
 
-card_getmembers = function(_card, card, cb)
+card_getmembers = fibrous(function(_card, card)
 {
   card.members = [ ];
   for (var i=0; i<_card.members.length;i++)
@@ -270,4 +279,134 @@ card_getmembers = function(_card, card, cb)
      initials: _member.initials, username: _member.username, url: _member.url });
   }
   return card;
-}
+});
+
+card_getchecklists = fibrous(function(_card, card)
+{
+  card.checklists = [ ];
+  for (var i=0; i<_card.checklists.length;i++)
+  {
+    var items = [ ];
+    var _checklist = _card.checklists[i];
+
+    for (var j=0;j<_checklist.checkItems.length;j++)
+    {
+      var _item = _checklist.checkItems[j];
+      if (_item.state == "incomplete") { var checked = false; } else { var checked = true; }
+      var item = { name: _item.name, pos: _item.pos, checked: checked };
+      items.push(item);
+    }
+
+    card.checklists.push({ name: _checklist.name, pos: _checklist.pos, items: items.sortByProp('pos') });
+  }
+  return card;
+});
+
+card_getattachments = fibrous(function(_card, card, tmp)
+{
+  card.attachments = [ ];
+  var futures = [ ];
+  for (var i=0; i<_card.attachments.length; i++)
+  {
+    var _attachment = _card.attachments[i];
+    if (_attachment.url.match(/\.[0-9a-zA-Z]+$/))
+    {
+      var name = _attachment.name.match(/^(.*.(?=\.)|(.*))/)[0];
+      var ext = _attachment.url.match(/\.[0-9a-z]+$/i)[0].toLowerCase();
+      var filename = name + ext;
+      var path = tmp + "dl/" + _attachment.id + ext;
+
+      //check if includable image
+      if (_attachment.url.match(/\.(png|jpe?g|svg|tiff|gif)+/i))
+      {
+        console.log("Starting download of " + filename);
+
+        var future = Future.wrap(util.downloadfile)(_attachment.url, path, _attachment);
+        futures.push(future);
+      }
+      else {
+        //not an image, don't download but add to list
+        card.attachments.push({ filename: null, name: _attachment.name, date: _attachment.date,
+          ext: ext, isimage: false, id: _attachment.id });
+      }
+    }
+  }
+
+  var data = fibrous.wait(futures);
+  console.log("Finished attachments for " + card.name);
+  for (var i=0; i<data.length; i++)
+  {
+    if (util.isnull(data[i])) continue;
+    var _attachment = data[i];
+    var name = _attachment.name.match(/^(.*.(?=\.)|(.*))/)[0];
+    var ext = _attachment.url.match(/\.[0-9a-z]+$/i)[0].toLowerCase();
+    var filename = name + ext;
+    var path = tmp + "dl/" + _attachment.id + ext;
+    var attachment = { filename: "dl/" + _attachment.id + ext,
+                       name: name, date: util.converttime(_attachment.date),
+                       ext: ext, isimage: true, id: _attachment.id };
+    if (_attachment.id == _card.idAttachmentCover)
+      card.attachmentcover = attachment;
+    card.attachments.push(attachment);
+  }
+  return card;
+});
+
+card_getcomments = fibrous(function(_card, card, tmp, u)
+{
+  card.comments = [ ];
+  for (var i=0; i<_card.actions.length;i++)
+  {
+    var _action = _card.actions[i];
+    var action = { };
+    action.iscomment = (_action.type == 'commentCard');
+    action.isattachment = (_action.type == 'addAttachmentToCard');
+    action.isdeleteattachment = (_action.type == 'deleteAttachmentFromCard');
+
+    if ((action.isdeleteattachment || action.isattachment) &&
+    (_action.data.attachment.id == _card.idAttachmentCover))
+    {
+      //ignore covers if they are an attachment
+      continue;
+    }
+    else if (action.isdeleteattachment)
+    {
+      //TODO remove attachment from comment list if it was removed from card OR is cover (ignore covers)
+      continue;
+    }
+    else
+    {
+      if (action.isattachment) {
+        for (var j=0;j<card.attachments.length;j++)
+        {
+          var attachment = card.attachments[j];
+          if (attachment.id == _action.data.attachment.id)
+          {
+            action.attachment = attachment;
+            break;
+          }
+        }
+      }
+      else {
+        //Get comment info
+        action.content = util.mark(_action.data.text);
+        card.exists.comments = true;
+      }
+
+      //Add creator information
+      var exists = fs.existsSync(tmp + "img/" + _action.memberCreator.id + ".png");
+      action.date = util.converttime(_action.date);
+      action.author = { };
+      action.author.id = _action.memberCreator.id;
+      action.author.avatar = exists ? "img/" + _action.memberCreator.id + ".png" : null;
+      action.author.name = _action.memberCreator.fullName;
+      action.author.initials = _action.memberCreator.initials;
+      action.author.username = _action.memberCreator.username;
+      action.author.url = _action.memberCreator.url;
+      card.comments.push(action);
+    }
+  }
+
+  if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
+  return card;
+});

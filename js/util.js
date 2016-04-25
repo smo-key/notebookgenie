@@ -61,8 +61,9 @@ function download(url, cb)
 }
 exports.download = download;
 
-exports.downloadfile = function downloadfile(url, filename, cb)
+exports.downloadfile = function downloadfile(url, filename, carry, cb)
 {
+  //note: special "carry" info used for Future purposes
   var file = fs.createWriteStream(filename);
   try {
     https.get(url, function(res) {
@@ -71,7 +72,7 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
-        cb(null);
+        cb(null, carry);
       });
     });
   } catch (e) {
@@ -82,7 +83,7 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
-        cb(null);
+        cb(null, carry);
       });
     }).on('error', function(e) {
       throw e;
@@ -90,7 +91,7 @@ exports.downloadfile = function downloadfile(url, filename, cb)
     } catch(e) {
       console.error(e);
       console.error("FILE ERROR! - " + filename);
-      cb(e);
+      cb(e, carry);
     }
   }
 }
