@@ -9,13 +9,17 @@ var yazl = new require('yazl');
 var async = require("async");
 var s = require("string");
 var Future = require("fibers/future");
+var mustache = require("mustache");
+var ncp = require('ncp').ncp;
+var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 
 exports.startbuild = function startbuild(b, u, odata, cardlist) {
   fibrous.run(function() {
     build.sync(b, u, odata);
   }, function(err, done) {
     if (err) console.error(err.stack);
-    console.log("[Genie] Done building board!");
+    console.log("[Genie] Builder exited!");
   });
 };
 
@@ -45,8 +49,10 @@ build = fibrous(function(b, u, odata) {
   //create JSON array to store board information for LaTeX -> b
   var board = {};
   //create temp folder
-  var tmp = "tmp/" + board.id + "/";
-  var templatedir = "templates/" + board.template + "/dist/";
+  var tmp = "tmp/" + b.id + "/";
+  var templatedir = "templates/" + b.template + "/dist/";
+
+  console.log(tmp);
 
   //Prepare filesystem
   preparefs.sync(tmp, b);
@@ -60,15 +66,41 @@ build = fibrous(function(b, u, odata) {
 
   //Get all lists and their cards and data
   board = getlists.sync(tmp, b, raw, board, u, odata);
-  updateprogress(b, 80);
+  updateprogress(b, 70);
   console.log("[Genie] Lists populated!")
 
+  //Display entire board
   //console.log('\033c'); //Clear console to simplify
   //console.log(board);
 
-  //Get all attachments
-  //board = getattachments.sync(tmp, b, raw, board, u, odata);
-  //updateprogress(b, 30);
+  //Get other data
+  board = getotherdata.sync(raw, board);
+  console.log("[Genie] Other data received!")
+
+  //Parse with Mustache
+  muparse.sync(templatedir, tmp, board, u);
+  updateprogress(b, 75);
+  console.log("[Genie] Mustache parsed!")
+
+  //Compile with Prince
+  compilehtml.sync(tmp);
+  updateprogress(b, 85);
+  console.log("[Genie] Compiled into HTML!")
+
+  //Archive document
+  archive.sync(tmp, board);
+  updateprogress(b, 95);
+  console.log("[Genie] Document archived!")
+
+  //Publish document
+  publish.sync(tmp, board);
+  updateprogress(b, 100);
+
+  console.log("[Genie] Done building board!");
+  svr.stache.building = null;
+  svr.stache.built.push(b);
+  svr.emitter.emit('updatestatus', b);
+  //FIXME IMPORTANT continue with queue
 });
 
 function updateprogress(b, progress)
@@ -409,4 +441,142 @@ card_getcomments = fibrous(function(_card, card, tmp, u)
 
   if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
   return card;
+});
+
+getotherdata = fibrous(function(_board, board)
+{
+  //raw.url -> b.url
+  board.url = _board.shortUrl;
+  //raw.labelNames -> b.labels
+  board.labels = _board.labelNames;
+  //raw.description -> b.description
+  //data from board
+  board.desc = _board.desc;
+  board.title = _board.title;
+  board.org = { };
+  board.org.url = _board.orgurl;
+  board.org.name = _board.org;
+  board.id = _board.shortLink;
+  board.uid = _board.id;
+  board.public = (_board.prefs.permissionLevel == "public");
+  
+  if (util.isnull(_board.idOrganization)) { board.org.isorg = false; }
+  else { board.org.isorg = true; }
+  board.lastmodified = util.converttime(_board.dateLastActivity); //TODO make this from ISO -> human readable
+  board.timebuilt = util.getcurrenttime();
+
+  //TODO get additional data from org (image, etc.)
+
+  return board;
+});
+
+muparse = fibrous(function(templatedir, tmp, board, u)
+{
+  //Copy all template files
+  console.log("Copying template files to tmp dir...");
+  ncp.limit = 16;
+  ncp.sync(templatedir, tmp);
+  console.log("Done copying!");
+
+  //Crate view object
+  console.log("Generating mustache object...");
+  var view = { };
+  view = { b: board };
+  //copy user data to view
+  Object.keys(u).forEach(function(key) {
+    var val = u[key];
+    if (!key.match(/^_/)) {
+      //avoid anything internal (starts with underscore)
+      if(!(val === Object(val))) {
+        //copy data as it doesn't appear to be JSON (user data)
+        view[key] = val;
+      }
+    }
+  });
+  console.log(view);
+
+  //Copy template HTML
+  console.log("Copying HTML file to tmp dir...");
+  if (fs.existsSync(templatedir + "template.html"))
+  {
+    var data = fs.readFile.sync(templatedir + "template.html", 'utf8');
+    console.log("Parsing HTML with Mustache...");
+    fs.writeFile.sync(__dirname + "/../" +
+      tmp + "template.html", mustache.render(data,view),
+      { flags: 'a+', end: false });
+  }
+  else {
+    mu.root = oldroot;
+  }
+});
+
+compilehtml = function(tmp, cb)
+{
+  console.log("[Prince] Generating PDF...");
+
+  const prince = spawn('prince',
+  ['--verbose', '--javascript', tmp + '/template.html', '-o', tmp + '/raw.pdf'],
+  { stdio: "inherit" });
+
+  prince.on('close', (code) => {
+    console.log('[Prince] Exited with code ' + code);
+    fixdocument(tmp, function(err)
+    {
+      cb(err);
+    });
+  });
+}
+
+fixdocument = function(tmp, cb)
+{
+  console.log("[PDFToolkit] Modifying PDF...");
+  exec('pdftk ' + tmp + '/raw.pdf cat 3-end output ' + tmp + '/template.pdf dont_ask allow AllFeatures drop_xfa',
+   { timeout: 60000 }, function(error, stdout, stderr)
+  {
+    console.log(`[PDFToolkit] ${stdout}\r\n${stderr}`);
+    if (error != null) {
+      console.error(error.stack);
+      cb(error);
+    }
+    cb(null);
+  });
+}
+
+function zipdir(dir, base, zipfile, cb) {
+  fs.readdir(dir, function(err, files) {
+    async.each(files, function(file, callback) {
+      fs.stat(dir + file, function(er, stats) {
+        if (stats.isFile()) {
+          zipfile.addFile(dir + file, base + file);
+          callback();
+        }
+        else if (stats.isDirectory())
+        {
+          zipdir(dir + file + '/', base + file + '/', zipfile, function(z) {
+            zipfile = z;
+            callback();
+          });
+        }
+      });
+    }, function(done) {
+      cb(zipfile);
+    });
+  });
+}
+
+archive = function(tmp, board, cb) {
+  console.log("Zipping...");
+  zipdir(tmp, "", new yazl.ZipFile(), function(zip) {
+    zip.end(function() {
+      zip.outputStream.pipe(fs.createWriteStream("tmp/" + board.id + ".zip")).on("close", function(done) {
+        console.log("Done writing zip!");
+        cb(null);
+      });
+    });
+  });
+}
+
+publish = fibrous(function(tmp, board)
+{
+  fs.rename.sync(tmp + "template.pdf", "tmp/" + board.id + ".pdf");
 });
