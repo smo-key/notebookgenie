@@ -5,7 +5,7 @@ var s = require("string");
 var d = require("do");
 var flow = require('nimble');
 var OAuth = require('oauth').OAuth;
-var t2t = require("./trello2latex.js");
+var t2t = require("./genie.js");
 var svr = require("../server.js");
 var date = require("./date.js");
 var pandoc = require('pdc');
@@ -61,9 +61,9 @@ function download(url, cb)
 }
 exports.download = download;
 
-exports.downloadfile = function downloadfile(url, filename, cb)
+exports.downloadfile = function downloadfile(url, filename, carry, cb)
 {
-  console.log("FILE START WRITE - " + filename);
+  //note: special "carry" info used for Future purposes
   var file = fs.createWriteStream(filename);
   try {
     https.get(url, function(res) {
@@ -72,7 +72,7 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
-        cb(true);
+        cb(null, carry);
       });
     });
   } catch (e) {
@@ -83,17 +83,15 @@ exports.downloadfile = function downloadfile(url, filename, cb)
       });
       res.on('end', function () {
         file.end();
-        console.log("FILE END WRITE! - " + filename);
-        cb(true);
+        cb(null, carry);
       });
     }).on('error', function(e) {
-      console.log(e);
       throw e;
     });
     } catch(e) {
-      console.log(e);
-      console.log("FILE ERROR! - " + filename);
-      cb(false);
+      console.error(e);
+      console.error("FILE ERROR! - " + filename);
+      cb(e, carry);
     }
   }
 }
@@ -106,7 +104,7 @@ function trello(u, auth, odata, cb)
   if (!isnull(auth))
   {
     //must be private - get via OAuth
-    console.log("PRIVATE GET: " + url);
+    //console.log("PRIVATE GET: " + url);
     oauth = new OAuth(odata.requestURL, odata.accessURL, odata.key, odata.secret, "1.0", odata.callbackURL, "HMAC-SHA1");
     oauth.getProtectedResource(url, "GET", auth.accessToken, auth.accessTokenSecret, function(error, data, response) {
       if (error) { cb(true, error); return; }
@@ -124,7 +122,7 @@ function trello(u, auth, odata, cb)
     } else {
       url = url +  "?key=" + odata.key;
     }
-    console.log("PUBLIC GET: " + url);
+    //console.log("PUBLIC GET: " + url);
 
     download(url, function(data) {
       cb(false, JSON.parse(data));
@@ -221,7 +219,7 @@ exports.queueadd = function queueadd(public, id, uid, cardlist, authdata, odata,
     },
     function pushboard(cb)
     {
-      console.log(board);
+      //console.log(board);
       //check if nothing is building
       if (isnull(svr.stache.building))
       {
@@ -422,7 +420,7 @@ function prepTemplateDir(hasyml, dir, cb)
       if (!exports.isnull(ymldata)) ymlall = ymluserdata.toString().concat(ymldata.toString());
       else ymlall = ymluserdata;
       yml = yaml.safeLoad(ymlall);
-      console.log(yml);
+      //console.log(yml);
       if (yml === undefined || yml === null || yml.length === 0)
       {
         template.nooptions = true;
@@ -438,7 +436,7 @@ function prepTemplateDir(hasyml, dir, cb)
         for (var k in yml) {
           if (yml.hasOwnProperty(k)) {
             var v = { data: yml[k] };
-            console.log(v);
+            //console.log(v);
             v.istext = false;
             v.isselect = false;
             v.isblank = false;
@@ -467,7 +465,7 @@ function prepTemplateDir(hasyml, dir, cb)
                     v.options.push({ display: key, result: yml[k].options[key] });
                   }
                 }
-                console.log(v.options);
+                //console.log(v.options);
               }
               if (yml[k].type == 'blank')
               { v.isblank = true; v.default = yml[k].default || ""; v.noblank = yml[k].noblank || false; }
@@ -483,8 +481,8 @@ function prepTemplateDir(hasyml, dir, cb)
         }
 
         //FIXME IMPORTANT add sending template options to the render function
-        console.log("ADDING TEMPLATE OPTIONS!");
-        console.log(templateopt);
+        //console.log("ADDING TEMPLATE OPTIONS!");
+        //console.log(templateopt);
         console.log("JUST ADDED TEMPLATE OPTIONS!");
 
         exports.templates.push(template);
