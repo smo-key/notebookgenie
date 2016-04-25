@@ -184,31 +184,28 @@ getlists = function(tmp, b, raw, board, u, odata, cb) {
   var max = raw.lists.length;
   var futurelists = [ ];
 
-  async.eachLimit(raw.lists, 8, function(_list, cblist)
+  for (var i=0;i<raw.lists.length;i++)
   {
-    util.trello("/lists/" + _list.id + "?cards=open", b.auth, odata, function(e, _list)
-    {
-      if (e) console.error(e.stack);
-      var future = Future.wrap(buildlist)(_list, tmp, b, u, odata);
-      futurelists.push(future);
-      cblist();
-    });
-  }, function(err)
+    var _list = raw.lists[i];
+    console.log("Prepare list " + _list.name);
+    _list = util.trello.sync("/lists/" + _list.id + "?cards=open", b.auth, odata);
+    var future = Future.wrap(buildlist)(_list, tmp, b, u, odata);
+    futurelists.push(future);
+  }
+
+  fibrous.run(function()
   {
-    fibrous.run(function()
+    var data = fibrous.wait(futurelists);
+    for (var i=0; i<data.length; i++)
     {
-      if (err) console.error(err.stack);
-      var data = fibrous.wait(futurelists);
-      for (var i=0; i<data.length; i++)
-      {
-        if (!util.isnull(data[i]))
-          board.lists.push(data[i]);
-      }
-    }, function(err1, result)
-    {
-      if (err1) console.error(err1.stack);
-      cb(null, board);
-    });
+      if (!util.isnull(data[i]))
+        board.lists.push(data[i]);
+    }
+  }, function(err1, result)
+  {
+    if (err1) console.error(err1.stack);
+    board.lists = board.lists.sortByProp('pos');
+    cb(null, board);
   });
 };
 
@@ -224,42 +221,42 @@ buildlist = function(_list, tmp, b, u, odata, cbbuildlist)
 
   if (s(list.name).startsWith("!"))
   {
-    cbbuildlist();
+    cbbuildlist(null, null);
     return;
   }
-  if (list.name.trim() == "NotebookGenie Front Matter" ||
+
+  /*if (list.name.trim() == "NotebookGenie Front Matter" ||
     list.name.trim() == "Notebook Genie Front Matter")
   {
     //FIXME FRONT MATTER!
-  }
+  }*/
 
-  async.eachLimit(_list.cards, 8, function(_card, cbcard)
+  for (var i=0; i<_list.cards.length;i++)
   {
-    util.trello("/cards/" + _card.id + "?actions=commentCard,addAttachmentToCard,deleteAttachmentFromCard" +
+    var _card = _list.cards[i];
+    _card = util.trello.sync("/cards/" + _card.id + "?actions=commentCard,addAttachmentToCard,deleteAttachmentFromCard" +
     "&actions_limit=1000&action_memberCreator_fields=fullName,initials,username,url" +
     "&attachments=true&membersVoted=true" +
     "&membersVoted_fields=fullName,initials,username,url&checklists=all" +
     "&members=true&member_fields=fullName,initials,username,url",
-    b.auth, odata, function(e, _card)
-    {
-      var future = Future.wrap(buildcard)(_card, tmp, b, u, list.name, odata);
-      futurecards.push(future);
-      cbcard();
-    });
-  }, function(err)
+    b.auth, odata);
+    var future = Future.wrap(buildcard)(_card, tmp, b, u, list.name, odata);
+    futurecards.push(future);
+  }
+
+  fibrous.run(function()
   {
-    fibrous.run(function()
+    var data = fibrous.wait(futurecards);
+    for (var i=0; i<data.length; i++)
     {
-      if (err) console.error(err.stack);
-      var data = fibrous.wait(futurecards);
-      for (var i=0; i<data.length; i++)
-      {
-        if (!util.isnull(data[i])) list.cards.push(data[i]);
-      }
-    }, function(err1, result)
-    {
-      cbbuildlist(null, list);
-    });
+      if (!util.isnull(data[i])) list.cards.push(data[i]);
+    }
+    if (!util.isnull(list.cards) && list.cards.length > 0) { list.cards = list.cards.sortByProp('pos'); }
+  }, function(err, result)
+  {
+    if (s(list.name).startsWith("&"))
+      list.name = list.name.substring(1);
+    cbbuildlist(err, list);
   });
 };
 
@@ -272,7 +269,22 @@ buildcard = fibrous(function(_card, tmp, b, u, listname, odata)
 
   console.log("Starting card " + card.name);
 
-  card.desc = util.mark(_card.desc.trim());
+  if (!s(card.name).startsWith("&"))
+  {
+    //Regular card
+    card.desc = util.mark(_card.desc.trim());
+    card.frontmatter = false;
+  }
+  else if (!s(listname).startsWith("&")) {
+    card.frontmatter = true;
+  }
+  else {
+    //HTML front matter
+    console.log("Starting front matter card " + card.name);
+    card.desc = _card.desc;
+    card.name = card.name.substring(1);
+    card.frontmatter = true;
+  }
   card.lastmodified = _card.dateLastActivity;
   card.due = util.converttime(_card.due); //TODO friendly time format
   card.pos = _card.pos;
@@ -292,7 +304,7 @@ buildcard = fibrous(function(_card, tmp, b, u, listname, odata)
     card = card_getcomments.sync(_card, card, tmp, u);
 
     console.log("Finished card " + card.name);
-    console.log(card);
+    //console.log(card);
 
     return card;
   } catch (e) {
@@ -325,7 +337,7 @@ card_getchecklists = fibrous(function(_card, card)
     {
       var _item = _checklist.checkItems[j];
       if (_item.state == "incomplete") { var checked = false; } else { var checked = true; }
-      var item = { name: _item.name, pos: _item.pos, checked: checked };
+      var item = { name: util.mark(_item.name), pos: _item.pos, checked: checked };
       items.push(item);
     }
 
@@ -440,6 +452,7 @@ card_getcomments = fibrous(function(_card, card, tmp, u)
   }
 
   if(u.reverseorder == 'true') { card.comments = card.comments.reverse(); }
+
   return card;
 });
 
@@ -459,7 +472,7 @@ getotherdata = fibrous(function(_board, board)
   board.id = _board.shortLink;
   board.uid = _board.id;
   board.public = (_board.prefs.permissionLevel == "public");
-  
+
   if (util.isnull(_board.idOrganization)) { board.org.isorg = false; }
   else { board.org.isorg = true; }
   board.lastmodified = util.converttime(_board.dateLastActivity); //TODO make this from ISO -> human readable
@@ -493,7 +506,7 @@ muparse = fibrous(function(templatedir, tmp, board, u)
       }
     }
   });
-  console.log(view);
+  //console.log(view);
 
   //Copy template HTML
   console.log("Copying HTML file to tmp dir...");
