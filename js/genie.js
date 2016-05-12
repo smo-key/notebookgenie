@@ -18,7 +18,7 @@ exports.startbuild = function startbuild(b, u, odata, cardlist) {
   fibrous.run(function() {
     build.sync(b, u, odata);
   }, function(err, done) {
-    if (err) console.error(err.stack);
+    if (err) { console.error(err); console.error(err.stack); }
     console.log("[Genie] Builder exited!");
   });
 };
