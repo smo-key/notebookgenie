@@ -1,6 +1,6 @@
 {
   "name": "notebookgenie",
-  "version": "0.5.0",
+  "version": "0.9.0",
   "description": "NodeJS server that automagically converts a Trello board into a printable document",
   "main": "server.js",
   "dependencies": {
@@ -19,7 +19,7 @@
     "mustache": "^2.2.1",
     "ncp": "^2.0.0",
     "nimble": "0.0.2",
-    "node-uuid": "^1.4.3",
+    "node-uuid": "^1.4.7",
     "oauth": "^0.9.12",
     "pdc": "^0.2.2",
     "rimraf": "^2.3.1",
