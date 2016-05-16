@@ -36,6 +36,8 @@ curl -O http://www.princexml.com/download/prince-10r7-ubuntu14.04-amd64.tar.gz
 tar -xzvf prince-10r7-ubuntu14.04-amd64.tar.gz
 cd prince-10r7-ubuntu14.04-amd64
 ./install.sh
+# download and install PDFToolkit
+apt-get install pdftk
 ```
 
 [dep-image]: https://david-dm.org/smo-key/notebookgenie.svg?style=flat
