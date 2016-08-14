@@ -242,7 +242,7 @@ app.use('/api/authorize', function(req, res) {
     oauth_secrets[token].auth = { };
     oauth_secrets[token].auth.token = token;
     oauth_secrets[token].auth.tokenSecret = tokenSecret;
-    console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
+    //console.log("TOKENS: " + token + " SECRET: " + tokenSecret + " RESULTS: " + results + " ERROR: " + error);
     util.sendjson({ url: odata.authorizeURL + "?oauth_token=" + token + "&name=" + config.appname + "&expiration=1day" }, res);
   });
 //  });
