@@ -11,7 +11,7 @@ Some installation is required to get this running server-side. Run this on a Deb
 
 ``` bash
 apt-get install nodejs npm
-npm install -g bower gulp
+npm install -g bower gulp-cli
 cd <installdir>
 npm install
 git submodule init && git submodule update
